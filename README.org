@@ -64,3 +64,35 @@ management code, and to the custom mission code itself.
 
 The Package Manager is most visible as the IMPORT function that is
 called to cause a package to be loaded.
+
+** What is a Package?
+
+A package is a collection of kOS code that as a collection provides a
+well-defined service.
+
+Given that STORAGE SPACE and PROCESSOR TIME are limited ...
+
+Packages are encouraged to have the following properties:
+
+- IMPORT("...") lines at the top of the package.
+
+  Importing all packages as early as possible helps defend
+  against being unable to import a package later, when the
+  mission does not have a connection to the archive.
+
+  Feel free to violate this rule if your mission plan can
+  guarantee an archive connection when doing a "late load"
+  of a package; this might be useful for a long mission where
+  not all of the code fits in vessel storage.
+
+- No significant work done during package load. The package
+  may be loaded a number of times before it is ever used, and
+  a number of times after is is no longer needed. Extra time
+  spent doing work is simply wasted. Instead, define a function
+  that does initialization, and call it when appropriate.
+
+- Avoid "growing package syndrome."
+
+  Do not add big chunks of code to a package that do things that
+  most clients of the package do not want or need. Instead, make
+  a different package that provides the additional features.
