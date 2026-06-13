@@ -96,3 +96,26 @@ Packages are encouraged to have the following properties:
   Do not add big chunks of code to a package that do things that
   most clients of the package do not want or need. Instead, make
   a different package that provides the additional features.
+
+* What is Literate Programming?
+
+Literate Programming is the idea that one can author software in such
+a way that documentation and code can coexist in a way that allows
+efficient extraction of the actual code and efficient extraction of
+documentation.
+
+I do not make "expert" use of the literate programming facilites
+available to me. My usage is much simpler, just allowing me to mix
+documentation and code together in one file (in a probably ultimately
+futile attempt to TRY to assure that documentation always matches
+code), while being able to extract the actual program.
+
+This matters for kOS programs: comments in the code take up precious
+space in the limited storage on the processor. This can be avoided
+by COMPILING the KS files into KSM files, but that introduces enough
+overhead that it is not a "win" for small files.
+
+Since my goal is a lot of very small files, each of which is going
+to need some significant commentary, I have chosen to use a small
+part of the literate programming facility in EMACS ORG mode to
+generate files containing only the Kerboscript code.
