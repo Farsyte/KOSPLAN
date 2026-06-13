@@ -2,3 +2,13 @@ KOSPLAN: Mission Plan Manager for kOS on Kerbal Space Program
 
 This project is intended to be a "green field" implementaion of a
 Mission Plan Manager for the kOS add-on for Kerbal Space Program.
+
+* What is a Mission Plan Manager?
+
+The primary task of the Mission Plan Manager is to handle the
+execution of a Mission Plan during a flight.
+
+This implies the ability to construct the mission plan from a
+sequence of steps, to keep track of which step is currently
+being executed, and to run the proper steps at the proper
+time during the mission.
