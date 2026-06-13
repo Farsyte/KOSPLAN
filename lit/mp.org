@@ -1,0 +1,105 @@
+mp.ks - Mission Plan Manager
+
+The mission plan is a simple sequential list
+of function delegates, each of which contains
+code that computes, decides, and acts in a way
+appropriate to the current mission step.
+
+Mission step functions return how long to wait
+before the next call.
+
+Mission step functions explicitly call a method
+in the mission plan manager to indicate that it
+is time to move on to the next step.
+
+
+* imports: [FUTURE] mp needs the nv package.
+
+#+begin_src ks :results none :tangle ../Archive/mp.ks
+  // import("nv").
+#+end_src
+
+* mpl: list of steps in the plan
+
+This list starts empty at every reboot; the mission GO
+function is responsible for adding steps.
+
+#+begin_src ks :results none :tangle ../Archive/mp.ks
+  set mpl to list().
+#+end_src
+
+* mpi: current step number
+
+This value starts at zero when we initially roll out
+the vessel; [FUTURE] the value is stored in nonvolatile storage
+to be recovered after a reboot.
+
+Note [FUTURE] that when the MP package is activated, this value
+will be out of range, until the GO function has added
+the mission steps to the list.
+
+#+begin_src ks :results none :tangle ../Archive/mp.ks
+  set mpi to 0. // nvget(1,"mpi",0).
+#+end_src
+
+* mpadd(d): add a delegate to the mission step list.
+
+The value passed must be a delegate to a function
+that returns how long to delay until the next
+step call, and which uses mpinc() to advance
+the step counter when appropriate.
+
+The function must handle being called before
+it expects to be called, or being called well
+after it expects to be called.
+
+#+begin_src ks :results none :tangle ../Archive/mp.ks
+  set mpadd to { parameter d. mpl:add(d). }.
+#+end_src
+
+* mponce(d): add a "do this once and go on" step.
+
+This adds a mission step with some boilerplate
+around it so it is done once, and we continue
+on to the next mission step immediately.
+
+#+begin_src ks :results none :tangle ../Archive/mp.ks
+  set mponce to { parameter d. mpl:add({ d(). return mpinc(). }). }.
+#+end_src
+
+* mpsay(m): add a "print this message and go on" step.
+
+This adds a mission step with some boilerplate
+around it so it is done once, and we continue
+on to the next mission step immediately.
+
+#+begin_src ks :results none :tangle ../Archive/mp.ks
+  set mpsay to { parameter s. mpl:add({ print s. return mpinc(). }). }.
+#+end_src
+
+* mpinc(): increment the mission step number.
+
+This function notifies the mission plan manager
+that the next step call should use the next
+step on the step list.
+
+#+begin_src ks :results none :tangle ../Archive/mp.ks
+  set mpinc to { parameter t is 0.
+  set mpi to mpi + 1.
+  // nvput(1, "mpi", mpi).
+  return t. }.
+#+end_src
+
+* mprun(): run the mission plan.
+
+Repeatedly process the "current" step, with an
+appropriate delay after each call. Terminate if
+the ABORT action group is active, or if the
+step index goes off the end of the list.
+
+#+begin_src ks :results none :tangle ../Archive/mp.ks
+  set mprun to {
+  until abort or mpi>=mpl:length {
+  local dt is mpl[mpi]().
+  if dt>0 wait dt. }}.
+#+end_src
