@@ -1,0 +1,18 @@
+gonew.ks -- template GO script
+
+This is the initial GO script that will be automatically
+provided to all new vessels, when the GO script from the
+root of the archive runs.
+
+* Provide an informative GO function.
+
+Since this is a template, just print some
+hints to the engineer when the GO function
+is executed.
+
+#+begin_src ks :results none :tangle ../Archive/gonew.ks
+  function go {
+    print "STUB: please add mission code to ".
+    print "  "+home:combine("go.ks").
+  }
+#+end_src
