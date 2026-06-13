@@ -1,0 +1,126 @@
+nv.ks - Non-Volatile Storage.
+
+CUSTOMARY INTERFACE:
+
+- nvput(D,N,U) Set D:N to U. Returns U.
+- nvget(D,N,U) Return D:N, or U if D has no N.
+
+RESTRICTIONS:
+
+- values of D indicate which volume.
+  D=0 indicates the data is stored on the Archive
+  D=1 indicates the data is stored on the Vessel
+  Behavior is UNDEFINED for other values of D.
+
+- values of N are names for the persisted item.
+  These names must be valid kOS SUFFIX names,
+  which do not conflict with suffixes of the LEX class.
+  These names must be valid Windows filenames.
+  These names must be valid Linux filesnames.
+
+  Strongly suggested these names are a letter,
+  followed by zero or more letters and digits.
+
+  Name matching may or may not be case sensitive,
+  so do not use two distinct names that differ
+  only in case; and always use the same case
+  when getting data as when you put the data.
+
+NOTE: it is a bit awkward that we can not have
+variables called V and R ...
+
+* nve[typename]: function to encode data of given typename.
+
+Functions in this lex take a single parameter of the
+appropriate type, and return a string that encodes
+the type of the value and the value.
+
+#+begin_src ks :results none :tangle ../Archive/nv.ks
+  set nve to lex().
+#+end_src
+
+** nve:Scalar -- encode a scalar.
+
+#+begin_src ks :results none :tangle ../Archive/nv.ks
+  set nve:Scalar to { parameter u. return u:tostring. }.
+#+end_src
+
+** nve:String -- encode a string.
+
+#+begin_src ks :results none :tangle ../Archive/nv.ks
+  set nve:String to { parameter u. return """"+u. }.
+#+end_src
+ 
+* nvd[D]: PATH to storage on each volume D.
+
+#+begin_src ks :results none :tangle ../Archive/nv.ks
+  set nvd to list(home, path("1:")).
+#+end_src
+
+* nvf(d,n): return filename on D to store N.
+
+#+begin_src ks :results none :tangle ../Archive/nv.ks
+  set nvf to { parameter d, n. return nvd[d]:combine("nv.d", n). }.
+#+end_src
+
+* nvl[N]: lexicon of named values
+
+#+begin_src ks :results none :tangle ../Archive/nv.ks
+  set nvl to lex().
+#+end_src
+
+* nvp(f,n,u): encode a value into a file
+
+#+begin_src ks :results none :tangle ../Archive/nv.ks
+  set nvp to { parameter f,n,u.
+  set nvl[n] to u. set e to nve[u:typename](u).
+  if not exists(f) create(f). set f to open(f). f:clear. f:write(e).
+  return u. }.
+#+end_src
+
+* nvput(d,n,u): get value stored on D of N (or U if not set).
+
+#+begin_src ks :results none :tangle ../Archive/nv.ks
+  set nvput to { parameter d,n,u.
+  if nvl:haskey(n) and nvl[n] = u return.
+  return nvp(nvf(d,n),n,u). }.
+#+end_src
+
+* nvget(d,n,u): get value stored on D of N (or U if not set).
+
+#+begin_src ks :results none :tangle ../Archive/nv.ks
+  set nvget to { parameter d,n,u.
+#+end_src
+
+** If we know the value, return it.
+
+#+begin_src ks :results none :tangle ../Archive/nv.ks
+  if nvl:haskey(n) return nvl[n].
+#+end_src
+
+** If the file does not exist, use the default.
+
+#+begin_src ks :results none :tangle ../Archive/nv.ks
+  set f to nvf(d,n).
+  if not exists(f) return nvp(f,n,u).
+#+end_src
+
+** Read the file. If empty, use the default.
+
+#+begin_src ks :results none :tangle ../Archive/nv.ks
+  set c to open(f):readall().
+  if c:empty return nvp(f,n,u).
+  set c to c:string.
+#+end_src
+
+** Leading double-quote means the content is a string.
+
+#+begin_src ks :results none :tangle ../Archive/nv.ks
+  if c:startswith("""") return c:remove(0,1).
+#+end_src
+    
+** Assume anything else is a Scalar.
+
+#+begin_src ks :results none :tangle ../Archive/nv.ks
+  return c:toscalar(0).}.
+#+end_src

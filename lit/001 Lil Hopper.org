@@ -1,0 +1,106 @@
+go.ks -- GO script for the Lil Hopper
+
+This script manages the flight of the Lil Hopper, which is
+super simple: ignite the booster, fly up and east, activate
+the parachute on the way down, land safely.
+
+NOTE: be sure to splash down in the water. We may be coming
+down too fast to survive impact on solid ground.
+
+* Import Required Packages
+
+#+begin_src ks :results none :tangle ../Archive/home/Aben/Simple/001 Lil Hopper/go.ks
+  import("mp").
+  import("nv").
+#+end_src
+
+* Select Mission Parameters.
+
+#+begin_src ks :results none :tangle ../Archive/home/Aben/Simple/001 Lil Hopper/go.ks
+  set pitchover_altitude to nvget(1,"pitchover_altitude",50).
+  set launch_azimuth to nvget(1,"launch_azimuth",90).
+  set pitchover_angle to nvget(1,"pitchover_angle",2).
+  set parachute_altitude to nvget(1,"parachute_altitude",3000).
+  set landing_altitude to nvget(1,"landing_altitude",50).
+#+end_src
+
+* Define Mission Phases
+
+** launch_hold: from roll-out until engineer ignites engines
+
+#+begin_src ks :results none :tangle ../Archive/home/Aben/Simple/001 Lil Hopper/go.ks
+  set launch_hold to { if maxthrust>0 return mpinc().
+  return 1/10. }.
+#+end_src
+
+** clear_gantry: attitude hold until above launchpad obstructions
+
+#+begin_src ks :results none :tangle ../Archive/home/Aben/Simple/001 Lil Hopper/go.ks
+  set liftoff to { if alt:radar>=pitchover_altitude return mpinc().
+  lock throttle to 1.
+  lock steering to facing.
+  return 1/10. }.
+#+end_src
+
+** ascent: point prograde until max altitude
+
+#+begin_src ks :results none :tangle ../Archive/home/Aben/Simple/001 Lil Hopper/go.ks
+  set ascent to { if verticalspeed <= 0 return mpinc().
+  lock pitch to max(-90,min(90-pitchover_angle, 90-vang(up:vector,velocity:surface))).
+  lock steering to heading(launch_azimuth,pitch,0).
+  lock throttle to 1.
+  return 1/10. }.
+#+end_src
+
+** descent: point prograde until time to activate chutes
+
+#+begin_src ks :results none :tangle ../Archive/home/Aben/Simple/001 Lil Hopper/go.ks
+  set descent to { if alt:radar <= parachute_altitude { stage. return mpinc(). }
+  lock steering to heading(launch_azimuth,pitch,0).
+  lock throttle to 0.
+  return 1/10. }.
+#+end_src
+
+** chute: attitude hold until very near the ground
+
+#+begin_src ks :results none :tangle ../Archive/home/Aben/Simple/001 Lil Hopper/go.ks
+  set chute to { if alt:radar <= landing_altitude return mpinc().
+  lock steering to facing.
+  return 1/10. }.
+#+end_src
+
+** landing: push nose to vertical until landed
+
+#+begin_src ks :results none :tangle ../Archive/home/Aben/Simple/001 Lil Hopper/go.ks
+  set landing to { if verticalspeed >= 0 return mpinc().
+  lock steering to heading(launch_azimuth,90,0).
+  return 1/10. }.
+#+end_src
+
+** parking: push nose horizontal toward launch azimuth
+
+#+begin_src ks :results none :tangle ../Archive/home/Aben/Simple/001 Lil Hopper/go.ks
+  set parking to {
+  lock steering to heading(launch_azimuth,0,0).
+  return 1. }.
+#+end_src
+
+* Provide a GO function.
+
+This function is executed by IMPORT when it
+finds nothing more specific for this mission.
+
+#+begin_src ks :results none :tangle ../Archive/home/Aben/Simple/001 Lil Hopper/go.ks
+  set go to {
+  mponce({print "Press SPACE to go toward SPACE".}).
+  mpadd(launch_hold).
+  mpadd(liftoff).
+  mpadd(ascent).
+  mpadd(descent).
+  mpadd(chute).
+  mpadd(landing).
+  mpadd(parking).
+  mprun().
+  }.
+#+end_src
+
