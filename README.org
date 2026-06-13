@@ -1,0 +1,98 @@
+KOSPLAN: Mission Plan Manager for kOS on Kerbal Space Program
+
+This project is intended to be a "green field" implementaion of a
+Mission Plan Manager for the kOS add-on for Kerbal Space Program.
+
+* What is a Mission Plan Manager?
+
+The primary task of the Mission Plan Manager is to handle the
+execution of a Mission Plan during a flight.
+
+This implies the ability to construct the mission plan from a
+sequence of steps, to keep track of which step is currently
+being executed, and to run the proper steps at the proper
+time during the mission.
+
+* What is a Mission Plan?
+
+At its core, a Mission Plan is simply a linear list of Mission Steps,
+each of which encapsulates some kOS scripting to be executed by the
+vessel. Each step will indicate how long to delay after running the
+step, and will explicitly change the current step when it is time to
+move along to the next step.
+
+* What is a Mission Step?
+
+A mission step is a kOS function that runs during a specific part
+of the mission, usually performing some computations and making
+some decisions. Two important decisions are how long to delay
+after the function returns, and which step to run next.
+
+If a given Step of a mission may take a long time, the associated
+function must be able to handle being "restarted" in the middle of
+that part of the mission. This is easy if the functions are kept
+simple and fast, with no "blocking" operations.
+
+This also means that if a step says "call me back in ten minutes"
+it must provide predictable and acceptable results when called back
+after one minute, or if not called back until twenty minutes later.
+
+* What is Persistant Data?
+
+For some missions, the processor might boot up when we roll it out
+onto the launchpad, and keep running until we recover the vessel
+at the end of the missions. But this is not always true; so when
+the Mission Plan Manager starts up, it needs to remember what
+step of the mission it was doing.
+
+If we have a variable (such as "which step are we on?") that we
+want to remember across a reboot, we need to record its value
+to vessel storage when it changes, and we need to be able to
+recover its value from vessel storage when we need it.
+
+* What is a Package Manager?
+
+Since we are trying to make code that can be re-used in multiple
+missions, this means we have a library somewhere that has a collection
+of files; and a way to pick the code we want out of the libary so we
+can re-use it.
+
+This applies not only to existing Mission Steps, but to all of the
+various functions, subroutines, methods, whatever you want to call
+them, that provide well-defined services to those steps, to the
+management code, and to the custom mission code itself.
+
+The Package Manager is most visible as the IMPORT function that is
+called to cause a package to be loaded.
+
+** What is a Package?
+
+A package is a collection of kOS code that as a collection provides a
+well-defined service.
+
+Given that STORAGE SPACE and PROCESSOR TIME are limited ...
+
+Packages are encouraged to have the following properties:
+
+- IMPORT("...") lines at the top of the package.
+
+  Importing all packages as early as possible helps defend
+  against being unable to import a package later, when the
+  mission does not have a connection to the archive.
+
+  Feel free to violate this rule if your mission plan can
+  guarantee an archive connection when doing a "late load"
+  of a package; this might be useful for a long mission where
+  not all of the code fits in vessel storage.
+
+- No significant work done during package load. The package
+  may be loaded a number of times before it is ever used, and
+  a number of times after is is no longer needed. Extra time
+  spent doing work is simply wasted. Instead, define a function
+  that does initialization, and call it when appropriate.
+
+- Avoid "growing package syndrome."
+
+  Do not add big chunks of code to a package that do things that
+  most clients of the package do not want or need. Instead, make
+  a different package that provides the additional features.
