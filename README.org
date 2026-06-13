@@ -36,3 +36,16 @@ simple and fast, with no "blocking" operations.
 This also means that if a step says "call me back in ten minutes"
 it must provide predictable and acceptable results when called back
 after one minute, or if not called back until twenty minutes later.
+
+* What is Persistant Data?
+
+For some missions, the processor might boot up when we roll it out
+onto the launchpad, and keep running until we recover the vessel
+at the end of the missions. But this is not always true; so when
+the Mission Plan Manager starts up, it needs to remember what
+step of the mission it was doing.
+
+If we have a variable (such as "which step are we on?") that we
+want to remember across a reboot, we need to record its value
+to vessel storage when it changes, and we need to be able to
+recover its value from vessel storage when we need it.
