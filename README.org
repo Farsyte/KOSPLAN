@@ -49,3 +49,18 @@ If we have a variable (such as "which step are we on?") that we
 want to remember across a reboot, we need to record its value
 to vessel storage when it changes, and we need to be able to
 recover its value from vessel storage when we need it.
+
+* What is a Package Manager?
+
+Since we are trying to make code that can be re-used in multiple
+missions, this means we have a library somewhere that has a collection
+of files; and a way to pick the code we want out of the libary so we
+can re-use it.
+
+This applies not only to existing Mission Steps, but to all of the
+various functions, subroutines, methods, whatever you want to call
+them, that provide well-defined services to those steps, to the
+management code, and to the custom mission code itself.
+
+The Package Manager is most visible as the IMPORT function that is
+called to cause a package to be loaded.
