@@ -1,0 +1,4 @@
+KOSPLAN: Mission Plan Manager for kOS on Kerbal Space Program
+
+This project is intended to be a "green field" implementaion of a
+Mission Plan Manager for the kOS add-on for Kerbal Space Program.
