@@ -12,3 +12,11 @@ This implies the ability to construct the mission plan from a
 sequence of steps, to keep track of which step is currently
 being executed, and to run the proper steps at the proper
 time during the mission.
+
+* What is a Mission Plan?
+
+At its core, a Mission Plan is simply a linear list of Mission Steps,
+each of which encapsulates some kOS scripting to be executed by the
+vessel. Each step will indicate how long to delay after running the
+step, and will explicitly change the current step when it is time to
+move along to the next step.
