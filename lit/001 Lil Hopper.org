@@ -11,16 +11,17 @@ down too fast to survive impact on solid ground.
 
 #+begin_src ks :results none :tangle ../Archive/home/Aben/Simple/001 Lil Hopper/go.ks
   import("mp").
+  import("nv").
 #+end_src
 
 * Select Mission Parameters.
 
 #+begin_src ks :results none :tangle ../Archive/home/Aben/Simple/001 Lil Hopper/go.ks
-  set pitchover_altitude to 50.
-  set launch_azimuth to 90.
-  set pitchover_angle to 2.
-  set parachute_altitude to 3000.
-  set landing_altitude to 50.
+  set pitchover_altitude to nvget(1,"pitchover_altitude",50).
+  set launch_azimuth to nvget(1,"launch_azimuth",90).
+  set pitchover_angle to nvget(1,"pitchover_angle",2).
+  set parachute_altitude to nvget(1,"parachute_altitude",3000).
+  set landing_altitude to nvget(1,"landing_altitude",50).
 #+end_src
 
 * Define Mission Phases

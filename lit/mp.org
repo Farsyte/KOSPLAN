@@ -13,10 +13,10 @@ in the mission plan manager to indicate that it
 is time to move on to the next step.
 
 
-* imports: [FUTURE] mp needs the nv package.
+* imports: mp needs the nv package.
 
 #+begin_src ks :results none :tangle ../Archive/mp.ks
-  // import("nv").
+  import("nv").
 #+end_src
 
 * mpl: list of steps in the plan
@@ -31,15 +31,15 @@ function is responsible for adding steps.
 * mpi: current step number
 
 This value starts at zero when we initially roll out
-the vessel; [FUTURE] the value is stored in nonvolatile storage
+the vessel; the value is stored in nonvolatile storage
 to be recovered after a reboot.
 
-Note [FUTURE] that when the MP package is activated, this value
+Note that when the MP package is activated, this value
 will be out of range, until the GO function has added
 the mission steps to the list.
 
 #+begin_src ks :results none :tangle ../Archive/mp.ks
-  set mpi to 0. // nvget(1,"mpi",0).
+  set mpi to nvget(1,"mpi",0).
 #+end_src
 
 * mpadd(d): add a delegate to the mission step list.
@@ -85,8 +85,7 @@ step on the step list.
 
 #+begin_src ks :results none :tangle ../Archive/mp.ks
   set mpinc to { parameter t is 0.
-  set mpi to mpi + 1.
-  // nvput(1, "mpi", mpi).
+  set mpi to nvput(1, "mpi", mpi + 1).
   return t. }.
 #+end_src
 

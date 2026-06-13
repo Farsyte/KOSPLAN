@@ -1,10 +1,10 @@
 import("mp").
-print "loading Lil Hopper code".
-set pitchover_altitude to 50.
-set launch_azimuth to 90.
-set pitchover_angle to 2.
-set parachute_altitude to 3000.
-set landing_altitude to 50.
+import("nv").
+set pitchover_altitude to nvget(1,"pitchover_altitude",50).
+set launch_azimuth to nvget(1,"launch_azimuth",90).
+set pitchover_angle to nvget(1,"pitchover_angle",2).
+set parachute_altitude to nvget(1,"parachute_altitude",3000).
+set landing_altitude to nvget(1,"landing_altitude",50).
 set launch_hold to { if maxthrust>0 return mpinc().
 return 1/10. }.
 set liftoff to { if alt:radar>=pitchover_altitude return mpinc().
@@ -32,17 +32,11 @@ return 1. }.
 set go to {
 mponce({print "Press SPACE to go toward SPACE".}).
 mpadd(launch_hold).
-mponce({print "LIFTOFF".}).
 mpadd(liftoff).
-mponce({print "PITCHOVER by "+pitchover_angle+" at "+round(alt:radar,1)+" m.".}).
 mpadd(ascent).
-mponce({print "DESCENT from max altitude "+round(alt:radar/1000,1)+" km".}).
 mpadd(descent).
-mponce({print "PARACHUTE armed at "+round(alt:radar/1000,1)+" km".}).
 mpadd(chute).
-mponce({print "LANDING mode activated at "+round(alt:radar/1000,1)+" km".}).
 mpadd(landing).
-mponce({print "PARKING".}).
 mpadd(parking).
 mprun().
 }.
