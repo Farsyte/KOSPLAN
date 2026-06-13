@@ -1,4 +1,3 @@
-function go {
-  print "STUB: please add mission code to ".
-  print "  "+home:combine("go.ks").
-}
+set go to {
+print "STUB: please add mission code to ".
+print "  "+home:combine("go.ks"). }.

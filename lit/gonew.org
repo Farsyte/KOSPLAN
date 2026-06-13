@@ -6,13 +6,16 @@ root of the archive runs.
 
 * Provide an informative GO function.
 
-Since this is a template, just print some
-hints to the engineer when the GO function
-is executed.
+GO packages must provide a global called GO
+that can be called by saying GO().
 
 #+begin_src ks :results none :tangle ../Archive/gonew.ks
-  function go {
-    print "STUB: please add mission code to ".
-    print "  "+home:combine("go.ks").
-  }
+  set go to {
+#+end_src
+
+** Inform the flight engineer that he needs to edit code.
+
+#+begin_src ks :results none :tangle ../Archive/gonew.ks
+  print "STUB: please add mission code to ".
+  print "  "+home:combine("go.ks"). }.
 #+end_src
