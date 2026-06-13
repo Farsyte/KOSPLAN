@@ -20,3 +20,19 @@ each of which encapsulates some kOS scripting to be executed by the
 vessel. Each step will indicate how long to delay after running the
 step, and will explicitly change the current step when it is time to
 move along to the next step.
+
+* What is a Mission Step?
+
+A mission step is a kOS function that runs during a specific part
+of the mission, usually performing some computations and making
+some decisions. Two important decisions are how long to delay
+after the function returns, and which step to run next.
+
+If a given Step of a mission may take a long time, the associated
+function must be able to handle being "restarted" in the middle of
+that part of the mission. This is easy if the functions are kept
+simple and fast, with no "blocking" operations.
+
+This also means that if a step says "call me back in ten minutes"
+it must provide predictable and acceptable results when called back
+after one minute, or if not called back until twenty minutes later.
