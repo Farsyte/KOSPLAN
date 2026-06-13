@@ -1,0 +1,104 @@
+go.ks -- GO script for the Lil Hopper
+
+This script manages the flight of the Lil Hopper, which is
+super simple: ignite the booster, fly up and east, activate
+the parachute on the way down, land safely.
+
+NOTE: be sure to splash down in the water. We may be coming
+down too fast to survive impact on solid ground.
+
+* Select Mission Parameters.
+
+#+begin_src ks :results none :tangle ../Archive/home/Aben/Simple/001 Lil Hopper/go.ks
+  set launch_azimuth to 90.
+  set pitchover_altitude to 50.
+  set pitchover_angle to 2.
+  set parachute_altitude to 3000.
+  set landing_altitude to 50.
+#+end_src
+
+* Provide a GO function.
+
+This function is executed by IMPORT when it
+finds nothing more specific for this mission.
+
+#+begin_src ks :results none :tangle ../Archive/home/Aben/Simple/001 Lil Hopper/go.ks
+  function go {
+#+end_src
+
+** Hopper can be done without the full Mission Plan facillity.
+
+*** Calibrated Radar Altitude
+
+#+begin_src ks :results none :tangle ../Archive/home/Aben/Simple/001 Lil Hopper/go.ks
+  set h0 to alt:radar.
+  lock h to alt:radar-h0.
+#+end_src
+
+*** Wait for flight engineer ready
+
+#+begin_src ks :results none :tangle ../Archive/home/Aben/Simple/001 Lil Hopper/go.ks
+  brakes on.
+  clearscreen.
+  print " ".
+  print "Release BRAKES to Launch".
+  wait until not brakes.
+#+end_src
+
+*** Launch: hold attitude until pitchover_altitude.
+
+#+begin_src ks :results none :tangle ../Archive/home/Aben/Simple/001 Lil Hopper/go.ks
+  print "Launch Phase".
+  set h0 to alt:radar.
+  lock h to alt:radar - h0.
+  lock throttle to 1.
+  lock steering to facing.
+  stage. // ignite engines.
+  wait until h > pitchover_altitude.
+#+end_src
+
+*** Ascent: Pitch over toward launch azimuth
+
+#+begin_src ks :results none :tangle ../Archive/home/Aben/Simple/001 Lil Hopper/go.ks
+  print "Ascent Phase at "+round(h)+" m".
+  lock pitch to max(-90,min(90-pitchover_angle, 90-vang(up:vector,velocity:surface))).
+  print "Pitch-Over by "+pitchover_angle+" degrees.".
+  lock steering to heading(launch_azimuth,pitch,0).
+  wait until verticalspeed<=0.
+#+end_src
+
+*** Descent: Stay prograde until below parachute_altitude
+
+#+begin_src ks :results none :tangle ../Archive/home/Aben/Simple/001 Lil Hopper/go.ks
+  print "Descent Phase at "+round(h/1000,3)+" km".
+  wait until h < parachute_altitude.
+#+end_src
+
+*** Parachute: Float down on chutes, damping attitude changes
+
+#+begin_src ks :results none :tangle ../Archive/home/Aben/Simple/001 Lil Hopper/go.ks
+  print "Parachute Phase at "+round(h/1000,3)+" km".
+  stage. // activate parachute.
+  lock steering to facing.
+  wait until h < landing_altitude.
+#+end_src
+
+*** Flip to exactly nose-up for final landing
+
+#+begin_src ks :results none :tangle ../Archive/home/Aben/Simple/001 Lil Hopper/go.ks
+  print "Landing Phase at "+abs(round(verticalspeed,1))+" m/s".
+  lock steering to heading(launch_azimuth,90,0).
+  wait until verticalspeed >= 0.
+#+end_src
+
+*** Rotate nose to horizon for water access
+
+#+begin_src ks :results none :tangle ../Archive/home/Aben/Simple/001 Lil Hopper/go.ks
+  print "Mission Complete".
+  lock steering to heading(launch_azimuth,0,0).
+  wait until false.
+#+end_src
+
+#+begin_src ks :results none :tangle ../Archive/home/Aben/Simple/001 Lil Hopper/go.ks
+  }
+#+end_src
