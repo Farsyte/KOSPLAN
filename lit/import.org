@@ -1,0 +1,174 @@
+import.ks -- bootstrap the KOSPLAN system by loading IMPORT
+
+This code is FROZEN when the vessel rolls out.
+
+While it is possible for mission code to update the boot
+code or even to select an alternate boot script, nothing
+in KOSPLAN proides any automatic updates to boot code.
+
+Responsibilities:
+- Wait until we can safely do stuff.
+- Provide fundamental global state
+  - home: where to find or store files for this ship
+  - imported: record of packages that have been loaded
+- Provide the package manager
+  - import(p): update and activate a package
+- Start the mission code
+  - imports the GO package
+  - starts the GO function
+
+* wait until simulation is stable.
+
+#+begin_src ks :results none :tangle ../Archive/boot/import.ks
+  wait until ship:unpacked.
+#+end_src
+
+* home: where per-vessel files are stored
+
+Pick a place on the archive volume where files specific to this ship
+name are stored. The import package will look for other packages in
+this directory first, then look in its parent, and so on until it has
+checked the root directory of the archive.
+
+#+begin_src ks :results none :tangle ../Archive/boot/import.ks
+  set home to path("0:/home"):combine(ship:name).
+#+end_src
+
+* find: locate a package on the archive.
+
+Search the archive, starting at HOME and checking parent
+directories, for a Kerboscript file for the package, and
+return the filename. If not found, returns the filename
+for the package file in the home directory, which slightly
+improves the error message.
+
+REQUIRES: a connection to the archive.
+
+#+begin_src ks :results none :tangle ../Archive/boot/import.ks
+  set find to { parameter p.
+  set d to home.
+  until false {
+  set n to d:combine(p).
+  if exists(n) return n.
+  if d:length < 1 return home:combine(p).
+  set d to d:parent.}}.
+#+end_src
+
+* imported: uniqueset of imported package names
+
+Keep track of packages that have been imported, or are
+in the process of being imported. The first part assures
+that we do not do a lot of extra work when a package is
+imported by many other packages; the second part gives
+us automatic handling of circular dependencies.
+
+Note that if you actually have circular dependencies,
+you do not want any package to actually use stuff from
+other packages in the circle until after all importing
+is complete.
+
+#+begin_src ks :results none :tangle ../Archive/boot/import.ks
+  set ius to uniqueset("import").
+#+end_src
+
+* import(p): Update and Activate package (once per boot).
+
+Define the API for package import: just a function
+called IMPORT that takes the package name.
+
+Note that package names are PARTIALLY CASE SENSITIVE.
+
+NEVER have two packages whose names differ only in the
+case of some letters. If you have "foo" and "Foo" and
+"FOO", you might not have a good flight.
+
+ALWAYS use the correct letter case when importing a
+package. If you have a package "foo" and import "FOO"
+you might not have a good flight.
+
+#+begin_src ks :results none :tangle ../Archive/boot/import.ks
+  set import to { parameter p.
+#+end_src
+
+** return immediately if package already ius.
+
+Once a given package has been imported, any subsequent
+imports of that same package will do absolutely nothing,
+preventing us from repeatedly searching for, copying,
+and loading a package.
+
+Adding the package to the list immediately extends the
+facility to also catch circular dependencies. Packages
+that have circular dependencies are cautioned to not
+actually use facilities from the other packages in the
+dependency ring while they are being loaded.
+
+#+begin_src ks :results none :tangle ../Archive/boot/import.ks
+  if ius:contains(p) return.
+  ius:add(p).
+#+end_src
+
+** copy from archive, if we have a connection
+
+Checking for the presence of the connection is important
+for missions that may not always have a connection to
+the archive, whether due to being behind another body,
+or just by being way out in space beyond our network.
+
+If we have a connection, use FIND to locate the source
+file, and copy it to the root directory of the local
+nonvolatile storage for the procesor.
+
+ERROR HANDLING: Since we are tightly constrained for
+storage space, the most source-code-size way to catch
+and report an error (such as a typo in the pacakge name)
+is to just let COPYPATH report a FILE NOT FOUND error,
+which will halt the kOS processor.
+
+The flight engineer is expected to notice the situation,
+examine the text on the console, repair the code, and
+reboot the processor (possibly as part of a REVERT).
+
+#+begin_src ks :results none :tangle ../Archive/boot/import.ks
+  if homeconnection:isconnected
+  copypath(find(p), "").
+#+end_src
+
+** activate the package by running it.
+
+Whether updated or not, the package should exist
+in local storage. Run it.
+
+Normal procedure is to IMPORT all needed packages at the
+top of each script, which will assure that all packages
+used in a mission are present before the mission
+launches.
+
+If a mission is so complicated that it has to manage
+which packages are in local storage from mission phase
+to mission phase, it might attempt to IMPORT a new package
+when there is no connection to the archive.
+
+If this happens, the error -- needing a package that is
+not available -- will be reported by RUNPATH using its
+normal "file not found" method, which causes the kOS
+processor to halt.
+
+As above, the flight engineer is then expected to notice
+the situation, and revise the flight software to assure
+that the package is loaded during a flight phase where
+there is a connection to the archive.
+
+#+begin_src ks :results none :tangle ../Archive/boot/import.ks
+  runpath(p). }.
+#+end_src
+
+* Chain control to the "go" package for this mission.
+
+Once the IMPORT facility is available, it can be used to
+import the appropriate GO package, and run the GO
+function that the package is expected to provide.
+
+#+begin_src ks :results none :tangle ../Archive/boot/import.ks
+  import("go"). go().
+#+end_src
