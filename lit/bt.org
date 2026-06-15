@@ -1,0 +1,71 @@
+sbt - burn time computation
+
+* Import All Dependencies
+
+#+begin_src ks :results none :tangle ../Archive/bt.ks
+  import("math").
+  import("pre").
+#+end_src
+
+* bt(dv) -- convert ΔV to ΔT
+
+Given a desired change in velocity, work out based on
+the CURRENT state of the vessel how long it will take at
+100% throttle to finish that sized burn.
+
+#+begin_src ks :results none :tangle ../Archive/bt.ks
+  set bt to { parameter dv.
+  local dt is 0.
+#+end_src
+
+** Data Prep: "current stage" data.
+
+Stop when we have satisfied the ΔV or have run out of
+stages.
+
+#+begin_src ks :results none :tangle ../Archive/bt.ks
+  local s is stage:number.
+  local m is ship:mass.
+  local f is maxthrust.
+  local d is stage:deltav:vacuum.
+#+end_src
+
+#+begin_src ks :results none :tangle ../Archive/bt.ks
+  until false {
+#+end_src
+
+If this stage can produce thrust, work out how
+much ΔV of our remaining total it can supply,
+and how much ΔT is requires to do so.
+
+If this finishes the burn, we are done; otherwise,
+note the remaining ΔV.
+
+#+begin_src ks :results none :tangle ../Archive/bt.ks
+  local d is min(d, dv).
+  if d>0 and f>0 {
+  set dv to dv-d.
+  local gi is sisp[s].
+  local d is m * gi * (1 - e^(-d/gi)) / f.
+  set dt to dt + d.
+  if dv<=0 return dt. }
+#+end_src
+
+If that was stage zero, then we are done,
+despite not having retired all of dv.
+
+Otherwise, focus on the next stage up, allow
+some time for staging, and get the precomputed
+mass, thrust, and g*Isp for that stage.
+
+Then loop back up to the "until false" above
+to try to finish the burn.
+
+#+begin_src ks :results none :tangle ../Archive/bt.ks
+  if s<1 return dt.
+  set s to s - 1.
+  set dt to dt + 3. // allow 3 seconds for staging.
+  set m to swet[s].
+  set f to sthr[s].
+  set d to ship:stagedeltav(s):vacuum.}}.
+#+end_src
