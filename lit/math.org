@@ -1,0 +1,17 @@
+math - simple math stuff
+
+* Constants
+
+#+begin_src ks :results none :tangle ../Archive/math.ks
+  set pi to constant:pi.
+  set g0 to constant:g0.
+  set e to constant:e.
+  set inf to 10^30.
+  set eps to 1/inf.
+#+end_src
+
+* limit(lo,hi,val): 
+
+#+begin_src ks :results none :tangle ../Archive/math.ks
+  set limit to { parameter l,h,u. return max(l,min(h,u)). }.
+#+end_src
