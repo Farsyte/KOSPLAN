@@ -1,0 +1,95 @@
+fancystager.ks - fancy auto-stager
+
+* Import Required Packages
+
+#+begin_src ks :results none :tangle ../Archive/fancystager.ks
+  import("mp").
+#+end_src
+
+* Set up the fancystager delegate
+
+The "fancy" stager looks at a lists of
+engines and fuel tank parts that would
+be jettisoned at the current stage.
+
+A stage command is issued if all engines
+are flamed out and no useful amount of
+fuel remains in any of the tanks.
+
+#+begin_src ks :results none :tangle ../Archive/fancystager.ks
+  set fancystager to {
+#+end_src
+
+** Initialize engine and tank lists
+
+#+begin_src ks :results none :tangle ../Archive/fancystager.ks
+  local lol is { parameter n. local res is list().
+  until res:length >= n res:add(list()). return res. }.
+#+end_src
+
+*** loe: list of engines for stages 0 through stage:number
+
+#+begin_src ks :results none :tangle ../Archive/fancystager.ks
+  local loe is lol(stage:number+1).
+  for e in ship:engines
+  loe[e:decoupledin]:add(e).
+#+end_src
+
+*** lot: list of fuel resources for stages 0 through stage:number
+
+#+begin_src ks :results none :tangle ../Archive/fancystager.ks
+  local lot is lol(stage:number+1).
+  for p in ship:parts
+  for res in p:resources
+  if res:name="LiquidFuel"
+  lot[p:decoupledin]:add(list(p,res)).
+#+end_src
+
+** Start the scheduled job
+
+#+begin_src ks :results none :tangle ../Archive/fancystager.ks
+  local t is time:seconds.
+  local mt is 0.
+  when t <= time:seconds then {
+#+end_src
+
+*** Stop the periodic job on ABORT or STAGE ZERO.
+
+#+begin_src ks :results none :tangle ../Archive/fancystager.ks
+  if abort or stage:number<1 return false.
+#+end_src
+
+*** Pick the next scheduled time.
+
+#+begin_src ks :results none :tangle ../Archive/fancystager.ks
+  set t to time:seconds + 1. 
+#+end_src
+
+*** Early return: too low, or staging not ready.
+
+#+begin_src ks :results none :tangle ../Archive/fancystager.ks
+  if not stage:ready or alt:radar<100 return true.
+#+end_src
+
+*** All engines must be flamed out
+
+#+begin_src ks :results none :tangle ../Archive/fancystager.ks
+  for e in loe[stage:number-1]
+  if not e:flameout
+  return true.
+#+end_src
+
+*** All resources must be effectively exhausted
+
+#+begin_src ks :results none :tangle ../Archive/fancystager.ks
+  for pr in lot[stage:number-1]
+  if pr[1]:amount>0.01
+  return true.
+#+end_src
+
+*** Trigger staging, and keep the job running.
+
+#+begin_src ks :results none :tangle ../Archive/fancystager.ks
+  stage.
+  return true. }}.
+#+end_src
