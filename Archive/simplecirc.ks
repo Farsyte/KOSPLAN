@@ -1,5 +1,5 @@
 import("mp").
-set circ_apo to {
+set simplecirc to {
 if periapsis>apoapsis-100 return mpinc().
 lock steering to prograde.
 lock throttle to max(0,min(1,(2-eta:apoapsis/10))) *

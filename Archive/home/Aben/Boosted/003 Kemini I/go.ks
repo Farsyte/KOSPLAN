@@ -1,8 +1,7 @@
 import("mp").
 import("fancystager").
 import("ascent").
-import("circ_apo").
-
+import("simplecirc").
 set go to {
 set msgnext to { parameter s. print s. return mpinc(). }.
 fancystager().
@@ -13,10 +12,10 @@ mpadd({ if alt:radar>=50 return mpinc().
 lock throttle to 1.
 lock steering to facing.
 return 1/10. }).
-mpadd(ascent).
+mpadd(ascent(90,80000)).
 mpadd({ if altitude>body:atm:height return mpinc().
 lock steering to prograde. lock throttle to 0. return 1. }).
-mpadd(circ_apo).
+mpadd(simplecirc).
 mponce({ brakes on. print "Release brakes to land.". }).
 mpadd({ if not brakes return mpinc().
 lock throttle to 0.

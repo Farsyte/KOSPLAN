@@ -9,7 +9,7 @@ less simple.
   import("mp").
   import("fancystager").
   import("ascent").
-  import("circ_apo").
+  import("simplecirc").
 #+end_src
 
 * During package import: set parameters
@@ -81,7 +81,7 @@ finds nothing more specific for this mission.
 *** circularize at apoapsis.
 
 #+begin_src ks :results none :tangle ../Archive/home/Aben/Boosted/003 Kemini I/B/go.ks
-  mpadd(circ_apo).
+  mpadd(simplecirc).
 #+end_src
 
 *** gather science in orbit.
