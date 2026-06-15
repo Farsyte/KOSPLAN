@@ -1,0 +1,128 @@
+airspeed.ks - airspeed controller
+
+This airspeed controller attempts to manage the
+airspeed of an aircraft, adjusting THROTTLE to
+bring AIRSPEED to the setpoint.
+
+* asp: controller parameters and logic
+
+Set to "false" if we do not have one yet.
+
+For now, I'm just using a kOS "PIDLOOP" object,
+but I would really prefer to explore building up
+this controller as a set of nested error controllers.
+
+#+begin_src ks :results none :tangle ../Archive/airspeed.ks
+  set asp to false.
+#+end_src
+
+* asn(Kp,Ki,Kd): initialize the controller
+
+pkg:start(Kp,Ki,Kd) - create a new PIDLOOP.
+
+The tuning parameters MUST be tuned for each airframe.
+
+#+begin_src ks :results none :tangle ../Archive/airspeed.ks
+set asn to { parameter Kp, Ki, Kd.
+#+end_src
+
+PID configuration: I tried the numbers Nuggreat said he was
+using in his aircraft controller. Works well enough without
+spending time tuning...
+
+** Default Tuning
+
+nuggreat:
+| this is my throttle PID for my aircraft autopilot
+|     SET throttle_PID TO PIDLOOP(0.1,0.001,1,0,1).
+| in this case i simply run a
+|     LOCK THROTTLE TO throttle_PID:UPDATE(TIME:SECONDS,SHIP:AIRSPEED).
+| and then update the setpoint as needed to change speed and this
+| has worked for me as I rely on the Ki of the PID to build up to
+| keep my throttle high the significantly larger Kd and Kp values
+| mean that what ever Ki spool exists can be easily overwritten
+| as needed by the other factors.
+
+** Create the PIDLOOP
+
+#+begin_src ks :results none :tangle ../Archive/airspeed.ks
+  set asp to PIDLOOP(Kp, Ki, Kd, 0, 1).
+#+end_src
+
+** Set the initial setpoint to current airspeed
+
+#+begin_src ks :results none :tangle ../Archive/airspeed.ks
+  set asp:setpoint to airspeed.
+#+end_src
+
+** Lock the throttle to the PID controller update.
+
+#+begin_src ks :results none :tangle ../Archive/airspeed.ks
+  lock C_throttle to asp:update(time:seconds, airspeed).
+  lock THROTTLE to C_throttle. }.
+#+end_src
+
+* asv(speed): change the speed setpoint.
+
+asv(speed) -- request a new airspeed.
+The call is ignored if there is no PID.
+The call will have no results if LOCK THROTTLE
+has been used since the PID was started.
+
+#+begin_src ks :results none :tangle ../Archive/airspeed.ks
+  set asv to { parameter value.
+#+end_src
+
+** Update the setpoint.
+
+Protect us from users that call asv(speed) when there
+has been no asn(...) call.
+
+#+begin_src ks :results none :tangle ../Archive/airspeed.ks
+  if asp:typename <> "PIDLoop" return.
+#+end_src
+
+#+begin_src ks :results none :tangle ../Archive/airspeed.ks
+  print "asv: seeking airspeed "+round(value,1)+" m/s.".
+#+end_src
+
+#+begin_src ks :results none :tangle ../Archive/airspeed.ks
+  set asp:setpoint to value.
+#+end_src
+
+#+begin_src ks :results none :tangle ../Archive/airspeed.ks
+  }.
+#+end_src
+
+* astest: short throttle test
+
+#+begin_src ks :results none :tangle ../Archive/airspeed.ks
+  set astest to {
+#+end_src
+
+** Pick the list of airspeeds to test
+
+It is likely we start out in level flight
+at full throttle.
+
+#+begin_src ks :results none :tangle ../Archive/airspeed.ks
+  for cmd in list(airspeed-20,140,120,140,160,200) {
+#+end_src
+
+*** Command the speed.
+
+#+begin_src ks :results none :tangle ../Archive/airspeed.ks
+  asv(cmd).
+#+end_src
+
+*** Loop until stable at that speed for a few seconds.
+
+#+begin_src ks :results none :tangle ../Archive/airspeed.ks
+  local matchcount is 0.
+  until matchcount > 4 { wait 1.
+  set matchcount to choose matchcount + 1 if abs(airspeed-cmd)<2 else 0.}
+#+end_src
+
+#+begin_src ks :results none :tangle ../Archive/airspeed.ks
+  }}.
+#+end_src
