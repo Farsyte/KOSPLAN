@@ -1,7 +1,7 @@
 go.ks -- GO script for the Big Hopper
 
-This script manages the flight of the Big Hopper, which is
-fairly simple: 
+This script manages the flight of the Kemini I, which is
+less simple.
 
 * Import Required Packages
 
