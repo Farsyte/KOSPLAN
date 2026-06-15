@@ -1,20 +1,20 @@
-circ_apo.ks - circularize at next apoapsis
+simplecirc.ks - circularize at next apoapsis
 
 * Import Required Packages
 
-#+begin_src ks :results none :tangle ../Archive/circ_apo.ks
+#+begin_src ks :results none :tangle ../Archive/simplecirc.ks
   import("mp").
 #+end_src
 
-* Set up the circ_apo delegate
+* Set up the simplecirc delegate
 
 NOTE: tuning of the eta:apoapsis related computation
 needs to take into account how long a planned burn for
 circularization would take. If we have to burn longer,
 then we can't get as close to apospsis at full throttle.
 
-#+begin_src ks :results none :tangle ../Archive/circ_apo.ks
-  set circ_apo to {
+#+begin_src ks :results none :tangle ../Archive/simplecirc.ks
+  set simplecirc to {
   if periapsis>apoapsis-100 return mpinc().
   lock steering to prograde.
   lock throttle to max(0,min(1,(2-eta:apoapsis/10))) *
