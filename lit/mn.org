@@ -1,0 +1,178 @@
+mn - maneuver node support
+
+* Import All Dependencies
+
+#+begin_src ks :results none :tangle ../Archive/mn.ks
+  import("math").
+  import("mp").
+  import("sw").
+  import("bt").
+  import("predict").
+  import("time").
+#+end_src
+
+* mnclr -- Cancel Pending Maneuvers
+
+#+begin_src ks :results none :tangle ../Archive/mn.ks
+  set mnclr to { for n in allnodes remove n. }.
+#+end_src
+
+* mnexec -- execute the next maneuver node
+
+#+begin_src ks :results none :tangle ../Archive/mn.ks
+  set mnexec to {
+    if not hasnode return mpinc().
+    if warp>0 set warp to 0.
+    if not kuniverse:timewarp:issettled return 1/10.
+    local mnv is nextnode.
+    if ship:liquidfuel <= 0 return mpinc().
+    if mnv:deltav:mag<1/10 return mpinc().
+    lock steering to mnv:deltav.
+    lock mnl_mt to max(eps, maxthrust).
+    if mnl_mt <= eps return 1.
+    lock mnl_dv to mnv:deltav:mag.
+    lock mnl_dt to mnl_dv * ship:mass / mnl_mt.
+    lock mnl_dtdf to limit(0,1,mnl_dt/0.5).
+    lock mnl_ae to vang(mnv:deltav,facing:vector).
+    lock mnl_aedf to limit(1/100,1,1-(mnl_ae-1)/4).
+    lock throttle to sqrt(mnl_dtdf * mnl_aedf).
+    return limit(1/100,1,mnl_dt).
+  }.
+
+  // All uses of mnexec must be immediately followed by mnfini.
+  // Missions should probably also fix the facing.
+  set mnfini to {
+    lock throttle to 0.
+    lock steering to facing.
+    mnclr().
+    return mpinc().
+  }.
+#+end_src
+
+* mnwait -- wait until time to start the burn for the maneuver node
+
+It is the responsibility of the mission to assure
+that we are in a good state to wait for the next
+maneuver node.
+
+- the ship is not timewarping
+- the ship is not currently producing thrust
+
+#+begin_src ks :results none :tangle ../Archive/mn.ks
+  set mnwait to {
+#+end_src
+
+If no maneuver is planned, or if the maneuver is
+trivially overdue, move on to the next step.
+
+#+begin_src ks :results none :tangle ../Archive/mn.ks
+    if not hasnode return mpinc().
+    local mnv is nextnode.
+    if mnv:eta <= 0 return mpinc().
+#+end_src
+
+Work out when to start the burn, based on
+wanting to provide half of the ΔV before
+the scheduled burn instant and half after.
+
+#+begin_src ks :results none :tangle ../Archive/mn.ks
+    local hbt is bt(mnv:deltav:mag/2).
+    local wait_until is mnv:eta - hbt.
+#+end_src
+
+#+begin_src ks :results none :tangle ../Archive/mn.ks
+    // CAREFUL: vessel is probably currently maintaining
+    // an attitude that keeps batteries charged. Do not
+    // mess with steering until 60 seconds before the burn,
+    // avoid trying to steer into a V(0,0,0) deltav, and
+    // handle the case where the node goes away before someone
+    // else takes over steering.
+#+end_src
+
+#+begin_src ks :results none :tangle ../Archive/mn.ks
+    if wait_until < 60
+      lock steering to choose mnv:deltav if hasnode and mnv:deltav:mag > 0 else facing.
+#+end_src
+
+#+begin_src ks :results none :tangle ../Archive/mn.ks
+    if wait_until <= 0
+      return mpinc().
+#+end_src
+
+#+begin_src ks :results none :tangle ../Archive/mn.ks
+    swadj(wait_until-30).
+#+end_src
+
+#+begin_src ks :results none :tangle ../Archive/mn.ks
+    return wait_until.
+  }.
+#+end_src
+
+* mncirc -- plan maneuver to circularize at next periapsos or apoapsis
+
+It is the responsibility of the mission to assure
+that we are in a good state to plan and execute
+a maneuver node.
+
+- the ship is not timewarping
+- the ship is not currently producing thrust
+- the ship is able to produce thrust
+- there are no pending maneuver nodes
+
+These conditions checked during flight will prevent
+us from building a node:
+- we are outbound on an escape orbit
+- the correction burn would be trivial
+
+#+begin_src ks :results none :tangle ../Archive/mn.ks
+  set mncirc to {
+#+end_src
+
+Cancel any existing maneuver nodes.
+This is useful if we reboot after setting up the
+node but before the mission step is updated.
+
+#+begin_src ks :results none :tangle ../Archive/mn.ks
+  mnclr().
+#+end_src
+
+Pick the periapsis or apoapsis ETA, whichever is sooner.
+
+#+begin_src ks :results none :tangle ../Archive/mn.ks
+  local dt is min(eta:periapsis, eta:apoapsis).
+#+end_src
+
+The node we build below only works if our burn is
+precisely progade or retrograde, so we are good for
+elliptical orbits, or generally when inbound.
+
+If we are outbound on an escape orbit, eta:apoapsis
+will be HUGE and eta:periapsis will be NEGATIVE. In
+this case, return without making a maneuver node.
+
+#+begin_src ks :results none :tangle ../Archive/mn.ks
+  if dt>0 and dt<inf {
+#+end_src
+
+Compute delta-v to change our prograde speed to
+be exactly the circular orbit speed.
+
+#+begin_src ks :results none :tangle ../Archive/mn.ks
+  local t is time:seconds+dt.
+  local dv is sqrt(body:mu/posat(t,ship):mag)-velat(t,ship):mag.
+#+end_src
+
+quick estimate of burntime is ΔV*mass/thrust, actually a
+bit shorter but we want a QUICK estimate at this point.
+
+If this quick estimate seems to tell us that the burn is
+nontrivial, add the node.
+
+#+begin_src ks :results none :tangle ../Archive/mn.ks
+  if abs(dv)*mass*1000>=maxthrust add node(t,0,0,dv).
+#+end_src
+
+#+begin_src ks :results none :tangle ../Archive/mn.ks
+  } return mpinc(1/50).}.
+#+end_src
+
