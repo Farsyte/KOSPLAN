@@ -5,7 +5,7 @@ less simple.
 
 * Import Required Packages
 
-#+begin_src ks :results none :tangle ../Archive/home/Aben/Boosted/003 Kemini I/C/go.ks
+#+begin_src ks :results none :tangle ../Archive/home/Aben/Boosted/005 Tourist I/go.ks
   import("mp").
   import("fancystager").
   import("ascent").
@@ -17,7 +17,7 @@ less simple.
 This function is executed by IMPORT when it
 finds nothing more specific for this mission.
 
-#+begin_src ks :results none :tangle ../Archive/home/Aben/Boosted/003 Kemini I/C/go.ks
+#+begin_src ks :results none :tangle ../Archive/home/Aben/Boosted/005 Tourist I/go.ks
 #+end_src
 
 * Provide a GO function.
@@ -25,19 +25,19 @@ finds nothing more specific for this mission.
 This function is executed by IMPORT when it
 finds nothing more specific for this mission.
 
-#+begin_src ks :results none :tangle ../Archive/home/Aben/Boosted/003 Kemini I/C/go.ks
+#+begin_src ks :results none :tangle ../Archive/home/Aben/Boosted/005 Tourist I/go.ks
   set go to {
 #+end_src
 
 ** debug helper for "next stage"
 
-#+begin_src ks :results none :tangle ../Archive/home/Aben/Boosted/003 Kemini I/C/go.ks
+#+begin_src ks :results none :tangle ../Archive/home/Aben/Boosted/005 Tourist I/go.ks
   set msgnext to { parameter s. print s. return mpinc(). }.
 #+end_src
 
 ** Start an autostager in the background
 
-#+begin_src ks :results none :tangle ../Archive/home/Aben/Boosted/003 Kemini I/C/go.ks
+#+begin_src ks :results none :tangle ../Archive/home/Aben/Boosted/005 Tourist I/go.ks
   fancystager().
 #+end_src
 
@@ -45,57 +45,59 @@ finds nothing more specific for this mission.
 
 *** Ignite the engines.
 
-#+begin_src ks :results none :tangle ../Archive/home/Aben/Boosted/003 Kemini I/C/go.ks
+#+begin_src ks :results none :tangle ../Archive/home/Aben/Boosted/005 Tourist I/go.ks
   mponce({
   if maxthrust>0 return mpinc().
   if not stage:ready return 1/10.
   lock throttle to 1.
   lock steering to facing.
+  bays off.
   stage. }).
 #+end_src
 
 *** damp attitude rate until safe to maneuver
 
-#+begin_src ks :results none :tangle ../Archive/home/Aben/Boosted/003 Kemini I/C/go.ks
+#+begin_src ks :results none :tangle ../Archive/home/Aben/Boosted/005 Tourist I/go.ks
   mpadd({ if alt:radar>=50 return mpinc().
   lock throttle to 1.
   lock steering to facing.
+  bays off.
   return 1/10. }).
 #+end_src
 
 *** control pitch and heading until apoapsis is high enough
 
-#+begin_src ks :results none :tangle ../Archive/home/Aben/Boosted/003 Kemini I/C/go.ks
-  mpadd(ascent(355,72000)).
+#+begin_src ks :results none :tangle ../Archive/home/Aben/Boosted/005 Tourist I/go.ks
+  mpadd(ascent(90,80000)).
 #+end_src
 
 *** coast until above atmosphere.
 
-#+begin_src ks :results none :tangle ../Archive/home/Aben/Boosted/003 Kemini I/C/go.ks
+#+begin_src ks :results none :tangle ../Archive/home/Aben/Boosted/005 Tourist I/go.ks
   mpadd({ if altitude>body:atm:height return mpinc().
   lock steering to prograde. lock throttle to 0. return 1. }).
 #+end_src
 
 *** circularize at apoapsis.
 
-#+begin_src ks :results none :tangle ../Archive/home/Aben/Boosted/003 Kemini I/C/go.ks
+#+begin_src ks :results none :tangle ../Archive/home/Aben/Boosted/005 Tourist I/go.ks
   mpadd(circ_apo).
 #+end_src
 
 *** let the tourists look around.
 
-#+begin_src ks :results none :tangle ../Archive/home/Aben/Boosted/003 Kemini I/C/go.ks
-  mponce({ brakes on. print "Release brakes to land.". }).
-  mpadd({ if not brakes return mpinc().
-  lock throttle to 0.
-  lock steering to vcrs(body:position,ship:velocity:orbit).
-  return 1.
-  }).
+#+begin_src ks :results none :tangle ../Archive/home/Aben/Boosted/005 Tourist I/go.ks
+  // mponce({ brakes on. print "Release brakes to land.". }).
+  // mpadd({ if not brakes return mpinc().
+  // lock throttle to 0.
+  // lock steering to vcrs(body:position,ship:velocity:orbit).
+  // return 1.
+  // }).
 #+end_src
 
 *** drop periapsis to half atmosphere height.
 
-#+begin_src ks :results none :tangle ../Archive/home/Aben/Boosted/003 Kemini I/C/go.ks
+#+begin_src ks :results none :tangle ../Archive/home/Aben/Boosted/005 Tourist I/go.ks
   mpadd({ if periapsis<40000 return mpinc().
   lock steering to retrograde.
   lock throttle to max(0,min(1,(periapsis+100-40000)/1000)) *
@@ -106,7 +108,7 @@ finds nothing more specific for this mission.
 
 Stage ONCE to jettison the orbital maneuvering engines.
 
-#+begin_src ks :results none :tangle ../Archive/home/Aben/Boosted/003 Kemini I/C/go.ks
+#+begin_src ks :results none :tangle ../Archive/home/Aben/Boosted/005 Tourist I/go.ks
   mpadd({
   lock throttle to 0.
   lock steering to vcrs(body:position,ship:velocity:orbit).
@@ -116,17 +118,27 @@ Stage ONCE to jettison the orbital maneuvering engines.
   stage. return mpinc(). }).
 #+end_src
 
-*** control attitude during descent until chutes are safe.
+*** control attitude during upper descent
 
-#+begin_src ks :results none :tangle ../Archive/home/Aben/Boosted/003 Kemini I/C/go.ks
+#+begin_src ks :results none :tangle ../Archive/home/Aben/Boosted/005 Tourist I/go.ks
+  mpadd({ if altitude <= 60000 { return mpinc(). }
+  lock steering to retrograde. bays off.
+  return 1/10. }).
+#+end_src
+
+*** control attitude during lower descent until chutes are safe.
+
+The bay doors are open to provide additional drag.
+
+#+begin_src ks :results none :tangle ../Archive/home/Aben/Boosted/005 Tourist I/go.ks
   mpadd({ if altitude <= 5000 { return mpinc(). }
-  lock steering to srfretrograde.
+  lock steering to srfretrograde. bays on.
   return 1/10. }).
 #+end_src
 
 *** Deploy Chutes.
 
-#+begin_src ks :results none :tangle ../Archive/home/Aben/Boosted/003 Kemini I/C/go.ks
+#+begin_src ks :results none :tangle ../Archive/home/Aben/Boosted/005 Tourist I/go.ks
   mpadd({ if not stage:ready return 1/10.
   lock steering to heading(90,90,0).
   stage. return mpinc(). }).
@@ -134,7 +146,7 @@ Stage ONCE to jettison the orbital maneuvering engines.
 
 *** damp attitude rates while parachute is armed or deployed
 
-#+begin_src ks :results none :tangle ../Archive/home/Aben/Boosted/003 Kemini I/C/go.ks
+#+begin_src ks :results none :tangle ../Archive/home/Aben/Boosted/005 Tourist I/go.ks
   mpadd({ if alt:radar <= 50 return mpinc().
   lock steering to facing.
   return 1/10. }).
@@ -142,7 +154,7 @@ Stage ONCE to jettison the orbital maneuvering engines.
 
 *** hold nose vertical during and after landing
 
-#+begin_src ks :results none :tangle ../Archive/home/Aben/Boosted/003 Kemini I/C/go.ks
+#+begin_src ks :results none :tangle ../Archive/home/Aben/Boosted/005 Tourist I/go.ks
   mpadd({
   lock steering to heading(90,90,0).
   return 1. }).
@@ -150,7 +162,7 @@ Stage ONCE to jettison the orbital maneuvering engines.
 
 * Run the Mission, then End the Program.
 
-  #+begin_src ks :results none :tangle ../Archive/home/Aben/Boosted/003 Kemini I/C/go.ks
+  #+begin_src ks :results none :tangle ../Archive/home/Aben/Boosted/005 Tourist I/go.ks
   mprun(). print "program terminated".}.
 #+end_src
 
