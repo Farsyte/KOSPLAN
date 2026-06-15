@@ -1,0 +1,36 @@
+time - simple time stuff
+
+* Import Depencencies
+
+#+begin_src ks :results none :tangle ../Archive/time.ks
+  import("math").
+#+end_src
+
+* T0 -- universal time of mission launch
+
+#+begin_src ks :results none :tangle ../Archive/time.ks
+  set t0 to inf.
+#+end_src
+
+* MET -- locked to seconds since T0
+
+#+begin_src ks :results none :tangle ../Archive/time.ks
+  lock met to time:seconds - t0.
+#+end_src
+
+* ydhms(t) -- format time for printing
+
+Uses TIME:FULL then removes zero elements from the front.
+
+#+begin_src ks :results none :tangle ../Archive/time.ks
+  set ydhms to { parameter sec.
+    if sec < 0 return "-"+ydhms(-sec).
+    local ts is sec + time - time.
+    local ts is ts:full.
+    if ts:startswith("0y") local ts is ts:remove(0,2).
+    if ts:startswith("0d") local ts is ts:remove(0,2).
+    if ts:startswith("0h") local ts is ts:remove(0,2).
+    if ts:startswith("0m") local ts is ts:remove(0,2).
+    return ts.
+  }.
+#+end_src
