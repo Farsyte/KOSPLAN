@@ -73,8 +73,8 @@ the type of the value and the value.
 
 #+begin_src ks :results none :tangle ../Archive/nv.ks
   set nvp to { parameter f,n,u.
-  set nvl[n] to u. set e to nve[u:typename](u).
-  if not exists(f) create(f). set f to open(f). f:clear. f:write(e).
+  set nvl[n] to u. set eu to nve[u:typename](u).
+  if not exists(f) create(f). set f to open(f). f:clear. f:write(eu).
   return u. }.
 #+end_src
 

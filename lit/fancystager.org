@@ -31,8 +31,8 @@ fuel remains in any of the tanks.
 
 #+begin_src ks :results none :tangle ../Archive/fancystager.ks
   local loe is lol(stage:number+1).
-  for e in ship:engines
-  loe[e:decoupledin]:add(e).
+  for en in ship:engines
+  loe[en:decoupledin]:add(en).
 #+end_src
 
 *** lot: list of fuel resources for stages 0 through stage:number
@@ -74,8 +74,8 @@ fuel remains in any of the tanks.
 *** All engines must be flamed out
 
 #+begin_src ks :results none :tangle ../Archive/fancystager.ks
-  for e in loe[stage:number-1]
-  if not e:flameout
+  for en in loe[stage:number-1]
+  if not en:flameout
   return true.
 #+end_src
 

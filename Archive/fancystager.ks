@@ -3,8 +3,8 @@ set fancystager to {
 local lol is { parameter n. local res is list().
 until res:length >= n res:add(list()). return res. }.
 local loe is lol(stage:number+1).
-for e in ship:engines
-loe[e:decoupledin]:add(e).
+for en in ship:engines
+loe[en:decoupledin]:add(en).
 local lot is lol(stage:number+1).
 for p in ship:parts
 for res in p:resources
@@ -16,8 +16,8 @@ when t <= time:seconds then {
 if abort or stage:number<1 return false.
 set t to time:seconds + 1.
 if not stage:ready or alt:radar<100 return true.
-for e in loe[stage:number-1]
-if not e:flameout
+for en in loe[stage:number-1]
+if not en:flameout
 return true.
 for pr in lot[stage:number-1]
 if pr[1]:amount>0.01
