@@ -1,0 +1,51 @@
+sw.ks - SafeWait facility.
+
+TODO work out step-down intervals for PHYSICAL warp.
+
+Step-down intervals for RAILS warp have been re-tuned from
+the values easily found on the web.
+
+tuning method:
+- set warp to W, wait for warp to settle.
+- sample the step-down interval start time.
+- wait for a small margin time
+- set warp to 0, wait for warp to settle.
+- record the step-down interval delta time.
+The margin time in the middle is time allowed
+between calls to safewarp_factor, as we are
+likely to jump from just over a threshold to
+far under it at higher warp values.
+
+
+* Import Required Packages
+
+#+begin_src ks :results none :tangle ../Archive/home/sw.ks
+  import("mn").
+#+end_src
+
+* Configuration Data
+
+#+begin_src ks :results none :tangle ../Archive/home/sw.ks
+  set swra to LIST(0, 4, 6, 30, 60, 600, 6000, 60000).
+#+end_src
+
+* swfac(dt): compute safe warp factor for given ΔT
+
+#+begin_src ks :results none :tangle ../Archive/home/sw.ks
+  set swfac to { parameter dt.
+    local i is swra:length - 1.
+    until i=0 or dt>swra[i]
+      set i to i - 1.
+    return i.}.
+#+end_src
+
+* swadj(dt): set WARP to maximum safe warp for given ΔT
+
+#+begin_src ks :results none :tangle ../Archive/home/sw.ks
+  set swadj to { parameter dt.
+    set o to warp.
+    set n to swfac(dt).
+    if o = n return.
+    if o = 0 set kuniverse:timewarp:mode to "RAILS".
+    set warp to n.}.
+#+end_src
