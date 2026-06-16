@@ -1,0 +1,41 @@
+predict - encapsulate position and velocity predictions
+
+* posat(T,O) -- predict Body-to-Target vector a time T.
+
+The parameters are the Universal Time,
+and the Orbitable of interest. The return
+value is a position, relative to the body
+that the SHIP is currently orbiting.
+
+#+begin_src ks :results none :tangle ../Archive/predict.ks
+  set posat to { parameter t,o.
+  return positionat(o,t)-body:position.}.
+#+end_src
+
+* velat(T,O) -- predict Target Velocity relative to Body at time T.
+
+The parameters are the Universal Time,
+and the Orbitable of interest. The return
+value is a velocity, relative to the body
+that the SHIP is currently orbiting.
+
+#+begin_src ks :results none :tangle ../Archive/predict.ks
+  set velat to { parameter t,o.
+  return velocityat(o,t):orbit.}.
+#+end_src
+
+* // errat(T,O,S) -- predict scalar distance between O and S at time T.
+
+The parameters are the Univeral Time,
+and the two Orbitables of interest.
+
+The second Orbitable defaults to SHIP.
+
+This function is almost certainly not commonly needed
+and the code should be pulled into the few places that
+need it.
+
+#+begin_src ks :results none :tangle ../Archive/predict.ks
+  // set errat to { parameter t,o.
+  // return (predict:pos(t,o)-predict:pos(t,s)):mag. }.
+#+end_src

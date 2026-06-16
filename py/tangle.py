@@ -1,19 +1,17 @@
-import os
-import sys
-
 wrf = {}
 def tangleto(rd, wrname):
     if wrname not in wrf:
-        print(f"# creating {wrname}")
         wrf[wrname] = open(wrname, 'w')
     wr = wrf[wrname]
     while True:
         line = rd.readline()
         if line.startswith("#+end_src"): break
+        if "//" in line:
+            csa = line.find("//")
+            if csa < 1: continue
+            line = line[0:csa]
         line = line.strip()
-        print(f"{line}", file=wr)
-        
-
+        if line: print(f"{line}", file=wr)
 def tangle(rdname):
     with open(rdname, 'r') as rd:
         for line in rd:
@@ -30,7 +28,5 @@ def main(args):
     pass
 
 if __name__ == "__main__":
-    uname = os.uname()
-    print(f"{uname.sysname:15} {uname.release} ({uname.machine}) {uname.version}")
-    print(f"Python          {sys.version}")
+    import sys
     main(sys.argv)

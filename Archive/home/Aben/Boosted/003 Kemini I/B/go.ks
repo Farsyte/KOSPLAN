@@ -14,7 +14,8 @@ lock steering to facing.
 return 1/10. }).
 mpadd(ascent(355,72000)).
 mpadd({ if altitude>body:atm:height return mpinc().
-lock steering to prograde. lock throttle to 0. return 1. }).
+lock steering to prograde. lock throttle to 0.
+return 1. }).
 mpadd(simplecirc).
 mponce({ brakes on. print "Release brakes to land.". }).
 mpadd({ if not brakes return mpinc().

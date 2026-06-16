@@ -60,8 +60,8 @@ finds nothing more specific for this mission.
 
 #+begin_src ks :results none :tangle ../Archive/home/Aben/Boosted/003 Kemini I/B/go.ks
   mpadd({ if alt:radar>=50 return mpinc().
-  lock throttle to 1.
-  lock steering to facing.
+    lock throttle to 1.
+    lock steering to facing.
   return 1/10. }).
 #+end_src
 
@@ -75,7 +75,8 @@ finds nothing more specific for this mission.
 
 #+begin_src ks :results none :tangle ../Archive/home/Aben/Boosted/003 Kemini I/B/go.ks
   mpadd({ if altitude>body:atm:height return mpinc().
-  lock steering to prograde. lock throttle to 0. return 1. }).
+    lock steering to prograde. lock throttle to 0.
+  return 1. }).
 #+end_src
 
 *** circularize at apoapsis.
@@ -88,20 +89,20 @@ finds nothing more specific for this mission.
 
 #+begin_src ks :results none :tangle ../Archive/home/Aben/Boosted/003 Kemini I/B/go.ks
   mponce({ brakes on. print "Release brakes to land.". }).
-  mpadd({ if not brakes return mpinc().
-  lock throttle to 0.
-  lock steering to vcrs(body:position,ship:velocity:orbit).
-  return 1.
-  }).
+    mpadd({ if not brakes return mpinc().
+      lock throttle to 0.
+      lock steering to vcrs(body:position,ship:velocity:orbit).
+      return 1.
+    }).
 #+end_src
 
 *** drop periapsis to half atmosphere height.
 
 #+begin_src ks :results none :tangle ../Archive/home/Aben/Boosted/003 Kemini I/B/go.ks
   mpadd({ if periapsis<40000 return mpinc().
-  lock steering to retrograde.
-  lock throttle to max(0,min(1,(periapsis+100-40000)/1000)) *
-  max(1/100,min(1,(10-vang(retrograde:vector,facing:vector))/5)).}).
+    lock steering to retrograde.
+    lock throttle to max(0,min(1,(periapsis+100-40000)/1000)) *
+    max(1/100,min(1,(10-vang(retrograde:vector,facing:vector))/5)).}).
 #+end_src
 
 *** configure vessel for re-entry.
@@ -110,11 +111,11 @@ Stage ONCE to jettison the orbital maneuvering engines.
 
 #+begin_src ks :results none :tangle ../Archive/home/Aben/Boosted/003 Kemini I/B/go.ks
   mpadd({
-  lock throttle to 0.
-  lock steering to vcrs(body:position,ship:velocity:orbit).
-  if altitude>body:atm:height return 1/10.
-  if not stage:ready return 1/10.
-  if vdot(north:vector,facing:vector) > 5 return 1/10.
+    lock throttle to 0.
+    lock steering to vcrs(body:position,ship:velocity:orbit).
+    if altitude>body:atm:height return 1/10.
+    if not stage:ready return 1/10.
+    if vdot(north:vector,facing:vector) > 5 return 1/10.
   stage. return mpinc(). }).
 #+end_src
 
@@ -122,7 +123,7 @@ Stage ONCE to jettison the orbital maneuvering engines.
 
 #+begin_src ks :results none :tangle ../Archive/home/Aben/Boosted/003 Kemini I/B/go.ks
   mpadd({ if altitude <= 5000 { return mpinc(). }
-  lock steering to srfretrograde.
+    lock steering to srfretrograde.
   return 1/10. }).
 #+end_src
 
@@ -130,7 +131,7 @@ Stage ONCE to jettison the orbital maneuvering engines.
 
 #+begin_src ks :results none :tangle ../Archive/home/Aben/Boosted/003 Kemini I/B/go.ks
   mpadd({ if not stage:ready return 1/10.
-  lock steering to heading(90,90,0).
+    lock steering to heading(90,90,0).
   stage. return mpinc(). }).
 #+end_src
 
@@ -138,7 +139,7 @@ Stage ONCE to jettison the orbital maneuvering engines.
 
 #+begin_src ks :results none :tangle ../Archive/home/Aben/Boosted/003 Kemini I/B/go.ks
   mpadd({ if alt:radar <= 50 return mpinc().
-  lock steering to facing.
+    lock steering to facing.
   return 1/10. }).
 #+end_src
 
@@ -146,13 +147,13 @@ Stage ONCE to jettison the orbital maneuvering engines.
 
 #+begin_src ks :results none :tangle ../Archive/home/Aben/Boosted/003 Kemini I/B/go.ks
   mpadd({
-  lock steering to heading(90,90,0).
+    lock steering to heading(90,90,0).
   return 1. }).
 #+end_src
 
 * Run the Mission, then End the Program.
 
-  #+begin_src ks :results none :tangle ../Archive/home/Aben/Boosted/003 Kemini I/B/go.ks
-  mprun(). print "program terminated".}.
+ #+begin_src ks :results none :tangle ../Archive/home/Aben/Boosted/003 Kemini I/B/go.ks
+   mprun(). print "program terminated".}.
 #+end_src
 

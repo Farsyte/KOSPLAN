@@ -13,11 +13,14 @@ needs to take into account how long a planned burn for
 circularization would take. If we have to burn longer,
 then we can't get as close to apospsis at full throttle.
 
+Throttle and steering will continue to make the orbit
+more circular until they are locked otherwise.
+
 #+begin_src ks :results none :tangle ../Archive/simplecirc.ks
   set simplecirc to {
-  if periapsis>apoapsis-100 return mpinc().
-  lock steering to prograde.
-  lock throttle to max(0,min(1,(2-eta:apoapsis/10))) *
-  max(1/100,min(1,1-vang(steering:vector,prograde:vector)/5)).
+    if periapsis>apoapsis-100 return mpinc().
+    lock steering to prograde.
+    lock throttle to max(0,min(1,(2-eta:apoapsis/10))) *
+      max(1/100,min(1,1-vang(steering:vector,prograde:vector)/5)).
   return 1. }.
 #+end_src

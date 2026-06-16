@@ -1,0 +1,147 @@
+escape.ks - plan escape trajectory
+
+This plans an escape from orbit around a moon
+into a trajectory leading to aerobreaking
+around the planet.
+
+* Imports
+
+#+begin_src ks :results none :tangle ../Archive/escape.ks
+  import("mn").
+#+end_src
+ 
+* escape -- plan an escape maneuver.
+
+#+begin_src ks :results none :tangle ../Archive/escape.ks
+  set escape to {
+#+end_src
+
+The approach is to start with a prograde burn
+at some time in the future, then iteratively
+improve it, alternately adjusting the amount
+of the burn and the scheduled time, until a
+trajectory ending in good aerobraking is found.
+
+Configuration data: dpro is how much to increase
+the prograde component of the burn when hunting
+for a burn that escapes the SOI.
+
+#+begin_src ks :results none :tangle ../Archive/escape.ks
+  local dpro is 10.
+#+end_src
+
+The earliest time we are willing to schedule a
+maneuver is five minutes from now.
+
+#+begin_src ks :results none :tangle ../Archive/escape.ks
+  local t1 is time:seconds + 300.
+#+end_src
+
+Set up our planned maneuver schedule to include one
+single node, a prograde burn at the scheduled time.
+
+#+begin_src ks :results none :tangle ../Archive/escape.ks
+  mnclr().
+  local mnv is node(t1, 0, 0, dpro). add mnv. wait 0.
+#+end_src
+  
+The assure_mun_escape function increases the prograde
+component of the burn, if necessary, until the resulting
+trajectory leaves the current SOI.
+
+#+begin_src ks :results none :tangle ../Archive/escape.ks
+  local assure_mun_escape is {
+    until false {
+      if nextnode:orbit:hasnextpatch return.
+      set mnv:prograde to mnv:prograde + dpro. wait 0. }}.
+#+end_src
+
+The assure_kerbin_ret function delays departure by
+a small fraction of our current orbital period, if
+necesary, until the resulting trajectory not only
+leaves the current SOI, but DOES NOT also leave
+the SOI of the primary.
+
+#+begin_src ks :results none :tangle ../Archive/escape.ks
+  local assure_kerbin_ret is {
+    until false {
+      assure_mun_escape().
+      if not nextnode:orbit:nextpatch:hasnextpatch return.
+      set mnv:time to mnv:time + orbit:period/36. wait 0.}}.
+#+end_src
+
+The skip_past_max_ka function delays departure by
+a small fraction of our orbital period, repeatedly,
+until we observe a decrease in the semi-major axis
+of the orbit around the primary.
+  
+#+begin_src ks :results none :tangle ../Archive/escape.ks
+  local skip_past_max_ka is {
+    until false { until false {
+      assure_kerbin_ret().
+      local old_ka is nextnode:orbit:nextpatch:semimajoraxis.
+      set mnv:time to mnv:time + orbit:period/36. wait 0.
+      if not nextnode:orbit:hasnextpatch break.
+      if nextnode:orbit:nextpatch:hasnextpatch break.
+      local new_ka is nextnode:orbit:nextpatch:semimajoraxis.
+      local chg_ka is new_ka - old_ka.
+    if chg_ka < 0 return.}}}.
+#+end_src
+  
+The skip_past_min_ka function delays departure by
+a small fraction of our orbital period, repeatedly,
+until we observe an increase in the semi-major axis
+of the orbit around the primary.
+  
+#+begin_src ks :results none :tangle ../Archive/escape.ks
+  local skip_past_min_ka is {
+    until false { until false {
+      assure_kerbin_ret.
+      local old_ka is nextnode:orbit:nextpatch:semimajoraxis.
+      set mnv:time to mnv:time + orbit:period/36. wait 0.
+      if nextnode:orbit:nextpatch:hasnextpatch break.
+      local new_ka is nextnode:orbit:nextpatch:semimajoraxis.
+      local chg_ka is new_ka - old_ka.
+    if chg_ka > 0 return.}}}.
+#+end_src
+  
+The seek_kerbin_peri function repeatedly measures the
+effect of a tiny prograde burn change on the periapsis
+of the trajectory around the primary, then adjusts the
+prograde burn to obtain the desired periapsis. This
+process when repeated is expected to converge rapidly.
+
+#+begin_src ks :results none :tangle ../Archive/escape.ks
+  local seek_kerbin_peri is {
+    parameter des_peri.
+    parameter eps_dpro is 1/100.
+    parameter good_enough is 1.
+
+    // This converges swiftly, as long as we start
+    // with a maneuver that is near a local minimum
+    // for the semi-major axis of the second patch.
+
+    for iter in range(100) {
+      local old_peri is nextnode:orbit:nextpatch:periapsis.
+      if abs(des_peri - old_peri) <= good_enough return.
+      set mnv:prograde to mnv:prograde + eps_dpro. wait 0.
+      local new_peri is nextnode:orbit:nextpatch:periapsis.
+      local chg_peri is new_peri - old_peri.
+      local peri_per_pro is chg_peri / eps_dpro.
+      set mnv:prograde to mnv:prograde + (des_peri - new_peri) / peri_per_pro. wait 0.}}.
+#+end_src
+
+Put it all together: while constantly adjusting the
+prograde burn to assure we escape the local SOI, and the
+departure time to avoid escaping the primary SOI, move
+our departure time forward to find a local minimum
+periapsis around the primary, then fine tune toe
+prograde burn to get the best periapsis we can for
+aerobraking.
+  
+#+begin_src ks :results none :tangle ../Archive/escape.ks
+    skip_past_max_ka().
+    skip_past_min_ka().
+    seek_kerbin_peri(35000).
+    return mpinc(). }.
+#+end_src

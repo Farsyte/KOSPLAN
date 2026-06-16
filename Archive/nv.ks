@@ -5,8 +5,8 @@ set nvd to list(home, path("1:")).
 set nvf to { parameter d, n. return nvd[d]:combine("nv.d", n). }.
 set nvl to lex().
 set nvp to { parameter f,n,u.
-set nvl[n] to u. set e to nve[u:typename](u).
-if not exists(f) create(f). set f to open(f). f:clear. f:write(e).
+set nvl[n] to u. set eu to nve[u:typename](u).
+if not exists(f) create(f). set f to open(f). f:clear. f:write(eu).
 return u. }.
 set nvput to { parameter d,n,u.
 if nvl:haskey(n) and nvl[n] = u return.
