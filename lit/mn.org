@@ -13,6 +13,12 @@ mn - maneuver node support
 
 * mnclr -- Cancel Pending Maneuvers
 
+This is the most compact way I have found to cancel all
+scheduled maneuver nodes. I was a bit nervous about
+whether iterating through allnodes would have problems
+with a node being removed during the iteration, but it
+does seem to work just fine.
+
 #+begin_src ks :results none :tangle ../Archive/mn.ks
   set mnclr to { for n in allnodes remove n. }.
 #+end_src
@@ -21,24 +27,74 @@ mn - maneuver node support
 
 #+begin_src ks :results none :tangle ../Archive/mn.ks
   set mnexec to {
-    if not hasnode return mpinc().
-    if warp>0 set warp to 0.
-    if not kuniverse:timewarp:issettled return 1/10.
-    local mnv is nextnode.
-    if ship:liquidfuel <= 0 return mpinc().
-    if mnv:deltav:mag<1/10 return mpinc().
-    lock steering to mnv:deltav.
-    lock mnl_mt to max(eps, maxthrust).
-    if mnl_mt <= eps return 1.
-    lock mnl_dv to mnv:deltav:mag.
-    lock mnl_dt to mnl_dv * ship:mass / mnl_mt.
-    lock mnl_dtdf to limit(0,1,mnl_dt/0.5).
-    lock mnl_ae to vang(mnv:deltav,facing:vector).
-    lock mnl_aedf to limit(1/100,1,1-(mnl_ae-1)/4).
-    lock throttle to sqrt(mnl_dtdf * mnl_aedf).
-    return limit(1/100,1,mnl_dt).
-  }.
+#+end_src
 
+** if no maneuver is scheduled, this step is complete.
+
+#+begin_src ks :results none :tangle ../Archive/mn.ks
+  if not hasnode return mpinc().
+#+end_src
+
+** assure we are not in timewarp.
+
+#+begin_src ks :results none :tangle ../Archive/mn.ks
+  if warp>0 set warp to 0.
+  if not kuniverse:timewarp:issettled return 1/10.
+#+end_src
+
+** if we are out of fuel, we are done.
+
+#+begin_src ks :results none :tangle ../Archive/mn.ks
+  if ship:liquidfuel <= 0 return mpinc().
+#+end_src
+
+** if the remaining ΔV is trival, we are done.
+
+#+begin_src ks :results none :tangle ../Archive/mn.ks
+  local mnv is nextnode.
+  if mnv:deltav:mag<1/10 return mpinc().
+#+end_src
+
+** Steer in the direction of the burn.
+
+#+begin_src ks :results none :tangle ../Archive/mn.ks
+  lock steering to mnv:deltav.
+#+end_src
+
+** Throttle Management
+
+Throttle is the product of two 0..1 values.
+- A value decreasing from 1 to 0 as ΔV approaches 0
+- A value decreasing from 1 to 0 if we are not pointing the right way
+
+#+begin_src ks :results none :tangle ../Archive/mn.ks
+  lock mnl_mt to max(eps, maxthrust).
+  lock mnl_dv to mnv:deltav:mag.
+  lock mnl_dt to mnl_dv * ship:mass / mnl_mt.
+  lock mnl_dtdf to limit(0,1,mnl_dt/0.5).
+  lock mnl_ae to vang(mnv:deltav,facing:vector).
+  lock mnl_aedf to limit(1/100,1,1-(mnl_ae-1)/4).
+  lock throttle to sqrt(mnl_dtdf * mnl_aedf).
+#+end_src
+
+** When to revisit the computation
+
+Come back and recompute in no longer than a second.
+
+#+begin_src ks :results none :tangle ../Archive/mn.ks
+  return min(1,mnl_dt). }.
+#+end_src
+
+* mnfini -- clean up after mnexec
+
+The mnexec step leaves the (nearly) exhausted maneuver
+node scheduled and leaves THROTTLE and STEERING locked
+as they were at the end of the burn.
+
+This function cuts the throttle, sets steering to keep
+our attitude where it is, and clears the maneuver plan.
+
+#+begin_src ks :results none :tangle ../Archive/mn.ks
   // All uses of mnexec must be immediately followed by mnfini.
   // Missions should probably also fix the facing.
   set mnfini to {
@@ -80,26 +136,29 @@ the scheduled burn instant and half after.
   local dt is mnv:eta - hbt.
 #+end_src
 
-#+begin_src ks :results none :tangle ../Archive/mn.ks
-  // CAREFUL: vessel is probably currently maintaining
-  // an attitude that keeps batteries charged. Do not
-  // mess with steering until 60 seconds before the burn,
-  // avoid trying to steer into a V(0,0,0) deltav, ando
-  // handle the case where the node goes away before someone
-  // else takes over steering.
-#+end_src
+BE CAREFUL: vessel is probably currently maintaining an
+attitude that keeps batteries charged. Do not mess with
+steering until 60 seconds before the burn, avoid trying
+to steer into a V(0,0,0) deltav, ando handle the case
+where the node goes away before someone else takes over
+steering.
 
 #+begin_src ks :results none :tangle ../Archive/mn.ks
-  if dt < 60 lock steering to choose mnv:deltav if hasnode and mnv:deltav:mag > 0 else facing.
+  if dt < 60
+    lock steering to
+      choose mnv:deltav
+      if hasnode and mnv:deltav:mag > 0
+      else facing.
 #+end_src
 
 #+begin_src ks :results none :tangle ../Archive/mn.ks
   if dt <= 0 return mpinc().
 #+end_src
 
-The swadj function computes the warp factor right now that would allow us
-to come to a halt at the given time. But we DO need to call it frequently
-so it can lower the warp factor in time!
+The swadj function computes the warp factor right now
+that would allow us to come to a halt at the given time.
+But we DO need to call it frequently so it can lower the
+warp factor in time!
 
 #+begin_src ks :results none :tangle ../Archive/mn.ks
   swadj(dt-30). return 1/10. }.
@@ -162,8 +221,8 @@ be exactly the circular orbit speed.
 quick estimate of burntime is ΔV*mass/thrust, actually a
 bit shorter but we want a QUICK estimate at this point.
 
-If this quick estimate seems to tell us that the burn is
-nontrivial, add the node.
+If the burn is nontrivial based on this rough estimate,
+add it to the maneuver schedule.
 
 #+begin_src ks :results none :tangle ../Archive/mn.ks
   if abs(dv)*mass*1000>=maxthrust add node(t,0,0,dv).

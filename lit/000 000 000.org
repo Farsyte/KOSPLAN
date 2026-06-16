@@ -1,7 +1,7 @@
-go.ks -- GO script for Kemini I/C aka The Space Taxi
+go.ks -- GO script for 000 000 000 aka the Development Workstation
 
-This script manages the flight of the Kemini I/C, which is
-less simple.
+This script is a framework within which KOSPLAN code
+can be designed, implemented, tested, and debugged.
 
 * Import Required Packages
 
@@ -32,7 +32,7 @@ finds nothing more specific for this mission.
   mpadd({
     set h to vcrs(body:position,ship:velocity:orbit).
     lock steering to lookdirup(h,-sun:position).
-    return choose mpinc() if vang(steering:vector,facing:vector)<1 else 1.}).
+  return choose mpinc() if vang(steering:vector,facing:vector)<1 else 1.}).
   mpadd(mncirc).
   mpadd(mnwait).
   mpadd(mnexec).
@@ -47,9 +47,8 @@ finds nothing more specific for this mission.
 
 * End the Program.
 
-  #+begin_src ks :results none :tangle ../Archive/home/000 000 000/go.ks
-    print "program complete. ABORT to reboot.".
-    wait until abort. abort off. reboot.
-    }.
+#+begin_src ks :results none :tangle ../Archive/home/000 000 000/go.ks
+  print "program complete. ABORT to reboot.".
+  wait until abort. abort off. reboot.}.
 #+end_src
 

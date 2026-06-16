@@ -4,6 +4,7 @@ import("hud").
 import("mp").
 import("simplecirc").
 import("sw").
+import("time").
 import("xfer").
 import("aeroperi").
 local pdas is {
@@ -17,26 +18,35 @@ set go to {
 fancystager().
 mpone({BAYS ON.}).
 mpadd(hold).
+mpone({t0put(7-mod(time:seconds,1)).}).
+mpadd({
+local t is met().
+local d is round(-t).
+if d<=0 return mpinc().
+if d<=5 hud("T-"+d).
+return 1-mod(t,1).
+}).
 mpone({
 if maxthrust>0 return mpinc().
 if not stage:ready return 1/10.
 lock throttle to 1.
 lock steering to facing.
-stage. }).
+stage. t0put(time:seconds).
+}).
 mpone({hud("ignition").}).
 mpadd({ if alt:radar>=50 return mpinc().
 lock throttle to 1.
 lock steering to facing.
 bays off.
 return 1/10. }).
-mpone({hud("pitchover").}).
+mpone({hud("pitchover at T+"+ydhms(met())).}).
 mpadd(ascent(90,80000)).
-mpone({lock throttle to 0. hud("MECO").}).
+mpone({lock throttle to 0. hud("MECO at T+"+ydhms(met())).}).
 mpadd({ if altitude>body:atm:height return mpinc().
 lock steering to prograde. lock throttle to 0. return 1. }).
-mpone({hud("SPACE!").}).
+mpone({hud("SPACE! at T+"+ydhms(met())).}).
 mpadd(simplecirc).
-mpone({hud("ORBIT!").}).
+mpone({hud("ORBIT! at T+"+ydhms(met())).}).
 mpone(pdas). mpadd(hold). mpone(pdas).
 mpone(xfer("mun")).
 mpone(pdas). mpadd(hold). mpone(pdas).

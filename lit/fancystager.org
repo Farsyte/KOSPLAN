@@ -22,6 +22,8 @@ fuel remains in any of the tanks.
 
 ** Initialize engine and tank lists
 
+*** lol: helper function to set up a list of N lists.
+
 #+begin_src ks :results none :tangle ../Archive/fancystager.ks
   local lol is { parameter n. local res is list().
   until res:length >= n res:add(list()). return res. }.
@@ -29,20 +31,27 @@ fuel remains in any of the tanks.
 
 *** loe: list of engines for stages 0 through stage:number
 
+Specifically, loe[N] is the list of engines that
+are DECOUPLED when we move to stage N.
+
 #+begin_src ks :results none :tangle ../Archive/fancystager.ks
   local loe is lol(stage:number+1).
   for en in ship:engines
-  loe[en:decoupledin]:add(en).
+    loe[en:decoupledin]:add(en).
 #+end_src
 
 *** lot: list of fuel resources for stages 0 through stage:number
 
+Specifically, lot[N] is the list of (part,resource)
+pairs for all parts containing Liquid Fuel that are
+DECOUPLED when we move to stage N.
+
 #+begin_src ks :results none :tangle ../Archive/fancystager.ks
   local lot is lol(stage:number+1).
   for p in ship:parts
-  for res in p:resources
-  if res:name="LiquidFuel"
-  lot[p:decoupledin]:add(list(p,res)).
+    for res in p:resources
+    if res:name="LiquidFuel"
+    lot[p:decoupledin]:add(list(p,res)).
 #+end_src
 
 ** Start the scheduled job
@@ -75,15 +84,20 @@ fuel remains in any of the tanks.
 
 #+begin_src ks :results none :tangle ../Archive/fancystager.ks
   for en in loe[stage:number-1]
-  if not en:flameout
-  return true.
+    if not en:flameout
+    return true.
 #+end_src
 
 *** All resources must be effectively exhausted
 
+Our engines burn both Liquid Fuel and Ozidizer, and
+the fuel tanks have them in the right ratio, but when
+the engine flames out there may be a very small amount
+of Liquid Fuel remaining in the tank.
+
 #+begin_src ks :results none :tangle ../Archive/fancystager.ks
   for pr in lot[stage:number-1]
-  if pr[1]:amount>0.01
+    if pr[1]:amount>0.01
   return true.
 #+end_src
 

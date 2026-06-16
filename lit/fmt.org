@@ -1,0 +1,23 @@
+fmt - simple formatting stuff
+
+* Import Depencencies
+
+#+begin_src ks :results none :tangle ../Archive/fmt.ks
+#+end_src
+
+* fmt(u,w,d) -- generic formatter
+
+If u is a scalar, the output includes D
+digits of fraction.
+
+If u is a string, it is blank-padded on the
+right to be at least W characters long.
+
+#+begin_src ks :results none :tangle ../Archive/fmt.ks
+  set fmt to { parameter u,w. parameter d is 0.
+    if u:typename="Scalar" {
+      set u to round(u,d).
+      set u to (u:tostring+".0"):split(".").
+      set u to u[0]+(choose ("."+u[1]:padright(d)) if d > 0 else "").
+    } return u:tostring:padleft(w). }.
+#+end_src

@@ -46,7 +46,7 @@ if the burn is trivial or we have no fuel, we are done.
 
 #+begin_src ks :results none :tangle ../Archive/aeroperi.ks
   if abs(ds)*1000<=ma or ship:LiquidFuel<=0 {
-    lock throttle to 0. lock steering to facing. return mpinc(). }
+  lock throttle to 0. lock steering to facing. return mpinc(). }
 #+end_src
 
 steer us in the right direction.

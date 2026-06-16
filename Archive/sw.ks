@@ -1,4 +1,5 @@
 import("mn").
+import("time").
 set swra to LIST(0, 4, 6, 30, 60, 600, 6000, 60000).
 set swend to {
 if warp>0 set warp to 0.

@@ -10,5 +10,4 @@ mpadd(mnexec).
 mpadd(mnfini).
 mpclr(). mprun().
 print "program complete. ABORT to reboot.".
-wait until abort. abort off. reboot.
-}.
+wait until abort. abort off. reboot.}.

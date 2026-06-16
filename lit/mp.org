@@ -86,7 +86,7 @@ step on the step list.
 
 #+begin_src ks :results none :tangle ../Archive/mp.ks
   set mpput to { parameter i,t.
-  set mpi to nvput(1, "mpi", i).
+    set mpi to nvput(1, "mpi", i).
   return t. }.
 #+end_src
 

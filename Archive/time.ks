@@ -1,13 +1,17 @@
 import("math").
-set t0 to inf.
-lock met to time:seconds - t0.
+import("nv").
+set t0 to nvget(1, "t0", inf).
+local met_h is { return -3600. }.
+local met_f is { return time:seconds - t0. }.
+set met to choose met_f if t0 < inf else met_h.
+set t0put to { parameter dt.
+set t0 to nvput(1, "t0", TIME:SECONDS+dt).
+set met to choose met_f if dt < inf else met_h.
+return t0. }.
 set ydhms to { parameter sec.
-if sec < 0 return "-"+ydhms(-sec).
-local ts is sec + time - time.
-local ts is ts:full.
-if ts:startswith("0y") local ts is ts:remove(0,2).
-if ts:startswith("0d") local ts is ts:remove(0,2).
-if ts:startswith("0h") local ts is ts:remove(0,2).
-if ts:startswith("0m") local ts is ts:remove(0,2).
-return ts.
+set sec to round(sec).
+if sec<0 return "-"+ydhms(-sec).
+return TIMESTAMP(round(sec)):CLOCK.
 }.
+set TEE to { local t is met().
+return "T"+(choose "-" if t<0 else "+")+ydhms(abs(t)). }.

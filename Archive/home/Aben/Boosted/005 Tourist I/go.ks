@@ -3,7 +3,6 @@ import("fancystager").
 import("ascent").
 import("simplecirc").
 set go to {
-set msgnext to { parameter s. print s. return mpinc(). }.
 fancystager().
 mponce({
 if maxthrust>0 return mpinc().

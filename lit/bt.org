@@ -15,7 +15,7 @@ the CURRENT state of the vessel how long it will take at
 
 #+begin_src ks :results none :tangle ../Archive/bt.ks
   set bt to { parameter dv.
-  local dt is 0.
+    local dt is 0.
 #+end_src
 
 ** Data Prep: "current stage" data.
@@ -44,10 +44,10 @@ note the remaining ΔV.
 #+begin_src ks :results none :tangle ../Archive/bt.ks
   local d is min(d, dv).
   if d>0 and f>0 {
-  set dv to dv-d.
-  local gi is sisp[s].
-  local d is m * gi * (1 - e^(-d/gi)) / f.
-  set dt to dt + d.
+    set dv to dv-d.
+    local gi is sisp[s].
+    local d is m * gi * (1 - e^(-d/gi)) / f.
+    set dt to dt + d.
   if dv<=0 return dt. }
 #+end_src
 

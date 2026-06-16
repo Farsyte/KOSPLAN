@@ -1,5 +1,6 @@
 import("mp").
 import("math").
+import("hud").
 set gpl to {
 local l is list(). if not hasnode return l.
 local o is nextnode:orbit.
@@ -9,6 +10,7 @@ if not o:hasnextpatch return l.
 set o to o:nextpatch. }}.
 set xfer to { parameter target_name. return {
 local dest is body(target_name).
+HUD("Planning transfer to "+dest:name).
 local mu is body:mu.
 local target_flyby_altitude is 45000.
 local return_altitude is 45000.

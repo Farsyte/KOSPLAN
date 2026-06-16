@@ -8,6 +8,8 @@ pre - precomputed ship data.
 
 * swet[s] -- wet mass at each stage.
 
+** Approach: add up masses, append to list.
+
 #+begin_src ks :results none :tangle ../Archive/pre.ks
   set swet to list().
   local s is 0.
@@ -17,7 +19,8 @@ pre - precomputed ship data.
       if pt:decoupledin<s
         set m to m+pt:wetmass.
     swet:add(m).
-    set s to s+1.}
+  set s to s+1.}
+  // print "SWET: ["+swet:join(", ")+"]".
 #+end_src
 
 * sthr[s] -- precomputed maxthrust for each stage.
@@ -29,9 +32,10 @@ pre - precomputed ship data.
     local t is 0.
     for en in ship:engines
       if en:stage>=s and en:decoupledIn<s
-        set t to t+en:possiblethrustat(0).
+      set t to t+en:possiblethrustat(0).
     sthr:add(t).
-    set s to s+1.}
+  set s to s+1.}
+  // print "STHR: ["+sthr:join(", ")+"]".
 #+end_src
 
 * sisp[s] -- precomputed (G0*Isp) for each stage.
@@ -45,8 +49,9 @@ pre - precomputed ship data.
     if t>0 {
       for en in ship:engines
         if en:stage>=s and en:decoupledIn<s
-          set i to i+en:ispat(0)*en:possiblethrustat(0).
-      set i to g0*i/t. }
+        set i to i+en:ispat(0)*en:possiblethrustat(0).
+    set i to g0*i/t. }
     sisp:add(i).
-    set s to s+1.}
+  set s to s+1.}
+  // print "SISP: ["+sisp:join(", ")+"]".
 #+end_src

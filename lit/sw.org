@@ -1,6 +1,37 @@
 sw.ks - SafeWait facility.
 
-TODO work out step-down intervals for PHYSICAL warp.
+This facility only supports RAILS warps.
+
+* TODO limit how fast we can increase WARP factor.
+
+I want to enforce the following rules:
+- WARP can only be increased when TIMEWARP:ISSETTLED
+- WARP can only be increased by one
+Note that this still would hold:
+- WARP can always be decreased by any amount.
+
+This will increase the size of the package.
+Is the juice worth the squeeze?
+
+* TODO have swadj return (dt-swra[WARP])
+
+This would allow callers to wait longer in the
+mission plan manager before having to come back
+and call swadj again.
+
+This would also have to have a special case for the
+"warp limiting" trick above; if the commanded warp W is
+less than the maximum warp allowed for DT, we want to
+come back soon to detect when warp is settled.
+
+* Import Required Packages
+
+#+begin_src ks :results none :tangle ../Archive/sw.ks
+  import("mn").
+  import("time").
+#+end_src
+
+* Configuration Data
 
 Step-down intervals for RAILS warp have been re-tuned from
 the values easily found on the web.
@@ -16,46 +47,64 @@ between calls to safewarp_factor, as we are
 likely to jump from just over a threshold to
 far under it at higher warp values.
 
+It is a good idea for the numbers here to be a bit
+generous. Much better than ending up maintaining a high
+timewarp for slightly too long and overshooting a
+planned action.
 
-* Import Required Packages
-
-#+begin_src ks :results none :tangle ../Archive/home/sw.ks
-  import("mn").
-#+end_src
-
-* Configuration Data
-
-#+begin_src ks :results none :tangle ../Archive/home/sw.ks
+#+begin_src ks :results none :tangle ../Archive/sw.ks
   set swra to LIST(0, 4, 6, 30, 60, 600, 6000, 60000).
 #+end_src
 
 * swend(): assure we are not warping.
 
-#+begin_src ks :results none :tangle ../Archive/home/sw.ks
+Specifically, assures that TIMEWARP is 0
+and the TIMEWARP facility has settled
+before moving on to the next step.
+
+#+begin_src ks :results none :tangle ../Archive/sw.ks
   set swend to {
     if warp>0 set warp to 0.
     if not kuniverse:timewarp:issettled return 1/10.
-    return mpinc(). }.
+  return mpinc(). }.
 #+end_src
 
 
 * swfac(dt): compute safe warp factor for given ΔT
 
-#+begin_src ks :results none :tangle ../Archive/home/sw.ks
+Look through SWRA to find the highest index for
+which the "return to zero" time is less than dt.
+
+#+begin_src ks :results none :tangle ../Archive/sw.ks
   set swfac to { parameter dt.
     local i is swra:length - 1.
     until i=0 or dt>swra[i]
       set i to i - 1.
-    return i.}.
+  return i.}.
 #+end_src
 
 * swadj(dt): set WARP to maximum safe warp for given ΔT
 
-#+begin_src ks :results none :tangle ../Archive/home/sw.ks
+Work out the highest TIMEWARP factor consistent with
+being out of warp in DT seconds, and adjust WARP
+as needed.
+
+This handles the situation where MODE is "PHYSICAL"
+if we were in timewarp as we left the atmosphere.
+
+This facility should only be used during flight steps
+that execute outside the atmosphere.
+
+This facility needs to be called at 10 Hz, or the
+vessel might remain in TIMEWARP too long and not
+be able to get out of warp in time.
+
+#+begin_src ks :results none :tangle ../Archive/sw.ks
   set swadj to { parameter dt.
     set o to warp.
     set n to swfac(dt).
     if o = n return.
     if o = 0 set kuniverse:timewarp:mode to "RAILS".
+    // hud("TIMEWARP "+n).
     set warp to n.}.
 #+end_src
