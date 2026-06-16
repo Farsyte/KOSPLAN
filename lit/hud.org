@@ -1,0 +1,16 @@
+sbt - burn time computation
+
+* Import All Dependencies
+
+#+begin_src ks :results none :tangle ../Archive/hud.ks
+#+end_src
+
+* hud(m,p) -- hud message with optional no-echo
+
+Display M on the hud. Echo to the kOS console
+unless FALSE is passed as p.
+
+#+begin_src ks :results none :tangle ../Archive/hud.ks
+  set hud to { parameter m. parameter p is true.
+    if p print m. hudtext(m,5,2,24,WHITE,false). }.
+#+end_src

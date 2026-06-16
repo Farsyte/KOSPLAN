@@ -29,6 +29,16 @@ far under it at higher warp values.
   set swra to LIST(0, 4, 6, 30, 60, 600, 6000, 60000).
 #+end_src
 
+* swend(): assure we are not warping.
+
+#+begin_src ks :results none :tangle ../Archive/home/sw.ks
+  set swend to {
+    if warp>0 set warp to 0.
+    if not kuniverse:timewarp:issettled return 1/10.
+    return mpinc(). }.
+#+end_src
+
+
 * swfac(dt): compute safe warp factor for given ΔT
 
 #+begin_src ks :results none :tangle ../Archive/home/sw.ks

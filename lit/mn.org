@@ -66,9 +66,9 @@ If no maneuver is planned, or if the maneuver is
 trivially overdue, move on to the next step.
 
 #+begin_src ks :results none :tangle ../Archive/mn.ks
-    if not hasnode return mpinc().
-    local mnv is nextnode.
-    if mnv:eta <= 0 return mpinc().
+  if not hasnode return mpinc().
+  local mnv is nextnode.
+  if mnv:eta <= 0 return mpinc().
 #+end_src
 
 Work out when to start the burn, based on
@@ -76,36 +76,33 @@ wanting to provide half of the ΔV before
 the scheduled burn instant and half after.
 
 #+begin_src ks :results none :tangle ../Archive/mn.ks
-    local hbt is bt(mnv:deltav:mag/2).
-    local wait_until is mnv:eta - hbt.
+  local hbt is bt(mnv:deltav:mag/2).
+  local dt is mnv:eta - hbt.
 #+end_src
 
 #+begin_src ks :results none :tangle ../Archive/mn.ks
-    // CAREFUL: vessel is probably currently maintaining
-    // an attitude that keeps batteries charged. Do not
-    // mess with steering until 60 seconds before the burn,
-    // avoid trying to steer into a V(0,0,0) deltav, and
-    // handle the case where the node goes away before someone
-    // else takes over steering.
+  // CAREFUL: vessel is probably currently maintaining
+  // an attitude that keeps batteries charged. Do not
+  // mess with steering until 60 seconds before the burn,
+  // avoid trying to steer into a V(0,0,0) deltav, ando
+  // handle the case where the node goes away before someone
+  // else takes over steering.
 #+end_src
 
 #+begin_src ks :results none :tangle ../Archive/mn.ks
-    if wait_until < 60
-      lock steering to choose mnv:deltav if hasnode and mnv:deltav:mag > 0 else facing.
+  if dt < 60 lock steering to choose mnv:deltav if hasnode and mnv:deltav:mag > 0 else facing.
 #+end_src
 
 #+begin_src ks :results none :tangle ../Archive/mn.ks
-    if wait_until <= 0
-      return mpinc().
+  if dt <= 0 return mpinc().
 #+end_src
 
-#+begin_src ks :results none :tangle ../Archive/mn.ks
-    swadj(wait_until-30).
-#+end_src
+The swadj function computes the warp factor right now that would allow us
+to come to a halt at the given time. But we DO need to call it frequently
+so it can lower the warp factor in time!
 
 #+begin_src ks :results none :tangle ../Archive/mn.ks
-    return wait_until.
-  }.
+  swadj(dt-30). return 1/10. }.
 #+end_src
 
 * mncirc -- plan maneuver to circularize at next periapsos or apoapsis
