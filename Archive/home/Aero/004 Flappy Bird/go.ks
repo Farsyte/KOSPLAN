@@ -8,7 +8,7 @@ when SAS then{
 print "SAS activated. You have the stick.".
 unlock steering.
 return false. }
-mponce({
+mpone({
 BRAKES ON.
 set Ct to 1.
 lock throttle to Ct.
@@ -20,7 +20,7 @@ stage.
 return mpinc().
 }).
 mpadd({ if ship:thrust>availablethrust/4 or groundspeed>2 return mpinc(). return 1/10. }).
-mponce({ BRAKES OFF. }).
+mpone({ BRAKES OFF. }).
 mpadd({ if groundspeed<60 return 1/10.
 lock steering to heading(90, 15, 0). return mpinc(). }).
 mpadd({ if altitude>=2000 return mpinc().

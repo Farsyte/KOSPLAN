@@ -32,7 +32,7 @@ finds nothing more specific for this mission.
 *** Ignite the engines.
 
 #+begin_src ks :results none :tangle ../Archive/home/Aben/Boosted/005 Tourist I/go.ks
-  mponce({
+  mpone({
     if maxthrust>0 return mpinc().
     if not stage:ready return 1/10.
     lock throttle to 1.
