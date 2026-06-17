@@ -4,7 +4,7 @@ set az to 270.
 set h1 to body:atm:height + 1000.
 set h2 to h1 + 1000.
 set go to {
-mponce({print "Press SPACE to go toward SPACE".}).
+mpone({print "Press SPACE to go toward SPACE".}).
 mpadd({ if maxthrust>0 return mpinc().
 return 1/10. }).
 mpadd({ if alt:radar>=50 return mpinc().

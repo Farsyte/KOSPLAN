@@ -17,6 +17,7 @@ is time to move on to the next step.
 
 #+begin_src ks :results none :tangle ../Archive/mp.ks
   import("nv").
+  import("math").
 #+end_src
 
 * mpl: list of steps in the plan
@@ -57,14 +58,14 @@ after it expects to be called.
   set mpadd to { parameter d. mpl:add(d). }.
 #+end_src
 
-* mponce(d): add a "do this once and go on" step.
+* mpone(d): add a "do this once and go on" step.
 
 This adds a mission step with some boilerplate
 around it so it is done once, and we continue
 on to the next mission step immediately.
 
 #+begin_src ks :results none :tangle ../Archive/mp.ks
-  set mponce to { parameter d. mpl:add({ d(). return mpinc(). }). }.
+  set mpone to { parameter d. mpl:add({ d(). return mpinc(). }). }.
 #+end_src
 
 * mpsay(m): add a "print this message and go on" step.
@@ -77,6 +78,29 @@ on to the next mission step immediately.
   set mpsay to { parameter s. mpl:add({ print s. return mpinc(). }). }.
 #+end_src
 
+* mpput(i): explicitly set the mission plan step number
+
+This function notifies the mission plan manager
+that the next step call should use the next
+step on the step list.
+
+#+begin_src ks :results none :tangle ../Archive/mp.ks
+  set mpput to { parameter i,t.
+    set mpi to nvput(1, "mpi", i).
+  return t. }.
+#+end_src
+
+* mpclr(): rewind the mission plan completely.
+
+This function notifies the mission plan manager
+that the next step call should start over at
+the top of the mission plan.
+
+#+begin_src ks :results none :tangle ../Archive/mp.ks
+  set mpclr to { parameter t is 0.
+  return mpput(0, t). }.
+#+end_src
+
 * mpinc(): increment the mission step number.
 
 This function notifies the mission plan manager
@@ -85,20 +109,23 @@ step on the step list.
 
 #+begin_src ks :results none :tangle ../Archive/mp.ks
   set mpinc to { parameter t is 0.
-  set mpi to nvput(1, "mpi", mpi + 1).
-  return t. }.
+  return mpput(mpi+1, t). }.
 #+end_src
 
 * mprun(): run the mission plan.
 
-Repeatedly process the "current" step, with an
-appropriate delay after each call. Terminate if
-the ABORT action group is active, or if the
+Repeatedly process the "current" step, with an appropriate delay after
+each call. Terminate if the ABORT action group is active, or if the
 step index goes off the end of the list.
 
+The return value from the delegate is a REQUEST for how long to wait
+before executing the next mission step function call.
+
+I note that WAIT D always waits at least one phys tick, and
+if we are at the beginning of a tick, it waits one phys tick
+longer than the requested delay.
+
 #+begin_src ks :results none :tangle ../Archive/mp.ks
-  set mprun to {
-  until abort or mpi>=mpl:length {
-  local dt is mpl[mpi]().
-  if dt>0 wait dt. }}.
+  set mprun to {until abort or mpi>=mpl:length {
+  local dt is mpl[mpi](). if dt>0 wait dt-1/50. }}.
 #+end_src

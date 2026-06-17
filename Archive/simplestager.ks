@@ -1,5 +1,5 @@
 import("mp").
-set simplestager to { 
+set simplestager to {
 local t is time:seconds.
 local mt is 0.
 when t <= time:seconds then { if abort or stage:number<1 return false.
