@@ -1,26 +1,13 @@
-import("math").
-import("time").
-import("fmt").
-import("mn").
-set plan to { parameter park, apo, peri, b.
-local r0 is b:radius.
-local mu is b:mu.
-local r1 is r0 + park.
-local r2 is r0 + apo.
-local r3 is r0 + peri.
-local v0 is velocity:orbit:mag.
-local v1 is visviva(r1, r1,r2, mu).
-local v2 is visviva(r2, r1,r2, mu).
-local v3 is visviva(r2, r3,r2, mu).
-return list(v1-v0, v3-v2).}.
-set plan_nodes to { parameter t1, apo, peri.
-local result is plan(altitude, apo, peri, body).
-local b1 is result[0].
-local b2 is result[2].
-mnclr().
-local mn1 is node(t1, 0, 0, b1).
-add mn1. wait 0.
-local mn2 is node(t1+mn1:eta, 0, 0, b2).
-add mn2. wait 0.
-return list(mn1, mn2).
+local pt is {parameter h1,h2,h3,h4,dv.
+print ("ΔV "+po(h1,h2)+" to "+po(h3,h4)+": "):padright(40)+fmt(dv,5,0)+" m/s". return dv.}.
+local po is {parameter h1,h2. return round(min(h1,h2)/1000)+"x"+round(max(h1,h2)/1000).}.
+local pb is {parameter h1,h2,h3,b. return pt(h1,h2,h1,h3, burndvh(h1,h2,h3,b)). }.
+set plan_sat to {
+parameter park_h.
+parameter sat_peri.
+parameter sat_apo.
+parameter b.
+local b2 is pb(park_h,park_h,sat_apo,b).
+local b3 is pb(sat_apo,park_h,sat_peri,b).
+return list(b2,b3,pt(park_h,park_h,sat_peri,sat_apo,b2+b3)).
 }.

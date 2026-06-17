@@ -8,6 +8,8 @@ set nvp to { parameter f,n,u.
 set nvl[n] to u. set eu to nve[u:typename](u).
 if not exists(f) create(f). set f to open(f). f:clear. f:write(eu).
 return u. }.
+set nvhas to { parameter d,n.
+return nvl:haskey(n) or exists(nvf(d,n)). }.
 set nvput to { parameter d,n,u.
 if nvl:haskey(n) and nvl[n] = u return.
 return nvp(nvf(d,n),n,u). }.

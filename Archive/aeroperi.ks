@@ -5,7 +5,7 @@ local r1 is r0 + altitude.
 local r2 is r0 + 35000.
 local r3 is r0 + apoapsis.
 local vo is velocity:orbit:mag.
-local vd is visviva(r1, r2, r3, body:mu).
+local vd is vv(r1, r2, r3, body:mu).
 local ds is vd - vo.
 local dv is ds * prograde:vector.
 local ma is maxthrust / mass.

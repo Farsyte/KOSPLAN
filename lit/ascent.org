@@ -1,6 +1,5 @@
 ascent.ks - ascent path control
 
-
 * Import Required Packages
 
 #+begin_src ks :results none :tangle ../Archive/ascent.ks

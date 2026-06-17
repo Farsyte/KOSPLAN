@@ -22,13 +22,35 @@ Caller must assure that L <= H.
   set limit to { parameter l,h,u. return max(l,min(h,u)). }.
 #+end_src
 
-* visviva(r1,r2,r3,mu): use vis-viva to calculate velocity
+* vv(r1,r2,r3,mu): use vis-viva to calculate velocity
+
+Vis-Viva Equation: v² = μ ( 2/r - 1/a )
 
 Returns the velocity of a test mass at radius r1 moving
 in an orbit with periapsis radius r2 and apoapsis radius
 r3, in a gravitational field defined by MU = G*(M1+M2).
 
 #+begin_src ks :results none :tangle ../Archive/math.ks
-  set visviva to { parameter r1,r2,r3,mu.
+  set vv to { parameter r1,r2,r3,mu.
   return sqrt(max(0,2*mu*(1/r1-1/(r2+r3)))). }.
+#+end_src
+
+* burndv(r1,r2,r3,mu): compute ΔV from two vis-viva computations.
+
+At radius R1, transitioning from an R1xR2 orbit to an R1xR3 orbit
+where the R values are radii, not altitudes, and are in meters.
+
+#+begin_src ks :results none :tangle ../Archive/math.ks
+  set burndv to { parameter r1,r2,r3,mu.
+    return vv(r1,r1,r3,mu)-vv(r1,r1,r2,mu). }.
+#+end_src
+
+* burndvh(h1,h2,h3,b): burndv but using altitudes
+
+Variant of burndv that takes input as METERS ASL, and the body.
+
+#+begin_src ks :results none :tangle ../Archive/math.ks
+  set burndvh to { parameter h1,h2,h3,b.
+    local r0 is b:radius.
+    return burndv(r0+h1,r0+h2,r0+h3,b:mu). }.
 #+end_src

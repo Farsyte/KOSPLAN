@@ -69,7 +69,6 @@ before moving on to the next step.
   return mpinc(). }.
 #+end_src
 
-
 * swfac(dt): compute safe warp factor for given ΔT
 
 Look through SWRA to find the highest index for

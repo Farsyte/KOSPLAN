@@ -40,7 +40,6 @@ Our required packages do not fit in 10000 bytes.
     if a>175 mpinc(). return 1. }.
 #+end_src
 
-
 ** hold -- Wait until bay is closed.
 
 #+begin_src ks :results none :tangle ../Archive/home/006 Munar Ib/go.ks
