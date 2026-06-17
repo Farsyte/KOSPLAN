@@ -1,6 +1,6 @@
 import("mp").
 set go to {
-mponce({print "Press SPACE to go toward SPACE".}).
+mpone({print "Press SPACE to go toward SPACE".}).
 mpadd({ if maxthrust>0 return mpinc().
 return 1/10. }).
 mpadd({ if alt:radar>=50 return mpinc().

@@ -20,7 +20,7 @@ finds nothing more specific for this mission.
 
 #+begin_src ks :results none :tangle ../Archive/home/Aben/Simple/001 Lil Hopper/go.ks
   set go to {
-  mponce({print "Press SPACE to go toward SPACE".}).
+  mpone({print "Press SPACE to go toward SPACE".}).
 #+end_src
 
 * Define Mission Phases

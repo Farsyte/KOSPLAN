@@ -46,7 +46,7 @@ finds nothing more specific for this mission.
 *** prompt the flight engineer to initiate the flight.
 
 #+begin_src ks :results none :tangle ../Archive/home/Aben/Boosted/003 Kemini I/go.ks
-  mponce({print "Activate engines when ready.".}).
+  mpone({print "Activate engines when ready.".}).
 #+end_src
 
 *** hold on pad until we have thrust.
@@ -87,7 +87,7 @@ finds nothing more specific for this mission.
 *** gather science in orbit.
 
 #+begin_src ks :results none :tangle ../Archive/home/Aben/Boosted/003 Kemini I/go.ks
-  mponce({ brakes on. print "Release brakes to land.". }).
+  mpone({ brakes on. print "Release brakes to land.". }).
     mpadd({ if not brakes return mpinc().
       lock throttle to 0.
       lock steering to heading(0,0,0).

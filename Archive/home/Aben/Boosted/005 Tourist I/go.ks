@@ -4,7 +4,7 @@ import("ascent").
 import("simplecirc").
 set go to {
 fancystager().
-mponce({
+mpone({
 if maxthrust>0 return mpinc().
 if not stage:ready return 1/10.
 lock throttle to 1.

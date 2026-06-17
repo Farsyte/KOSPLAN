@@ -5,7 +5,7 @@ import("simplecirc").
 set go to {
 set msgnext to { parameter s. print s. return mpinc(). }.
 fancystager().
-mponce({print "Activate engines when ready.".}).
+mpone({print "Activate engines when ready.".}).
 mpadd({ if maxthrust>0 return mpinc().
 return 1/10. }).
 mpadd({ if alt:radar>=50 return mpinc().
@@ -17,7 +17,7 @@ mpadd({ if altitude>body:atm:height return mpinc().
 lock steering to prograde. lock throttle to 0.
 return 1. }).
 mpadd(simplecirc).
-mponce({ brakes on. print "Release brakes to land.". }).
+mpone({ brakes on. print "Release brakes to land.". }).
 mpadd({ if not brakes return mpinc().
 lock throttle to 0.
 lock steering to vcrs(body:position,ship:velocity:orbit).

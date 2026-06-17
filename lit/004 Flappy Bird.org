@@ -41,7 +41,7 @@ finds nothing more specific for this mission.
 *** set the controls
 
 #+begin_src ks :results none :tangle ../Archive/home/Aero/004 Flappy Bird/go.ks
-  mponce({
+  mpone({
     BRAKES ON.
     set Ct to 1.
     lock throttle to Ct.
@@ -66,7 +66,7 @@ up to 50% or when we are moving at 2 m/s.
 
 #+begin_src ks :results none :tangle ../Archive/home/Aero/004 Flappy Bird/go.ks
   mpadd({ if ship:thrust>availablethrust/4 or groundspeed>2 return mpinc(). return 1/10. }).
-  mponce({ BRAKES OFF. }).
+  mpone({ BRAKES OFF. }).
 #+end_src
 
 *** pitch nose up at 60 m/s
