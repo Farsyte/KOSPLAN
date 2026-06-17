@@ -37,7 +37,8 @@ are DECOUPLED when we move to stage N.
 #+begin_src ks :results none :tangle ../Archive/fancystager.ks
   local loe is lol(stage:number+1).
   for en in ship:engines
-    loe[en:decoupledin]:add(en).
+    if en:decoupledin>=0
+      loe[en:decoupledin]:add(en).
 #+end_src
 
 *** lot: list of fuel resources for stages 0 through stage:number
@@ -49,9 +50,10 @@ DECOUPLED when we move to stage N.
 #+begin_src ks :results none :tangle ../Archive/fancystager.ks
   local lot is lol(stage:number+1).
   for p in ship:parts
-    for res in p:resources
-    if res:name="LiquidFuel"
-    lot[p:decoupledin]:add(list(p,res)).
+    if p:decoupledin>=0
+      for res in p:resources
+        if res:name="LiquidFuel"
+          lot[p:decoupledin]:add(list(p,res)).
 #+end_src
 
 ** Start the scheduled job
