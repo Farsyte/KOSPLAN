@@ -1,6 +1,9 @@
+from pathlib import Path
+
 wrf = {}
 def tangleto(rd, wrname):
     if wrname not in wrf:
+        Path(wrname).parents[0].mkdir(parents=True, exist_ok=True)
         wrf[wrname] = open(wrname, 'w')
     wr = wrf[wrname]
     while True:

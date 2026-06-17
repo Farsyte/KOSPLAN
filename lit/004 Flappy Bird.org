@@ -5,7 +5,7 @@ fairly simple:
 
 * Import Required Packages
 
-#+begin_src ks :results none :tangle ../Archive/home/Aero/004 Flappy Bird/go.ks
+#+begin_src ks :results none :tangle ../Archive/home/004 Flappy Bird/go.ks
   import("mp").
   import("airspeed").
 #+end_src
@@ -15,13 +15,13 @@ fairly simple:
 This function is executed by IMPORT when it
 finds nothing more specific for this mission.
 
-#+begin_src ks :results none :tangle ../Archive/home/Aero/004 Flappy Bird/go.ks
+#+begin_src ks :results none :tangle ../Archive/home/004 Flappy Bird/go.ks
   set go to {
 #+end_src
 
 ** Clear and set up takeoff.log
 
-#+begin_src ks :results none :tangle ../Archive/home/Aero/004 Flappy Bird/go.ks
+#+begin_src ks :results none :tangle ../Archive/home/004 Flappy Bird/go.ks
   local lf is home:combine("takeoff.log").
   deletepath(lf).
   log "Alt,GS,VS" to lf.
@@ -29,7 +29,7 @@ finds nothing more specific for this mission.
 
 ** If the flight engineer activate SAS, unlock steering.
 
-#+begin_src ks :results none :tangle ../Archive/home/Aero/004 Flappy Bird/go.ks
+#+begin_src ks :results none :tangle ../Archive/home/004 Flappy Bird/go.ks
   when SAS then{
     print "SAS activated. You have the stick.".
     unlock steering.
@@ -40,7 +40,7 @@ finds nothing more specific for this mission.
 
 *** set the controls
 
-#+begin_src ks :results none :tangle ../Archive/home/Aero/004 Flappy Bird/go.ks
+#+begin_src ks :results none :tangle ../Archive/home/004 Flappy Bird/go.ks
   mpone({
     BRAKES ON.
     set Ct to 1.
@@ -51,7 +51,7 @@ finds nothing more specific for this mission.
 
 *** light the fires
 
-#+begin_src ks :results none :tangle ../Archive/home/Aero/004 Flappy Bird/go.ks
+#+begin_src ks :results none :tangle ../Archive/home/004 Flappy Bird/go.ks
   mpadd({
     if not stage:ready return 1/10.
     stage.
@@ -64,7 +64,7 @@ finds nothing more specific for this mission.
 Release the brakes when the engines have spooled
 up to 50% or when we are moving at 2 m/s.
 
-#+begin_src ks :results none :tangle ../Archive/home/Aero/004 Flappy Bird/go.ks
+#+begin_src ks :results none :tangle ../Archive/home/004 Flappy Bird/go.ks
   mpadd({ if ship:thrust>availablethrust/4 or groundspeed>2 return mpinc(). return 1/10. }).
   mpone({ BRAKES OFF. }).
 #+end_src
@@ -74,7 +74,7 @@ up to 50% or when we are moving at 2 m/s.
 Typical small business jets take off at 75 to 100 m/s
 and have an ascent rate of about 20 m/s.
 
-#+begin_src ks :results none :tangle ../Archive/home/Aero/004 Flappy Bird/go.ks
+#+begin_src ks :results none :tangle ../Archive/home/004 Flappy Bird/go.ks
   mpadd({ if groundspeed<60 return 1/10.
   lock steering to heading(90, 15, 0). return mpinc(). }).
 #+end_src
@@ -84,7 +84,7 @@ and have an ascent rate of about 20 m/s.
 I will be making significant use of MECHJEB
 to fly this thing.
 
-#+begin_src ks :results none :tangle ../Archive/home/Aero/004 Flappy Bird/go.ks
+#+begin_src ks :results none :tangle ../Archive/home/004 Flappy Bird/go.ks
   mpadd({ if altitude>=2000 return mpinc().
     log round(alt:radar)+","+round(groundspeed,1)+","+round(verticalspeed,1) to lf.
   return 1/10.}).
@@ -97,7 +97,7 @@ create and start using a new airspeed controller, and we
 will start with running astest() to cycle the airspeed
 through some test setpoints.
 
-#+begin_src ks :results none :tangle ../Archive/home/Aero/004 Flappy Bird/go.ks
+#+begin_src ks :results none :tangle ../Archive/home/004 Flappy Bird/go.ks
   mpadd({
     asn(1/10,1/1000,1).
     astest().
@@ -106,7 +106,7 @@ through some test setpoints.
 
 * Run the Mission, then End the Program.
 
-#+begin_src ks :results none :tangle ../Archive/home/Aero/004 Flappy Bird/go.ks
+#+begin_src ks :results none :tangle ../Archive/home/004 Flappy Bird/go.ks
   mprun(). print "program terminated".}.
 #+end_src
 
