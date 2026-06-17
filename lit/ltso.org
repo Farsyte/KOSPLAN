@@ -25,5 +25,5 @@ This function behaves well if apo and peri are reversed.
     parameter aop is 0.
     local sma is body:radius + (apo + peri)/2.
     local ecc is abs(apo - peri) / (2*sma).
-    return createorbit(inc, ecc, sma, lan, aop, 0, 0, body). }
+    return createorbit(inc, ecc, sma, lan, aop, 0, 0, body). }.
 #+end_src
