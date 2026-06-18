@@ -1,6 +1,6 @@
 math - simple math stuff
 
-* Constants
+* Constants (pi, g0, e, inf, eps)
 
 #+begin_src ks :results none :tangle ../Archive/math.ks
   set pi to constant:pi.

@@ -1,3 +1,8 @@
+import("nv").
+import("math").
+import("fmt").
+import("fancystager").
+import("mn").
 local pt is {parameter h1,h2,h3,h4,dv.
 print ("ΔV "+po(h1,h2)+" to "+po(h3,h4)+": "):padright(40)+fmt(dv,5,0)+" m/s". return dv.}.
 local po is {parameter h1,h2. return round(min(h1,h2)/1000)+"x"+round(max(h1,h2)/1000).}.

@@ -89,7 +89,7 @@ the type of the value and the value.
 
 #+begin_src ks :results none :tangle ../Archive/nv.ks
   set nvput to { parameter d,n,u.
-    if nvl:haskey(n) and nvl[n] = u return.
+    if nvl:haskey(n) and nvl[n] = u return u.
   return nvp(nvf(d,n),n,u). }.
 #+end_src
 

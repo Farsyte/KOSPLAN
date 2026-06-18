@@ -127,5 +127,5 @@ longer than the requested delay.
 
 #+begin_src ks :results none :tangle ../Archive/mp.ks
   set mprun to {until abort or mpi>=mpl:length {
-  local dt is mpl[mpi](). if dt>0 wait dt-1/50. }}.
+  local dt is mpl[mpi](). if dt>0 wait dt. }}.
 #+end_src

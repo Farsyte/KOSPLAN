@@ -3,9 +3,9 @@ Mission Planning facility
 
 * Import Required Packages
 
-#+begin_src ks :results none :tangle ../Archive/home/007 OKTO I/go.ks
+#+begin_src ks :results none :tangle ../Archive/plan.ks
   import("nv").
-    import("math").
+  import("math").
   import("fmt").
   import("fancystager").
   import("mn").

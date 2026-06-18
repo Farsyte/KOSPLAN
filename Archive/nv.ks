@@ -11,7 +11,7 @@ return u. }.
 set nvhas to { parameter d,n.
 return nvl:haskey(n) or exists(nvf(d,n)). }.
 set nvput to { parameter d,n,u.
-if nvl:haskey(n) and nvl[n] = u return.
+if nvl:haskey(n) and nvl[n] = u return u.
 return nvp(nvf(d,n),n,u). }.
 set nvget to { parameter d,n,u.
 if nvl:haskey(n) return nvl[n].

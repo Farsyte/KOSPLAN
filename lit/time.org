@@ -38,7 +38,7 @@ that we are in launch-hold at T-1 hour.
 #+begin_src ks :results none :tangle ../Archive/time.ks
   set t0put to { parameter dt.
     set t0 to nvput(1, "t0", TIME:SECONDS+dt).
-    set met to choose met_f if dt < inf else met_h.
+    set met to choose met_f if t0 < inf else met_h.
     return t0. }.
 #+end_src
 
@@ -51,9 +51,9 @@ Uses TIME:FULL then removes zero elements from the front.
     set sec to round(sec).
     if sec<0 return "-"+ydydhms(-sec).
     local ts is TIMESTAMP(round(sec)).
-    if ts:year=0 and ts:day=0 return ts:CLOCK.
-    if ts:year=0 return ts:day+"d+"+ts:CLOCK.
-    return ts:year+"y "+ts:day+"d+"+ts:CLOCK.
+    if ts:year<2 and ts:day<2 return ts:CLOCK.
+    if ts:year<2 return (ts:day-1)+"d+"+ts:CLOCK.
+    return (ts:year-1)+"y "+(ts:day-1)+"d+"+ts:CLOCK.
   }.
 #+end_src
 

@@ -6,9 +6,11 @@ OKTO I/go.ks: Prototype Satellite System
   import("nv").
   import("math").
   import("fmt").
-  import("fancystager").
   import("mn").
   import("sw").
+  import("ascent").
+  import("simplecirc").
+  import("hud").
 #+end_src
 
 ** What is the typical mission plan?
@@ -23,7 +25,15 @@ Example: placing a sattelite in a polar orbit.
 
 Mike's orbit was 790+410 m/s.
 
+My contract 1: 874+317=1191
+My contract 2: 867+347=1214
+
 Mike says budget 4100 m/s to get into polar orbit.
+
+limiting thrust to 20 m/s²:
+- My upper stage has 2212 m/s available when it hits space.
+- My upper stage has {} m/s available after circularization from -55x80km
+
 
 * Configuration Parameters and Support Functions
 
@@ -38,7 +48,29 @@ finds nothing more specific for this mission.
 
 ** Configuration Parameters and Support Functions 
 
+*** Set up per-reboot log files
+
+
+#+begin_src ks :results none :tangle ../Archive/home/007 OKTO I/go.ks
+  set okto_log to home:combine("okto.log").
+  if exists(okto_log) open(okto_log):clear().
+  log fmt("sa",8,3)+", "+fmt("sf",8,3) to okto_log.
+#+end_src
+
+*** Initialize Launch Parameters
+
+These default to simple eastbound parking but
+will be explicitly upated in a mission step
+just before the actual launch.
+
+#+begin_src ks :results none :tangle ../Archive/home/007 OKTO I/go.ks
+  set launch_t0 to nvget(1, "launch_t0", t0).
+  set launch_az to nvget(1, "launch_az", 90).
+  set launch_ap to nvget(1, "launch_ap", 80000).
+#+end_src
+
 *** Pick a Mission
+
 #+begin_src ks :results none :tangle ../Archive/home/007 OKTO I/go.ks
 
   // When we first roll out the vessel,
@@ -71,14 +103,8 @@ the Delta-V requirements to go from a parking
 orbit to the assigned orbit.
 
 #+begin_src ks :results none :tangle ../Archive/home/007 OKTO I/go.ks
-  import("plan"). deletepath("1:/plan.ks").
-  plan_sat(80000,ccorb:periapsis,ccorb:apoapsis,ccorb:body).
-#+end_src
-
-** Recalibrate MET to start when the GO script starts.
-
-#+begin_src ks :results none :tangle ../Archive/home/007 OKTO I/go.ks
-  t0put(0).
+  //import("plan"). deletepath("1:/plan.ks").
+  //plan_sat(80000,ccorb:periapsis,ccorb:apoapsis,ccorb:body).
 #+end_src
 
 ** debug helper for "next stage"
@@ -87,103 +113,305 @@ orbit to the assigned orbit.
   set msgnext to { parameter s. print s. return mpinc(). }.
 #+end_src
 
-** Start an autostager in the background
+** pdas -- Point Down At Sun
+
+#+begin_src ks :results none :tangle ../Archive/home/006 Munar Ib/go.ks
+  local pdas is {
+    local h is vcrs(body:position,ship:velocity:orbit).
+    lock throttle to 0.
+    lock steering to lookdirup(h,-sun:position).
+    local a is vang(facing:upvector,sun:position).
+    if a>175 mpinc(). return 1. }.
+#+end_src
+
+** Set up staging conditions.
 
 #+begin_src ks :results none :tangle ../Archive/home/007 OKTO I/go.ks
-  fancystager().
+  if stage:number>2
+    when stage:number<3 and maxthrust=0 and stage:ready then {
+      stage. return stage:number>0. }
+
+  if stage:number>1
+    when altitude>70000 and stage:ready then {
+      if stage:number>1 stage. return stage:number>1. }
 #+end_src
 
 ** Define Mission Phases
 
-*** set up to launch when we are "under" the assigned orbit.
+*** Wait until the next launch window
 
 During boot, we fetch the contract satellite orbital
 elements and construct an Orbit object.
 
 #+begin_src ks :results none :tangle ../Archive/home/007 OKTO I/go.ks
-
-  // kerbin rotates one degree in 59.860 seconds.
-
-  local data_csv is home:combine("data.csv").
-  deletepath(data_csv).
-  local ll is
-    TEE()+","+
-    fmt("h dot p",8,3)+","+
-    fmt("h dot v",8,3)+","+
-    fmt("angle",8,3)+","+
-    fmt("quad",5,0)+","+
-    fmt("aeoq",8,3)+","+
-    fmt("qeta",8,3).
-
-  print "ll                      "+ll.
-  log ll to data_csv.
-
-  local next_log_time is time:seconds.
-
   mpadd({
+#+end_src
 
-    // The coordinate frame is weird when we are landed.
-    // almost like the orientation is always relative to
-    // a point fixed on the surface of the body, but
-    // velocities ignore that it is rotating.
+The coordinate frame is weird when we are landed.
+almost like the orientation is always relative to
+a point fixed on the surface of the body, but
+velocities ignore that it is rotating.
 
-    // th: angular momentum direction for target orbit [CHANGES]
-    // sp: direction from body center to ship center [CONSTANT]
-    // sv: ship velocity relative to body center to ship center [CONSTANT, NONZERO]
+- th: angular momentum direction for target orbit [CHANGES]
+- sp: direction from body center to ship center [CONSTANT]
+- sv: ship velocity relative to body center to ship center [CONSTANT, NONZERO]
 
-    local th is vcrs(ccorb:position-body:position,ccorb:velocity:orbit):normalized.
-    local sp is -body:position:normalized.
-    local sv is ship:velocity:orbit:normalized.
+- hp: cosine of angle between th and sp
+- hv: cosine of angle between th and sv
+- angle: goes from 360 down to 000
 
-    // When hp is zero and hv is -1 (angle is 090) launch to the SOUTH.
-    // When hp is zero and hv is +1 (angle is 270) launch to the NORTH.
-    // TODO If the target is not exactly polar, what happens?
-    // TODO If the target is nearly equatorial, what happens?
+I want to launch when we are 2° before the end of the quadrant.
+- Before angle is 000, launch NORTHish.
+- Before angle is 180, launch SOUTHish.
 
-    local h_dot_p is vdot(th, sp).
-    local h_dot_v is vdot(th, sv).
+#+begin_src ks :results none :tangle ../Archive/home/007 OKTO I/go.ks
+  local th is vcrs(ccorb:position-body:position,ccorb:velocity:orbit):normalized.
+  local sp is -body:position:normalized.
+  local sv is ship:velocity:orbit:normalized.
+#+end_src
 
-    // make the angle go from 360 to 000
-    // the angle DECREASES over time.
-    local angle is arctan2(h_dot_v, h_dot_p)+180.
+Treat the vectors sp and sv as the basis vectors
+for a 2D coordinate system, compute the projection
+of the th vector onto that plane, then pick out
+an angle within that plane.
+ 
+#+begin_src ks :results none :tangle ../Archive/home/007 OKTO I/go.ks
+  local hp is vdot(th, sp).
+  local hv is vdot(th, sv).
+#+end_src
 
-    // TODO estimate how long until a good launch window
-    // use SAFEWARP to get us close
-    // When we are close to the window:
-    // - double check that WARP is 0 and SETTLED
-    // - lock down the launch time T0
-    // - pass control to the COUNTDOWN step
+#+begin_src ks :results none :tangle ../Archive/home/007 OKTO I/go.ks
+  local angle is arctan2(hv, hp)+180.
+#+end_src
 
-    // pick behavior based on quadrant.
-    // angle is increasing over time.
+TODO estimate how long until a good launch window
+use SAFEWARP to get us close
+When we are close to the window:
+- double check that WARP is 0 and SETTLED
+- lock down the launch time T0
+- pass control to the COUNTDOWN step
 
-    local quad is floor(angle/90).
-    if quad=0 or quad=2 {swadj(body:rotationperiod/8). return 1/10.}
-    local aeoq is angle-90*quad.
-    local dadt is 360/body:rotationperiod.
-    local qeta is aeoq / dadt.
+pick behavior based on quadrant.
+angle is increasing over time.
 
-    swadj(qeta-30). // swadj needs to be called FREQUENTLY when warping.
-    if warp>0 or not kuniverse:timewarp:issettled return 1/10.
+- Quad 3: approaching NORTH departure
+- Quad 2: after NORTH before SOUTH
+- Quad 1: approaching SOUTH departure
+- Quad 0: after SOUTH before NORTH
 
-    // Quad 3: approaching NORTH departure
-    // Quad 2: after NORTH before SOUTH
-    // Quad 1: approaching SOUTH departure
-    // Quad 0: after SOUTH before NORTH
+If we are in Quadrant 0 or 2,
+use safewarp to manage warping
+into the next quadrant.
 
-    set next_log_time to next_log_time + body:rotationperiod/360.
+#+begin_src ks :results none :tangle ../Archive/home/007 OKTO I/go.ks
+  local quad is floor(angle/90).
+  if quad=0 or quad=2 {swadj(body:rotationperiod/8). return 1/10.}
+#+end_src
 
-    local ll is TEE()+","+
-      fmt(h_dot_p,8,3)+","+
-      fmt(h_dot_v,8,3)+","+
-      fmt(angle,8,3).
+Otherwise, use safewarp to manage warping
+to a comfortable margin before the
+end of the current quadrant.
 
-    set ll to ll+","+fmt(quad,5,0)+","+fmt(aeoq,8,3)+","+fmt(qeta,8,3).
+#+begin_src ks :results none :tangle ../Archive/home/007 OKTO I/go.ks
+  local aeoq is angle-90*quad.
+  local qeta is aeoq * body:rotationperiod/360.
 
-    print "ll                      "+ll.
-    log ll to data_csv.
-    return mod(qeta-1/10,5).
+  // we can bias qeta to rotate our resulting orbital plane
+  // around kerbin's axis. It looks like I need to lead the
+  // target plane by about 2°.
+  set qeta to qeta - 2*body:rotationperiod/360.
+
+  swadj(qeta-30).
+  if warp>0 or not kuniverse:timewarp:issettled return 1/10.
+#+end_src
+
+If we get here, we are close to the end of a launch
+quadrant. Uncomment this to remind me of what values we
+computed above.
+
+#+begin_src ks :results none :tangle ../Archive/home/007 OKTO I/go.ks
+  log TEE()+": "+
+    "hp: "+fmt(hp,8,5)+", "+
+    "hv: "+fmt(hv,8,5)+", "+
+    "angle: "+fmt(angle,8,3)+", "+
+    "qeta: "+fmt(qeta,8,3) to okto_log.
+#+end_src
+
+Leading up to the NORTHish launch window:
+
+Leading up to the SOUTHish launch window:
+
+Monitor numbers closely until 20 seconds before the estimated launch
+window. Continue the process if the rounded qeta is 20 seconds or les.
+
+#+begin_src ks :results none :tangle ../Archive/home/007 OKTO I/go.ks
+  if qeta>20 return 1-mod(met()+100,1)-1/10.
+#+end_src
+
+We are close enough that we can commit to the
+launch parameters (t0, az, ap) and move along to the
+next step in the plan.
+
+For polar orbits, push launch azimuth west by four degrees.
+
+#+begin_src ks :results none :tangle ../Archive/home/007 OKTO I/go.ks
+  t0put(qeta-10).
+  set launch_t0 to nvput(1, "launch_t0", t0).
+  set launch_az to nvput(1, "launch_az", choose 356 if hv > 0 else 184).
+  set launch_ap to nvput(1, "launch_ap", 80000).
+  return mpinc(). }).
+#+end_src
+
+*** Provide a brief countdown.
+
+#+begin_src ks :results none :tangle ../Archive/home/007 OKTO I/go.ks
+  mpadd({
+    local t is -met().
+    if t<=5.5 print TEE().
+    if t<=0.5 return mpinc().
+    return mod(t,1).
   }).
+
+#+end_src
+
+*** Ignite the engines.
+
+#+begin_src ks :results none :tangle ../Archive/home/007 OKTO I/go.ks
+  mpone({
+    if maxthrust>0 return mpinc().
+    if not stage:ready return 1/10.
+    lock throttle to 1.
+    lock steering to facing.
+    hud("ignition"). stage. t0put(0).
+    set launch_t0 to nvput(1, "launch_t0", t0).
+  }).
+#+end_src
+
+*** damp attitude rate until safe to maneuver
+
+#+begin_src ks :results none :tangle ../Archive/home/007 OKTO I/go.ks
+  mpadd({ if alt:radar>=50 return mpinc().
+    lock throttle to 1. lock steering to facing. return 1/10. }).
+  mpone({hud("pitchover").}).
+#+end_src
+
+*** control pitch and heading until apoapsis is high enough
+
+Ascent controller for a desired launch azimuth and altitude.
+
+#+begin_src ks :results none :tangle ../Archive/home/007 OKTO I/go.ks
+  mpadd({
+#+end_src
+
+If we are coming down, end the step (this is bad).
+If we are above the atmosphere and our apoapsis
+is high enough, end the step (this is good).
+
+#+begin_src ks :results none :tangle ../Archive/home/007 OKTO I/go.ks
+  if verticalspeed<0 return mpinc().
+  if altitude>=70000 and apoapsis>=launch_ap return mpinc().
+#+end_src
+
+TODO use an error controller to manage the heading part
+of the steering so that we land on the desired plane.
+- initially steer to the inclination of the orbit
+- at some threshold altitude or velocity, activate.
+- null option:
+  - steer along the indicated azimuth until done
+- option 0:
+  - steer along the indicated azimuth
+  - look for our orbit inclination to be right
+  - switch to steering along our orbit
+- option 1:
+  - compare current orbit inclination with desired inclination,
+    steer to fix the inclination only.
+- option 2:
+  - determine distance from plane
+  - determine velocity toward plane
+  - set plane-normal component of thrust to control toward-plane velocity
+
+#+begin_src ks :results none :tangle ../Archive/home/007 OKTO I/go.ks
+  lock af to limit(0,1,altitude/launch_ap).
+  lock cp to limit(0,90,90-120*sqrt(af)).
+  lock steering to heading(launch_az, cp, 0).
+#+end_src
+
+Rather than go full-throttle all the way, limit our
+acceleration during ascent.
+
+NOTE: limiting to 15 m/s does not get uws high enough fast enough.
+NOTE: limiting to 20 m/s works better but I think it could be higher.
+- control passed to upper stage at ~45 km.
+- ants were quite good at fine tuning initial 80km apoapsis.
+- 2213 m/s remaining before simplecirc
+- simplecirc worked just fine, good margin
+- 2084 m/s remaining after simplecirc
+- inclination: 89.919°		wanted 90.000°
+- lan: 92° 24' 41" = 94.4°        wanted 92.700°
+
+Hold on, I thought I rotated angle back by 2° to fix lan.
+
+- *IDEA FROM MIKE* reduce thrust when apoapsis is more
+  than 55 seconds ahead of us. Not a lot more efficient
+  but a lot less hectic and looks cooler.
+
+#+begin_src ks :results none :tangle ../Archive/home/007 OKTO I/go.ks
+  lock tf to min(1,sqrt(max(0,(launch_ap+20-apoapsis)/1000))).
+  lock mt to max(eps, ship:availablethrust).
+  lock throttle to tf*min(1,20*mass/mt).
+#+end_src
+
+re-evaluate the ascent every second.
+
+#+begin_src ks :results none :tangle ../Archive/home/007 OKTO I/go.ks
+  return 1. }).
+#+end_src
+
+#+begin_src ks :results none :tangle ../Archive/home/007 OKTO I/go.ks
+  mpone({hud("vs="+verticalspeed+", apo="+apoapsis+", la="+launch_ap).}).
+  mpone({lock throttle to 0. hud("MECO").}).
+#+end_src
+
+*** coast until above atmosphere.
+
+#+begin_src ks :results none :tangle ../Archive/home/007 OKTO I/go.ks
+  mpadd({ if altitude>body:atm:height return mpinc().
+  lock steering to prograde. lock throttle to 0. return 1. }).
+  mpone({hud("SPACE!").}).
+#+end_src
+
+*** circularize at apoapsis.
+
+#+begin_src ks :results none :tangle ../Archive/home/007 OKTO I/go.ks
+  mpone({hud("simplecirc...").}).
+  mpadd(simplecirc).
+  mpone({hud("ORBIT!").}).
+    // I think we stage here to discard farings.
+#+end_src
+
+*** 
+
+#+begin_src ks :results none :tangle ../Archive/home/007 OKTO I/go.ks
+#+end_src
+
+*** 
+
+#+begin_src ks :results none :tangle ../Archive/home/007 OKTO I/go.ks
+#+end_src
+
+*** 
+
+#+begin_src ks :results none :tangle ../Archive/home/007 OKTO I/go.ks
+#+end_src
+
+*** 
+
+#+begin_src ks :results none :tangle ../Archive/home/007 OKTO I/go.ks
+#+end_src
+
+*** 
+
+#+begin_src ks :results none :tangle ../Archive/home/007 OKTO I/go.ks
 #+end_src
 
 * Run the Mission, then End the Program.

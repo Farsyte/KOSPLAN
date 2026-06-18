@@ -134,3 +134,9 @@ mpone({hud("What CPU is running this code?").}).
 mpadd({ unlock throttle. unlock steering. return mpinc(). }).
 mpone({hud("Falling Off the Bottom").}).
 mprun(). HUD("program terminated").}.
+local pdas is {
+local h is vcrs(body:position,ship:velocity:orbit).
+lock throttle to 0.
+lock steering to lookdirup(h,-sun:position).
+local a is vang(facing:upvector,sun:position).
+if a>175 mpinc(). return 1. }.
