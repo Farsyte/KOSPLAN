@@ -37,27 +37,6 @@ For my test launch, estimating ship will have:
 Should be good for higher altitude satellites
 and for moving satellites to new orbits.
 
-* Temporary Test Code
-
-** function -- describe it.
-
-#+begin_src ks :results none :tangle ../Archive/home/007 OKTO I/go.ks
-  // set function to { body }.
-#+end_src
-
-
-** function -- describe it.
-
-#+begin_src ks :results none :tangle ../Archive/home/007 OKTO I/go.ks
-  // set function to { body }.
-#+end_src
-
-** test sequence -- document it.
-
-#+begin_src ks :results none :tangle ../Archive/home/007 OKTO I/go.ks
-  // test the functions here.
-#+end_src
-
 * Configuration Parameters and Support Functions at Import Time
 
 ** Set up per-reboot log files
@@ -137,16 +116,6 @@ vector for our motion around the sun.
     local a is vang(facing:upvector,steering:upvector).
     // print "pdas: a="+a.
     if a<5 mpinc(). return 1. }.
-#+end_src
-
-
-** rcshold -- Wait until RCS is activated.
-
-#+begin_src ks :results none :tangle ../Archive/home/007 OKTO I/go.ks
-  set rcshold to { if RCS { RCS OFF. return mpinc(). }
-    if wfnow>1 return wfcmd*5.
-    hud("Activate RCS to continue.", false).
-    return 5. }.
 #+end_src
 
 * Provide a GO function.
@@ -451,13 +420,7 @@ re-evaluate the ascent every second.
   mpone({hud(TEE()+": "+round(stage:deltav:vacuum,1)+ " m/s ΔV remains").}).
   mpadd(simplecirc).
   mpone({hud(TEE()+": "+round(stage:deltav:vacuum,1)+ " m/s ΔV remains").}).
-#+end_src
-
-*** CHECKPOINT SAVE FOR DEVELOPMENT
-
-#+begin_src ks :results none :tangle ../Archive/home/007 OKTO I/go.ks
   mpadd(pdas).
-  mpadd(rcshold).
 #+end_src
 
 *** Schedule when to raise apoapsis
@@ -582,8 +545,7 @@ TODO we need a generic "at next peri, set apo to ..."
 
 #+begin_src ks :results none :tangle ../Archive/home/007 OKTO I/go.ks
   mpadd(pdas). mpadd(mnwait). mpadd(mnexec). mpadd(mnfini). mpadd(pdas).
-  mpone({hud("In Assigned Orbit").}).
-  mpadd({hud("TODO: maintain our orbit."). return 5. }).
+  mpadd({hud("Holding in Assigned Orbit"). return 5. }).
 #+end_src
 
 * Run the Mission, then End the Program.

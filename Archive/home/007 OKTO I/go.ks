@@ -29,10 +29,6 @@ set face to vcrs(sun:velocity:orbit,sun:position).
 lock steering to lookdirup(face,-sun:position).
 local a is vang(facing:upvector,steering:upvector).
 if a<5 mpinc(). return 1. }.
-set rcshold to { if RCS { RCS OFF. return mpinc(). }
-if wfnow>1 return wfcmd*5.
-hud("Activate RCS to continue.", false).
-return 5. }.
 set go to {
 if stage:number>0
 when stage:ready and (
@@ -98,7 +94,6 @@ mpone({hud(TEE()+": "+round(stage:deltav:vacuum,1)+ " m/s ΔV remains").}).
 mpadd(simplecirc).
 mpone({hud(TEE()+": "+round(stage:deltav:vacuum,1)+ " m/s ΔV remains").}).
 mpadd(pdas).
-mpadd(rcshold).
 mpadd({
 local dv is burndvh(altitude,altitude,ccorb:apoapsis,body).
 mnclr(). add node(time:seconds, 0, 0, dv). wait 0.
@@ -144,8 +139,7 @@ add node(time:seconds + eta:apoapsis, 0, 0, dv).
 return mpinc().
 }).
 mpadd(pdas). mpadd(mnwait). mpadd(mnexec). mpadd(mnfini). mpadd(pdas).
-mpone({hud("In Assigned Orbit").}).
-mpadd({hud("TODO: maintain our orbit."). return 5. }).
+mpadd({hud("Holding in Assigned Orbit"). return 5. }).
 mprun(). print "program terminated".}.
 lock wfnow to kuniverse:timewarp:rate.
 lock wfcmd to kuniverse:timewarp:ratelist[warp].
