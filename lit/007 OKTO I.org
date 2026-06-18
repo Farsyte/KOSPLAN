@@ -535,17 +535,17 @@ error, assuming that the error in cost is proportional
 to the square of the error in time.
 
 #+begin_src ks :results none :tangle ../Archive/home/007 OKTO I/go.ks
-    until c1<=1e-8 {
-      set dcdt to (c2-c1) / (t2-t1).
-      set dt to c1/dcdt.
-      if abs(dt) < 1/100 break.
-      set t1 to t1 - 2*dt.
-      set c1 to f(t1).
-      // print "[4] t1: "+fmt(t1,8,1)+" √c1: "+fmt(sqrt(c1),16,10).
-      set t2 to t1 + dt/10.
-      set c2 to f(t2).
-      // print "[4] t2: "+fmt(t2,8,1)+" √c2: "+fmt(sqrt(c2),16,10).
-    }
+  until c1<=1e-8 {
+    set dcdt to (c2-c1) / (t2-t1).
+    set dt to c1/dcdt.
+    if abs(dt) < 1/100 break.
+    set t1 to t1 - 2*dt.
+    set c1 to f(t1).
+    // print "[4] t1: "+fmt(t1,8,1)+" √c1: "+fmt(sqrt(c1),16,10).
+    set t2 to t1 + dt/10.
+    set c2 to f(t2).
+    // print "[4] t2: "+fmt(t2,8,1)+" √c2: "+fmt(sqrt(c2),16,10).
+  }
 #+end_src
 
 Assure we leave the maneuver node at the T1 time (we may have
