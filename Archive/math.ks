@@ -4,6 +4,8 @@ set e to constant:e.
 set inf to 10^30.
 set eps to 1/inf.
 set limit to { parameter l,h,u. return max(l,min(h,u)). }.
+set ua to { parameter a. return choose 360-mod(-a,360) if a<0 else mod(a,360). }.
+set sa to { parameter a. return ua(a+180)-180. }.
 set vv to { parameter r1,r2,r3,mu.
 return sqrt(max(0,2*mu*(1/r1-1/(r2+r3)))). }.
 set burndv to { parameter r1,r2,r3,mu.

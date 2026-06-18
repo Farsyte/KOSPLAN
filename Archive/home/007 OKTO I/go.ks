@@ -99,6 +99,53 @@ mpadd(simplecirc).
 mpone({hud(TEE()+": "+round(stage:deltav:vacuum,1)+ " m/s ΔV remains").}).
 mpadd(pdas).
 mpadd(rcshold).
+mpadd({
+local dv is burndvh(altitude,altitude,ccorb:apoapsis,body).
+mnclr(). add node(time:seconds, 0, 0, dv). wait 0.
+local aop_ref is ccorb:argumentofperiapsis.
+local f is {parameter t. set nextnode:time to t. wait 0.
+return sa(nextnode:orbit:argumentofperiapsis-aop_ref)^2.}.
+local dt is orbit:period/12.
+local t1 is time:seconds + dt.
+local c1 is f(t1).
+local t2 is t1 + dt.
+local c2 is f(t2).
+until c2<=c1 {
+set t1 to t2.
+set c1 to c2.
+set t2 to t1 + dt.
+set c2 to f(t2).
+}
+until c2>=c1 {
+set t1 to t2.
+set c1 to c2.
+set t2 to t1 + dt.
+set c2 to f(t2).
+}
+until c1<=1e-8 {
+set dcdt to (c2-c1) / (t2-t1).
+set dt to c1/dcdt.
+if abs(dt) < 1/100 break.
+set t1 to t1 - 2*dt.
+set c1 to f(t1).
+set t2 to t1 + dt/10.
+set c2 to f(t2).
+}
+set c1 to f(t1). return mpinc().}).
+mpadd(pdas). mpadd(mnwait). mpadd(mnexec). mpadd(mnfini). mpadd(pdas).
+mpone({hud("Moving from Parking to Assigned Orbit").}).
+mpadd({
+mnclr().
+local h1 is apoapsis.
+local h2 is periapsis.
+local h3 is ccorb:periapsis.
+local dv is burndvh(h1,h2,h3,body).
+add node(time:seconds + eta:apoapsis, 0, 0, dv).
+return mpinc().
+}).
+mpadd(pdas). mpadd(mnwait). mpadd(mnexec). mpadd(mnfini). mpadd(pdas).
+mpone({hud("In Assigned Orbit").}).
+mpadd({hud("TODO: maintain our orbit."). return 5. }).
 mprun(). print "program terminated".}.
 lock wfnow to kuniverse:timewarp:rate.
 lock wfcmd to kuniverse:timewarp:ratelist[warp].

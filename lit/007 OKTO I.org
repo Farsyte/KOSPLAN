@@ -460,31 +460,130 @@ re-evaluate the ascent every second.
   mpadd(rcshold).
 #+end_src
 
-
-***
+*** Schedule when to raise apoapsis
 
 #+begin_src ks :results none :tangle ../Archive/home/007 OKTO I/go.ks
-
+  mpadd({
 #+end_src
 
-***
+**** Initial Node
+
+Set the DV to the value computed based on
+our current orbit being exactly circular.
 
 #+begin_src ks :results none :tangle ../Archive/home/007 OKTO I/go.ks
+    local dv is burndvh(altitude,altitude,ccorb:apoapsis,body).
+    mnclr(). add node(time:seconds, 0, 0, dv). wait 0.
 #+end_src
 
-***
+Use "square of error in angle of periapsis" as a
+cost function for an iterative cost minimizer.
+
+NOTE: the difference between the angles needs to be folded
+back into the -180 to +180 range for this to work well.
 
 #+begin_src ks :results none :tangle ../Archive/home/007 OKTO I/go.ks
+  local aop_ref is ccorb:argumentofperiapsis.
+  local f is {parameter t. set nextnode:time to t. wait 0.
+    return sa(nextnode:orbit:argumentofperiapsis-aop_ref)^2.}.
 #+end_src
 
-***
+Look at two points in the near future.
 
 #+begin_src ks :results none :tangle ../Archive/home/007 OKTO I/go.ks
+    // start in the future, then scan forward
+    // until we see the error increase.
+    local dt is orbit:period/12.
+    local t1 is time:seconds + dt.
+    local c1 is f(t1).
+    // print "[1] t1: "+fmt(t1,8,1)+" √c1: "+fmt(sqrt(c1),16,10).
+    local t2 is t1 + dt.
+    local c2 is f(t2).
 #+end_src
 
-***
+If we are looking at an increase in cost, push forward
+until we see an interval that is not increasing.
 
 #+begin_src ks :results none :tangle ../Archive/home/007 OKTO I/go.ks
+    // while the error is increasing, step forward.
+    until c2<=c1 {
+      set t1 to t2.
+      set c1 to c2.
+      // print "[2] t1: "+fmt(t1,8,1)+" √c1: "+fmt(sqrt(c1),16,10).
+      set t2 to t1 + dt.
+      set c2 to f(t2).
+    }
+#+end_src
+
+Now, if we are looking at a decrease in cost, push forward
+until we see an interval that is not decreasing.
+
+#+begin_src ks :results none :tangle ../Archive/home/007 OKTO I/go.ks
+    // while the error is decreasing, step forward.
+    until c2>=c1 {
+      set t1 to t2.
+      set c1 to c2.
+      // print "[3] t1: "+fmt(t1,8,1)+" √c1: "+fmt(sqrt(c1),16,10).
+      set t2 to t1 + dt.
+      set c2 to f(t2).
+    }
+#+end_src
+
+Use the interval to estimate change in cost per change
+in time, then compute a new time that should zero the
+error, assuming that the error in cost is proportional
+to the square of the error in time.
+
+#+begin_src ks :results none :tangle ../Archive/home/007 OKTO I/go.ks
+    until c1<=1e-8 {
+      set dcdt to (c2-c1) / (t2-t1).
+      set dt to c1/dcdt.
+      if abs(dt) < 1/100 break.
+      set t1 to t1 - 2*dt.
+      set c1 to f(t1).
+      // print "[4] t1: "+fmt(t1,8,1)+" √c1: "+fmt(sqrt(c1),16,10).
+      set t2 to t1 + dt/10.
+      set c2 to f(t2).
+      // print "[4] t2: "+fmt(t2,8,1)+" √c2: "+fmt(sqrt(c2),16,10).
+    }
+#+end_src
+
+Assure we leave the maneuver node at the T1 time (we may have
+evaluated a T2 time above as our last probe).
+
+#+begin_src ks :results none :tangle ../Archive/home/007 OKTO I/go.ks
+  set c1 to f(t1). return mpinc().}).
+#+end_src
+
+Executing the node is the usual sequence.
+
+#+begin_src ks :results none :tangle ../Archive/home/007 OKTO I/go.ks
+  mpadd(pdas). mpadd(mnwait). mpadd(mnexec). mpadd(mnfini). mpadd(pdas).
+  mpone({hud("Moving from Parking to Assigned Orbit").}).
+#+end_src
+
+When we get to our new apoapsis, raise our periapsis
+to the assigned altitude.
+
+TODO we need a generic "at next apo, set peri to ..."
+TODO we need a generic "at next peri, set apo to ..."
+
+#+begin_src ks :results none :tangle ../Archive/home/007 OKTO I/go.ks
+  mpadd({
+    mnclr().
+    local h1 is apoapsis.
+    local h2 is periapsis.
+    local h3 is ccorb:periapsis.
+    local dv is burndvh(h1,h2,h3,body).
+    add node(time:seconds + eta:apoapsis, 0, 0, dv).
+    return mpinc().
+  }).
+#+end_src
+
+#+begin_src ks :results none :tangle ../Archive/home/007 OKTO I/go.ks
+  mpadd(pdas). mpadd(mnwait). mpadd(mnexec). mpadd(mnfini). mpadd(pdas).
+  mpone({hud("In Assigned Orbit").}).
+  mpadd({hud("TODO: maintain our orbit."). return 5. }).
 #+end_src
 
 * Run the Mission, then End the Program.
