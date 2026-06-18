@@ -56,6 +56,19 @@ planned action.
   set swra to LIST(0, 4, 6, 30, 60, 600, 6000, 60000).
 #+end_src
 
+
+* wfnow -- locked to current timewarp multiplier.
+
+#+begin_src ks :results none :tangle ../Archive/home/007 OKTO I/go.ks
+  lock wfnow to kuniverse:timewarp:rate.
+#+end_src
+
+* wfcmd -- locked to commanded timewarp multiplier.
+
+#+begin_src ks :results none :tangle ../Archive/home/007 OKTO I/go.ks
+  lock wfcmd to kuniverse:timewarp:ratelist[warp].
+#+end_src
+
 * swend(): assure we are not warping.
 
 Specifically, assures that TIMEWARP is 0

@@ -15,11 +15,10 @@ If we just pass P along to HUDTEXT, it would
 echo the output to the console but it would
 print a "HUD:" prefix that I do not want.
 
-In the future, this might
-- print the message to a log file
-- include a timestamp when printing
+In the future, this might print the message to a log file
 
 #+begin_src ks :results none :tangle ../Archive/hud.ks
   set hud to { parameter m. parameter p is true.
-    if p print TEE()+": "+m. hudtext(m,5,2,24,WHITE,false). }.
+    if p print m.
+    hudtext(m,5,2,24,WHITE,false). }.
 #+end_src

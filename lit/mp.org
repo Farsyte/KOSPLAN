@@ -121,9 +121,11 @@ step index goes off the end of the list.
 The return value from the delegate is a REQUEST for how long to wait
 before executing the next mission step function call.
 
-I note that WAIT D always waits at least one phys tick, and
-if we are at the beginning of a tick, it waits one phys tick
-longer than the requested delay.
+The actual wait time is usually one phys tick longer than
+the requested value, and always at least one tick.
+
+If dt is zero or negative, we do not wait. A step that wants a wait of
+precisely one phys tick should return a tiny positive value.
 
 #+begin_src ks :results none :tangle ../Archive/mp.ks
   set mprun to {until abort or mpi>=mpl:length {
