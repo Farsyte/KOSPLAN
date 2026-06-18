@@ -13,4 +13,4 @@ return mpput(0, t). }.
 set mpinc to { parameter t is 0.
 return mpput(mpi+1, t). }.
 set mprun to {until abort or mpi>=mpl:length {
-local dt is mpl[mpi](). if dt>0 wait dt-1/50. }}.
+local dt is mpl[mpi](). if dt>0 wait dt. }}.

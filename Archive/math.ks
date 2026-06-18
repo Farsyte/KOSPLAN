@@ -4,5 +4,10 @@ set e to constant:e.
 set inf to 10^30.
 set eps to 1/inf.
 set limit to { parameter l,h,u. return max(l,min(h,u)). }.
-set visviva to { parameter r1,r2,r3,mu.
+set vv to { parameter r1,r2,r3,mu.
 return sqrt(max(0,2*mu*(1/r1-1/(r2+r3)))). }.
+set burndv to { parameter r1,r2,r3,mu.
+return vv(r1,r1,r3,mu)-vv(r1,r1,r2,mu). }.
+set burndvh to { parameter h1,h2,h3,b.
+local r0 is b:radius.
+return burndv(r0+h1,r0+h2,r0+h3,b:mu). }.

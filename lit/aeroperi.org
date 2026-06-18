@@ -36,7 +36,7 @@ to burn to correct it.
 
 #+begin_src ks :results none :tangle ../Archive/aeroperi.ks
   local vo is velocity:orbit:mag.
-  local vd is visviva(r1, r2, r3, body:mu).
+  local vd is vv(r1, r2, r3, body:mu).
   local ds is vd - vo.
   local dv is ds * prograde:vector.
   local ma is maxthrust / mass.

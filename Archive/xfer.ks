@@ -26,8 +26,8 @@ local curr_r is posat(t1, ship):mag.
 local new_rmax is posat(t2, dest):mag + beyond.
 local old_rmin is mnv:orbit:periapsis + mnv:orbit:body:radius.
 local old_rmax is mnv:orbit:apoapsis + mnv:orbit:body:radius.
-local v1 is visviva(curr_r, old_rmin, old_rmax, mu).
-local v2 is visviva(curr_r, old_rmin, new_rmax, mu).
+local v1 is vv(curr_r, old_rmin, old_rmax, mu).
+local v2 is vv(curr_r, old_rmin, new_rmax, mu).
 set mnv:prograde to mnv:prograde + v2 - v1. wait 0. }.
 xapo(planned_beyond).
 xapo(planned_beyond).

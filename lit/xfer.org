@@ -88,8 +88,8 @@ as it was, and the speed along the transfer that gets
 us out to the new rmax.
 
 #+begin_src ks :results none :tangle ../Archive/xfer.ks
-  local v1 is visviva(curr_r, old_rmin, old_rmax, mu).
-  local v2 is visviva(curr_r, old_rmin, new_rmax, mu).
+  local v1 is vv(curr_r, old_rmin, old_rmax, mu).
+  local v2 is vv(curr_r, old_rmin, new_rmax, mu).
 #+end_src
 
 Update the maneuver node. Be sure to wait for a phys tick

@@ -78,11 +78,18 @@ the type of the value and the value.
   return u. }.
 #+end_src
 
+* nvhas(d,n): return TRUE if D has a value called N.
+
+#+begin_src ks :results none :tangle ../Archive/nv.ks
+  set nvhas to { parameter d,n.
+    return nvl:haskey(n) or exists(nvf(d,n)). }.
+#+end_src
+
 * nvput(d,n,u): get value stored on D of N (or U if not set).
 
 #+begin_src ks :results none :tangle ../Archive/nv.ks
   set nvput to { parameter d,n,u.
-    if nvl:haskey(n) and nvl[n] = u return.
+    if nvl:haskey(n) and nvl[n] = u return u.
   return nvp(nvf(d,n),n,u). }.
 #+end_src
 
