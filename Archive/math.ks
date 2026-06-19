@@ -13,3 +13,4 @@ return vv(r1,r1,r3,mu)-vv(r1,r1,r2,mu). }.
 set burndvh to { parameter h1,h2,h3,b.
 local r0 is b:radius.
 return burndv(r0+h1,r0+h2,r0+h3,b:mu). }.
+set lefthand to { parameter u. return v(u:x,u:z,u:y). }.

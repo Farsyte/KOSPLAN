@@ -48,3 +48,21 @@ local t is time:seconds+dt.
 local dv is sqrt(body:mu/posat(t,ship):mag)-velat(t,ship):mag.
 if abs(dv)*mass*1000>=maxthrust add node(t,0,0,dv).
 } return mpinc(1/50).}.
+set mnapo to { parameter des_apo. return {
+mnclr().
+local dt is eta:periapsis.
+if dt<0 return mpinc().
+local r0 is body:radius.
+local dv is burndvh(periapsis,apoapsis,des_apo).
+local tb is bt(abs(dv)).
+if bt>1/1000 add node(time:seconds+dt,0,0,dv).
+return mpinc(1/50).}.}.
+set mnperi to { parameter des_peri. return {
+mnclr().
+if orbit:hasnextpatch return mpinc().
+local dt is eta:apoapsis.
+local r0 is body:radius.
+local dv is burndvh(apoapsis,periapsis,des_peri).
+local tb is bt(abs(dv)).
+if bt>1/1000 add node(time:seconds+dt,0,0,dv).
+return mpinc(1/50).}.}.

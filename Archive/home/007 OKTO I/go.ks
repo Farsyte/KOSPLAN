@@ -8,9 +8,11 @@ import("simplecirc").
 import("hud").
 set okto_log to home:combine("okto.log").
 if exists(okto_log) open(okto_log):clear().
-if not nvhas(1,"ccsma") {
+if homeconnection:isconnected {
+print "importing current_contract".
 import("current_contract").
 deletepath("1:/current_contract").}
+else print "no connection: using saved contract".
 set ccinc to nvget(1,"ccinc", 0).
 set ccecc to nvget(1,"ccecc", 0).
 set ccsma to nvget(1,"ccsma", 80000).
@@ -23,13 +25,12 @@ set ccorb to CREATEORBIT(ccinc, ccecc, ccsma, cclan, ccaop, ccmep, cctep, ccbod)
 set launch_t0 to nvget(1, "launch_t0", t0).
 set launch_az to nvget(1, "launch_az", 90).
 set launch_ap to nvget(1, "launch_ap", 80000).
-set pdas to {
-lights on.
-lock throttle to 0.
-set face to vcrs(sun:velocity:orbit,sun:position).
-lock steering to lookdirup(face,-sun:position).
-local a is vang(facing:upvector,steering:upvector).
-if a<5 mpinc(). return 1. }.
+lock maxt to max(eps, ship:availablethrust).
+lock maxa to maxt/mass.
+set pdas to { lights on. lock throttle to 0.
+lock steering to lookdirup(vcrs(sun:velocity:orbit,sun:position),-sun:position).
+if wfcmd>1 or 5>vang(facing:upvector,steering:upvector) mpinc().
+return 1. }.
 set go to {
 if stage:number>0
 when stage:ready and (
@@ -82,10 +83,9 @@ lock af to limit(0,1,altitude/launch_ap).
 lock cp to limit(0,90,90-120*sqrt(af)).
 lock steering to heading(launch_az, cp, 0).
 lock tf to min(1,sqrt(max(0,(launch_ap+20-apoapsis)/1000))).
-lock mt to max(eps, ship:availablethrust).
 lock va to vang(FACING:VECTOR, STEERING:VECTOR).
 lock ef to limit(.01,1,(45-va)/30).
-lock throttle to ef*tf*min(1,20*mass/mt).
+lock throttle to ef*tf*min(1,20/maxa).
 return 1. }).
 mpone({lock throttle to 0. hud(TEE()+": MECO").}).
 mpadd({ if altitude>body:atm:height return mpinc().
@@ -140,7 +140,87 @@ add node(time:seconds + eta:apoapsis, 0, 0, dv).
 return mpinc().
 }).
 mpadd(pdas). mpadd(mnwait). mpadd(mnexec). mpadd(mnfini). mpadd(pdas).
-mpadd({hud("Holding in Assigned Orbit"). return 5. }).
+{ local mpi_park is mpl:length.
+mpadd({
+hud(TEE()+": Maintaining Assigned Orbit").
+return mpinc(). }).
+mpadd({
+local l is "apo:  "
++fmt(orbit:apoapsis/1000,12,1)
++fmt(ccorb:apoapsis/1000,12,1)
++fmt((orbit:apoapsis-ccorb:apoapsis)/1000,12,1)
++" km ".
+until false {
+local dt is eta:periapsis.
+set l to l+fmt(dt,10,1)+" s".
+if dt<10 break.
+if dt>orbit:period/12 break.
+local dv is burndvh(orbit:periapsis, orbit:apoapsis, ccorb:apoapsis, body).
+set l to l+fmt(dv,10,4)+" m/s".
+if abs(dv)<eps break.
+local bt is limit(0,9999,dv*mass/limit(eps,999,availablethrust)).
+set l to l+fmt(bt,10,4)+" s".
+if abs(bt)<1/1000 break.
+}
+print l. log l to okto_log.
+return mpinc().}) .
+mpadd({
+local l is "peri: "
++fmt(orbit:periapsis/1000,12,1)
++fmt(ccorb:periapsis/1000,12,1)
++fmt((orbit:periapsis-ccorb:periapsis)/1000,12,1)
++" km ".
+until false {
+local dt is eta:apoapsis.
+set l to l+fmt(dt,10,1)+" s".
+if dt<10 break.
+if dt>orbit:period/12 break.
+local dv is burndvh(orbit:apoapsis, orbit:periapsis, ccorb:periapsis, body).
+set l to l+fmt(dv,10,4)+" m/s".
+if abs(dv)<eps break.
+local bt is limit(0,9999,dv*mass/limit(eps,999,availablethrust)).
+set l to l+fmt(bt,10,4)+" s".
+if abs(bt)<1/1000 break.
+}
+print l. log l to okto_log.
+return mpinc().}) .
+mpadd({
+local ie is orbit:inclination-ccorb:inclination.
+local le is orbit:lan-ccorb:lan.
+if abs(ie)<=1/10 and abs(le)<=1/10 return mpinc().
+local ccdir is vcrs(ccorb:position-body:position,ccorb:velocity:orbit):normalized.
+local ccpos is vdot(ccdir,body:position).
+local ccvel is vdot(ccdir,velocity:orbit).
+if ccpos*ccvel<=0 {swadj(orbit:period/8). return 1/10.}
+local mydir is vcrs(-body:position,velocity:orbit):normalized.
+local cceta is ccpos / ccvel.
+local lt is abs(ccvel)*2/maxa.
+local etb is cceta - lt.
+local ld is ccvel^2/maxa.
+local swtime is etb/2 - 30.
+swadj(swtime).
+if wfnow>1 return 1/10.
+set Cs to -ccpos*mydir.
+set Ct to limit(0,1,1.5-cceta/lt).
+lock steering to Cs.
+lock throttle to Ct.
+return 1/50.
+}).
+mpadd({
+local l is "aop:  "
++fmt(orbit:argumentofperiapsis,12,4)
++fmt(ccorb:argumentofperiapsis,12,4)
++fmt((orbit:argumentofperiapsis-ccorb:argumentofperiapsis),12,4)
++" deg".
+until false {
+break.
+}
+print l. log l to okto_log.
+return mpinc().}).
+mpadd(pdas).
+mpadd({
+return mpput(mpi_park, 5*wfcmd).
+}).}
 mprun(). print "program terminated".}.
 lock wfnow to kuniverse:timewarp:rate.
 lock wfcmd to kuniverse:timewarp:ratelist[warp].
