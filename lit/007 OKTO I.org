@@ -50,13 +50,14 @@ and for moving satellites to new orbits.
 
 #+begin_src ks :results none :tangle ../Archive/home/007 OKTO I/go.ks
 
-  // When we first roll out the vessel,
-  // we need to get the contract parameters
-  // from a package.
+  // If we have a connection to the ground,
+  // refresh our contract terms.
 
-  if not nvhas(1,"ccsma") {
+  if homeconnection:isconnected {
+    print "importing current_contract".
     import("current_contract").
     deletepath("1:/current_contract").}
+  else print "no connection: using saved contract".
 
   set ccinc to nvget(1,"ccinc", 0).
   set ccecc to nvget(1,"ccecc", 0).
@@ -68,7 +69,6 @@ and for moving satellites to new orbits.
   set ccbod to nvget(1,"ccbod", "kerbin").
 
   set ccorb to CREATEORBIT(ccinc, ccecc, ccsma, cclan, ccaop, ccmep, cctep, ccbod).
-
 #+end_src
 
 ** Estimate ΔV for OMS for this mission.
@@ -94,6 +94,13 @@ just before the actual launch.
   set launch_ap to nvget(1, "launch_ap", 80000).
 #+end_src
 
+** Locked Helpers (maxt, maxa)
+
+#+begin_src ks :results none :tangle ../Archive/home/007 OKTO I/go.ks
+  lock maxt to max(eps, ship:availablethrust).
+  lock maxa to maxt/mass.
+#+end_src
+
 ** pdas -- Point Down At Sun
 
 Set up an attitude that gives good solar panel
@@ -108,15 +115,19 @@ a fixed spot (equatorial and down). So our nose
 needs to point parallel to our angular momentum
 vector for our motion around the sun.
 
+If timewarp is active, proceed to the next step
+ikmmediately after locking steering; otherwise,
+stay in this step until we are somewhere near
+the commanded attitude.
+
+This step also turns on the lights (which on
+the OKTO I will also extend the antenna).
+
 #+begin_src ks :results none :tangle ../Archive/home/007 OKTO I/go.ks
-  set pdas to {
-    lights on.
-    lock throttle to 0.
-    set face to vcrs(sun:velocity:orbit,sun:position).
-    lock steering to lookdirup(face,-sun:position).
-    local a is vang(facing:upvector,steering:upvector).
-    // print "pdas: a="+a.
-    if a<5 mpinc(). return 1. }.
+  set pdas to { lights on. lock throttle to 0.
+    lock steering to lookdirup(vcrs(sun:velocity:orbit,sun:position),-sun:position).
+    if wfcmd>1 or 5>vang(facing:upvector,steering:upvector) mpinc().
+    return 1. }.
 #+end_src
 
 * Provide a GO function.
@@ -389,12 +400,11 @@ actually not going below 1% of the desired throttle.
 
 #+begin_src ks :results none :tangle ../Archive/home/007 OKTO I/go.ks
   lock tf to min(1,sqrt(max(0,(launch_ap+20-apoapsis)/1000))).
-  lock mt to max(eps, ship:availablethrust).
   lock va to vang(FACING:VECTOR, STEERING:VECTOR).
   lock ef to limit(.01,1,(45-va)/30).
-  // log "tf="+tf+", mt="+mt+", va="+va+", ef="+ef to okto_log.
-  // print TEE()+" tf="+round(tf*100,1)+"%, mt="+round(mt,1)+", va="+round(va,1)+", ef="+round(ef*100,1)+"%".
-  lock throttle to ef*tf*min(1,20*mass/mt).
+  // log "tf="+tf+", maxt="+maxt+", va="+va+", ef="+ef to okto_log.
+  // print TEE()+" tf="+round(tf*100,1)+"%, maxt="+round(maxt,1)+", maxa="+round(maxa,1)+", va="+round(va,1)+", ef="+round(ef*100,1)+"%".
+  lock throttle to ef*tf*min(1,20/maxa).
 #+end_src
 
 re-evaluate the ascent every second.
@@ -546,8 +556,204 @@ TODO we need a generic "at next peri, set apo to ..."
 
 #+begin_src ks :results none :tangle ../Archive/home/007 OKTO I/go.ks
   mpadd(pdas). mpadd(mnwait). mpadd(mnexec). mpadd(mnfini). mpadd(pdas).
-  mpadd({hud("Holding in Assigned Orbit"). return 5. }).
 #+end_src
+
+**** Orbit Management Loop
+
+This is how we do a loop in the mission plan.
+
+#+begin_src ks :results none :tangle ../Archive/home/007 OKTO I/go.ks
+  { local mpi_park is mpl:length.
+#+end_src
+
+***** Notify when we at the top.
+
+#+begin_src ks :results none :tangle ../Archive/home/007 OKTO I/go.ks
+    mpadd({
+      hud(TEE()+": Maintaining Assigned Orbit").
+      return mpinc(). }).
+#+end_src
+
+***** TODO Possibly correct the periapsis.
+
+#+begin_src ks :results none :tangle ../Archive/home/007 OKTO I/go.ks
+  mpadd({ // fix apoapsis by burning prograde or retrograde at periapsis.
+    local l is "apo:  "
+      +fmt(orbit:apoapsis/1000,12,1)
+      +fmt(ccorb:apoapsis/1000,12,1)
+      +fmt((orbit:apoapsis-ccorb:apoapsis)/1000,12,1)
+      +" km ".
+
+    until false {
+      local dt is eta:periapsis.
+      set l to l+fmt(dt,10,1)+" s".
+      if dt<10 break.
+      if dt>orbit:period/12 break.
+
+      local dv is burndvh(orbit:periapsis, orbit:apoapsis, ccorb:apoapsis, body).
+      set l to l+fmt(dv,10,4)+" m/s".
+      if abs(dv)<eps break.
+
+      local bt is limit(0,9999,dv*mass/limit(eps,999,availablethrust)).
+      set l to l+fmt(bt,10,4)+" s".
+
+      if abs(bt)<1/1000 break.
+
+      // TODO: add code to apply dv prograde or retrograde at dt.
+      // something like: add node(time:seconds+dt, 0, 0, dv).
+
+    }
+    print l. log l to okto_log.
+  return mpinc().}) .
+#+end_src
+
+***** TODO possibly correct the apoapsis.
+
+#+begin_src ks :results none :tangle ../Archive/home/007 OKTO I/go.ks
+  mpadd({ // fix periapsis by burning prograde or retrograde at apoapsis.
+    local l is "peri: "
+      +fmt(orbit:periapsis/1000,12,1)
+      +fmt(ccorb:periapsis/1000,12,1)
+      +fmt((orbit:periapsis-ccorb:periapsis)/1000,12,1)
+      +" km ".
+
+    until false {
+      local dt is eta:apoapsis.
+      set l to l+fmt(dt,10,1)+" s".
+      if dt<10 break.
+      if dt>orbit:period/12 break.
+
+      local dv is burndvh(orbit:apoapsis, orbit:periapsis, ccorb:periapsis, body).
+      set l to l+fmt(dv,10,4)+" m/s".
+      if abs(dv)<eps break.
+
+      local bt is limit(0,9999,dv*mass/limit(eps,999,availablethrust)).
+      set l to l+fmt(bt,10,4)+" s".
+
+      if abs(bt)<1/1000 break.
+
+      // TODO: add code to apply dv prograde or retrograde at dt.
+      // something like: add node(time:seconds+dt, 0, 0, dv).
+
+    }
+    print l. log l to okto_log.
+  return mpinc().}) .
+#+end_src
+
+***** Fix the orbital plane.
+
+This fixes both LAN and Inclination, as they are just
+two different measurements of an error in the orbital
+plane. If both LAN and INC are within 0.1° then no
+further computation is needed here.
+
+#+begin_src ks :results none :tangle ../Archive/home/007 OKTO I/go.ks
+  mpadd({ // fix LAN and Inclination by adjusting velocity normal to the target plane.
+
+    local ie is orbit:inclination-ccorb:inclination.
+    local le is orbit:lan-ccorb:lan.
+
+    // if both of the above are good, we are done.
+    if abs(ie)<=1/10 and abs(le)<=1/10 return mpinc().
+
+    local ccdir is vcrs(ccorb:position-body:position,ccorb:velocity:orbit):normalized.
+    local ccpos is vdot(ccdir,body:position).
+    local ccvel is vdot(ccdir,velocity:orbit).
+
+    // If we need a plane correction, and we are moving AWAY
+    // from the plane, then safewarp for a while.
+
+    if ccpos*ccvel<=0 {swadj(orbit:period/8). return 1/10.}
+#+end_src
+
+The strategy is to consider our linear distance
+from and velocity toward the target orbital plane,
+and decelerate smoothly as we approach.
+
+To minimize perturbations to periapsis, apoapsis, and
+argument of periapsis, burn parallel to our own orbit's
+normal vector.
+
+TODO see what happens for LARGE inclination changes,
+then adjust the code as necessary.
+
+#+begin_src ks :results none :tangle ../Archive/home/007 OKTO I/go.ks
+        local mydir is vcrs(-body:position,velocity:orbit):normalized.
+
+        local cceta is ccpos / ccvel.
+        local lt is abs(ccvel)*2/maxa.
+
+        // etb is time until the lt point.
+        local etb is cceta - lt.
+
+        // How far we travel when
+        // accelerating at maxa/2
+        // for lt seconds.
+        // local ld is (1/2) * (maxa/2) * lt^2.
+
+        local ld is ccvel^2/maxa.
+
+        // break out of this to print
+        // plane-sync data.
+
+        local swtime is etb/2 - 30.
+        swadj(swtime).
+
+        if wfnow>1 return 1/10.
+
+        // if we get to here, we are actively maneuvering.
+
+        set Cs to -ccpos*mydir.
+        set Ct to limit(0,1,1.5-cceta/lt).
+
+        lock steering to Cs.
+        lock throttle to Ct.
+        return 1/50.
+      }).
+#+end_src
+
+#+begin_src ks :results none :tangle ../Archive/home/007 OKTO I/go.ks
+  mpadd({
+    local l is "aop:  "
+      +fmt(orbit:argumentofperiapsis,12,4)
+      +fmt(ccorb:argumentofperiapsis,12,4)
+      +fmt((orbit:argumentofperiapsis-ccorb:argumentofperiapsis),12,4)
+      +" deg".
+
+    // Adjusting AOP might be hard in general.
+    // If our orbit is approximately circular,
+    // then get the right AOP by correctly scheduling
+    // the burn to change PERI or APO.
+    //
+    // Our initial insertion did this by picking
+    // the time to extend the apoapsis.
+
+    until false {
+      break.
+    }
+    print l. log l to okto_log.
+  return mpinc().}).
+#+end_src
+
+***** Safe the throttle and fix orientation.
+
+Just in case we escape from a correction step without
+it cutting the throttle, assure it is cut here; then
+fix the orientation of the craft.
+
+#+begin_src ks :results none :tangle ../Archive/home/007 OKTO I/go.ks
+  mpadd(pdas).
+#+end_src
+
+***** branch back to the top of orbit management with a delay.
+
+#+begin_src ks :results none :tangle ../Archive/home/007 OKTO I/go.ks
+  mpadd({ // loop back to the mpi_park step.
+    return mpput(mpi_park, 5*wfcmd).
+  }).}
+#+end_src
+
+**** The orbit management loop never ends.
 
 * Run the Mission, then End the Program.
 

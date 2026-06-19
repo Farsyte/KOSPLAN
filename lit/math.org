@@ -28,7 +28,6 @@ Caller must assure that L <= H.
   set ua to { parameter a. return choose 360-mod(-a,360) if a<0 else mod(a,360). }.
 #+end_src
 
-
 * sa(a): fold angle a into the -180..+180 range.
 
 #+begin_src ks :results none :tangle ../Archive/math.ks
@@ -66,4 +65,35 @@ Variant of burndv that takes input as METERS ASL, and the body.
   set burndvh to { parameter h1,h2,h3,b.
     local r0 is b:radius.
     return burndv(r0+h1,r0+h2,r0+h3,b:mu). }.
+#+end_src
+
+* lefthand(vec): adjust vector for use in CREATEORBIT calls
+
+see: https://github.com/KSP-KOS/KOS/issues/2862
+see: https://github.com/KSP-KOS/KOS/issues/3009
+
+Dunbaratu, comment on issue 2862, on Jan 26, 2021:
+> When using CREATEORBIT, the position and velocity
+> vectors must each have their Y and Z axes swapped.
+> KSP, for some unknown reason, when talking about
+> planetary values transposes y and z axes and kOS has
+> to constantly be aware of those weird cases and
+> correct for them. It's not enough to just rotate or
+> translate to go between reference frames, it literally
+> has to swap axes to do it. This is apparently such a
+> case and it wasn't made clear because KSP mod devs
+> already know this weird ugly misfeature in KSP but
+> most kOS users are protected from it.
+
+Dunbaratu, comment on issue 3009, on Aug 26, 2021:
+> I had a look and yup, you're right. It calls the KSP
+> method Orbit.UpdateFromStateVectors() which apparently
+> uses the same messed up Y/Z axis-swap that KSP
+> sometimes uses for other body-relative calls like in
+> geopositions, and the kOS code doesn't compensate for
+> that like it does when you pass a position into, say,
+> body:geopositionof(vector).
+
+#+begin_src ks :results none :tangle ../Archive/math.ks
+  set lefthand to { parameter u. return v(u:x,u:z,u:y). }.
 #+end_src

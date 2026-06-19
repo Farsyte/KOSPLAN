@@ -232,3 +232,135 @@ add it to the maneuver schedule.
   } return mpinc(1/50).}.
 #+end_src
 
+* mnapo(h) -- plan maneuver to adjust apoapsis at next periapsis
+
+It is the responsibility of the mission to assure
+that we are in a good state to plan and execute
+a maneuver node.
+
+- the ship is not timewarping
+- the ship is not currently producing thrust
+- the ship is able to produce thrust
+- there are no pending maneuver nodes
+
+These conditions checked during flight will prevent
+us from building a node:
+- we are outbound on an escape orbit
+- the correction burn would be trivial
+
+If the burn to raise the apoapsis would be the
+same at our periapsis and our apoapsis, then
+schedule the burn to commence immediately.
+
+#+begin_src ks :results none :tangle ../Archive/mn.ks
+  set mnapo to { parameter des_apo. return {
+#+end_src
+
+Cancel any existing maneuver nodes.
+This is useful if we reboot after setting up the
+node but before the mission step is updated.
+
+#+begin_src ks :results none :tangle ../Archive/mn.ks
+  mnclr().
+#+end_src
+
+Unless otherwise decided, center the burn at the
+periapsis. If we are outbound on an escape trajectory
+then end the step without building a node.
+
+#+begin_src ks :results none :tangle ../Archive/mn.ks
+  local dt is eta:periapsis.
+  if dt<0 return mpinc().
+#+end_src
+
+Compute the delta-v for the nominal burn at our
+current periapsis to raise the apoapsis, and the
+best estimate of burn time.
+
+#+begin_src ks :results none :tangle ../Archive/mn.ks
+  local r0 is body:radius.
+  local dv is burndvh(periapsis,apoapsis,des_apo).
+  local tb is bt(abs(dv)).
+#+end_src
+
+In the *FUTURE* perhaps we can detect that we are
+in a sufficiently circular orbit that we can do
+the burn at any time.
+
+If the computed burn time is not trivial, create
+the node.
+
+#+begin_src ks :results none :tangle ../Archive/mn.ks
+  if bt>1/1000 add node(time:seconds+dt,0,0,dv).
+#+end_src
+
+#+begin_src ks :results none :tangle ../Archive/mn.ks
+  return mpinc(1/50).}.}.
+#+end_src
+
+* mnperi(h) -- plan maneuver to adjust periapsis at next apoapsis
+
+It is the responsibility of the mission to assure
+that we are in a good state to plan and execute
+a maneuver node.
+
+- the ship is not timewarping
+- the ship is not currently producing thrust
+- the ship is able to produce thrust
+- there are no pending maneuver nodes
+
+These conditions checked during flight will prevent
+us from building a node:
+- we are outbound on an escape orbit
+- the correction burn would be trivial
+
+If the burn to raise the periapsis would be the
+same at our apoapsis and our periapsis, then
+schedule the burn to commence immediately.
+
+#+begin_src ks :results none :tangle ../Archive/mn.ks
+  set mnperi to { parameter des_peri. return {
+#+end_src
+
+Cancel any existing maneuver nodes.
+This is useful if we reboot after setting up the
+node but before the mission step is updated.
+
+#+begin_src ks :results none :tangle ../Archive/mn.ks
+  mnclr().
+#+end_src
+
+Unless otherwise decided, center the burn at the
+apoapsis. If we are outbound on an escape trajectory
+then end the step without building a node.
+
+#+begin_src ks :results none :tangle ../Archive/mn.ks
+  if orbit:hasnextpatch return mpinc().
+  local dt is eta:apoapsis.
+#+end_src
+
+Compute the delta-v for the nominal burn at our
+current apoapsis to raise the periapsis, and the
+best estimate of burn time.
+
+#+begin_src ks :results none :tangle ../Archive/mn.ks
+  local r0 is body:radius.
+  local dv is burndvh(apoapsis,periapsis,des_peri).
+  local tb is bt(abs(dv)).
+#+end_src
+
+In the *FUTURE* perhaps we can detect that we are
+in a sufficiently circular orbit that we can do
+the burn at any time.
+
+If the computed burn time is not trivial, create
+the node.
+
+#+begin_src ks :results none :tangle ../Archive/mn.ks
+  if bt>1/1000 add node(time:seconds+dt,0,0,dv).
+#+end_src
+
+#+begin_src ks :results none :tangle ../Archive/mn.ks
+  return mpinc(1/50).}.}.
+#+end_src
+
