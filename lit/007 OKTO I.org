@@ -110,6 +110,7 @@ vector for our motion around the sun.
 
 #+begin_src ks :results none :tangle ../Archive/home/007 OKTO I/go.ks
   set pdas to {
+    lights on.
     lock throttle to 0.
     set face to vcrs(sun:velocity:orbit,sun:position).
     lock steering to lookdirup(face,-sun:position).
