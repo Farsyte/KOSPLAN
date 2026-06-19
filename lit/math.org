@@ -22,6 +22,19 @@ Caller must assure that L <= H.
   set limit to { parameter l,h,u. return max(l,min(h,u)). }.
 #+end_src
 
+* ua(a): fold angle a into the 000..360 range.
+
+#+begin_src ks :results none :tangle ../Archive/math.ks
+  set ua to { parameter a. return choose 360-mod(-a,360) if a<0 else mod(a,360). }.
+#+end_src
+
+
+* sa(a): fold angle a into the -180..+180 range.
+
+#+begin_src ks :results none :tangle ../Archive/math.ks
+  set sa to { parameter a. return ua(a+180)-180. }.
+#+end_src
+
 * vv(r1,r2,r3,mu): use vis-viva to calculate velocity
 
 Vis-Viva Equation: v² = μ ( 2/r - 1/a )
