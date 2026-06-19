@@ -24,6 +24,7 @@ set launch_t0 to nvget(1, "launch_t0", t0).
 set launch_az to nvget(1, "launch_az", 90).
 set launch_ap to nvget(1, "launch_ap", 80000).
 set pdas to {
+lights on.
 lock throttle to 0.
 set face to vcrs(sun:velocity:orbit,sun:position).
 lock steering to lookdirup(face,-sun:position).
