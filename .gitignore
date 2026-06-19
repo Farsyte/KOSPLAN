@@ -1,6 +1,8 @@
-ltximg
-*.log
-*~
-*#
 .??*
 !.gitignore
+*~
+*#
+ltximg
+*.log
+Auto-Saved*
+Untitled*
