@@ -48,7 +48,7 @@ local t is time:seconds+dt.
 local dv is sqrt(body:mu/posat(t,ship):mag)-velat(t,ship):mag.
 if abs(dv)*mass*1000>=maxthrust add node(t,0,0,dv).
 } return mpinc(1/50).}.
-set mnaph to {
+set mnth to {
 parameter t.
 parameter h.
 local mu is body:mu.
@@ -61,12 +61,12 @@ return node(t,-vr,0,dp). }.
 set mnatp to { parameter des_apo. return {
 mnclr().
 if eta:periapsis<0 return mpinc().
-local mnv is mnaph(time:seconds+eta:periapsis,des_apo).
+local mnv is mnth(time:seconds+eta:periapsis,des_apo).
 if bt(mnv:prograde)>1/1000 add mnv.
 return mpinc(1/50).}.}.
 set mnata to { parameter des_peri. return {
 mnclr().
 if apoapsis<0 return mpinc().
-local mnv is mnaph(time:seconds+eta:apoapsis,des_peri).
+local mnv is mnth(time:seconds+eta:apoapsis,des_peri).
 if bt(mnv:prograde)>1/1000 add mnv.
 return mpinc(1/50).}.}.

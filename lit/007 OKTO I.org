@@ -9,7 +9,6 @@ OKTO I/go.ks: Prototype Satellite System
   import("mn").
   import("sw").
   import("ascent").
-  import("simplecirc").
   import("hud").
 #+end_src
 
@@ -31,8 +30,8 @@ My contract 2: 867+347=1214
 Mike says budget 4100 m/s to get into polar orbit.
 
 For my test launch, estimating ship will have:
-- 2200±25 m/s ΔV available before simplecirc
-- 2075±25 m/s ΔV available after simplecirc
+- 2200±25 m/s ΔV available before circularization
+- 2075±25 m/s ΔV available after circularization
 
 Should be good for higher altitude satellites
 and for moving satellites to new orbits.
@@ -78,8 +77,9 @@ the Delta-V requirements to go from a parking
 orbit to the assigned orbit.
 
 #+begin_src ks :results none :tangle ../Archive/home/007 OKTO I/go.ks
-  //import("plan"). deletepath("1:/plan.ks").
-  //plan_sat(80000,ccorb:periapsis,ccorb:apoapsis,ccorb:body).
+  // import("plan"). deletepath("1:/plan.ks").
+  // plan_sat(80000,ccorb:periapsis,ccorb:apoapsis,ccorb:body).
+  // until false { }
 #+end_src
 
 ** Initialize Launch Parameters
@@ -311,12 +311,32 @@ We are close enough that we can commit to the launch
 parameters (t0, az, ap) and move along to the next step
 in the plan.
 
-For polar orbits, push launch azimuth west by four degrees.
+The launch azimuth is along the direction of the
+inclined orbit, plus a correction of up to four
+degrees toward the west for polar orbits and less
+for less inclined orbits.
 
 #+begin_src ks :results none :tangle ../Archive/home/007 OKTO I/go.ks
   t0put(qeta-10).
+
+  local dfi is { parameter incl, hv.
+    local az is choose 450-incl if hv>0 else 450+incl.
+    local afh to abs(90-incl)-90.
+    if hv<0 set afh to -afh.
+    return mod(az+afh*4/90, 360).}.
+
+  // expect dfi(090, +1) == 356
+  // expect dfi(090, -1) == 184
+
+  // expect dfi(000,  0) == 090
+  // expect dfi(180,  0) == 270
+
+  // print "hv: "+hv.
+  // print "ccinc: "+ccinc.
+  // print "dfi(ccinc,hv) is "+dfi(ccinc,hv).
+
   set launch_t0 to nvput(1, "launch_t0", t0).
-  set launch_az to nvput(1, "launch_az", choose 356 if hv > 0 else 184).
+  set launch_az to nvput(1, "launch_az", dfi(ccinc,hv)).
   set launch_ap to nvput(1, "launch_ap", 80000).
   HUD("Will launch in "+round(t0-time:seconds,1)+" seconds.").
   return mpinc(). }).
@@ -429,7 +449,7 @@ re-evaluate the ascent every second.
 
 #+begin_src ks :results none :tangle ../Archive/home/007 OKTO I/go.ks
   mpone({hud(TEE()+": "+round(stage:deltav:vacuum,1)+ " m/s ΔV remains").}).
-  mpadd(simplecirc).
+  mpadd(mncirc). mpadd(mnwait). mpadd(mnexec).
   mpone({hud(TEE()+": "+round(stage:deltav:vacuum,1)+ " m/s ΔV remains").}).
   mpadd(pdas).
 #+end_src
@@ -445,9 +465,12 @@ re-evaluate the ascent every second.
 Set the DV to the value computed based on
 our current orbit being exactly circular.
 
+Since it is not, our results might be a bit rough, but
+the important thing now is the Argument of Periapsis.
+
 #+begin_src ks :results none :tangle ../Archive/home/007 OKTO I/go.ks
-    local dv is burndvh(altitude,altitude,ccorb:apoapsis,body).
-    mnclr(). add node(time:seconds, 0, 0, dv). wait 0.
+  local dv is burndvh(altitude,altitude,ccorb:apoapsis,body).
+  mnclr(). add node(time:seconds, 0, 0, dv). wait 0.
 #+end_src
 
 Use "square of error in angle of periapsis" as a
