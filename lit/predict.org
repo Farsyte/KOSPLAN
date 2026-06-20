@@ -7,8 +7,10 @@ and the Orbitable of interest. The return
 value is a position, relative to the body
 that the SHIP is currently orbiting.
 
+The O parameter defaults to SHIP.
+
 #+begin_src ks :results none :tangle ../Archive/predict.ks
-  set posat to { parameter t,o.
+  set posat to { parameter t. parameter o is ship.
   return positionat(o,t)-body:position.}.
 #+end_src
 
@@ -19,23 +21,9 @@ and the Orbitable of interest. The return
 value is a velocity, relative to the body
 that the SHIP is currently orbiting.
 
+The O parameter defaults to SHIP.
+
 #+begin_src ks :results none :tangle ../Archive/predict.ks
-  set velat to { parameter t,o.
+  set velat to { parameter t. parameter o is ship.
   return velocityat(o,t):orbit.}.
-#+end_src
-
-* // errat(T,O,S) -- predict scalar distance between O and S at time T.
-
-The parameters are the Univeral Time,
-and the two Orbitables of interest.
-
-The second Orbitable defaults to SHIP.
-
-This function is almost certainly not commonly needed
-and the code should be pulled into the few places that
-need it.
-
-#+begin_src ks :results none :tangle ../Archive/predict.ks
-  // set errat to { parameter t,o.
-  // return (predict:pos(t,o)-predict:pos(t,s)):mag. }.
 #+end_src

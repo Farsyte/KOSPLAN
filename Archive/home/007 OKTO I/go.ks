@@ -141,49 +141,11 @@ return mpinc().
 }).
 mpadd(pdas). mpadd(mnwait). mpadd(mnexec). mpadd(mnfini). mpadd(pdas).
 { local mpi_park is mpl:length.
+local mnv_plan is false.
 mpadd({
 hud(TEE()+": Maintaining Assigned Orbit").
+set mnv_plan to false. mnclr().
 return mpinc(). }).
-mpadd({
-local l is "apo:  "
-+fmt(orbit:apoapsis/1000,12,1)
-+fmt(ccorb:apoapsis/1000,12,1)
-+fmt((orbit:apoapsis-ccorb:apoapsis)/1000,12,1)
-+" km ".
-until false {
-local dt is eta:periapsis.
-set l to l+fmt(dt,10,1)+" s".
-if dt<10 break.
-if dt>orbit:period/12 break.
-local dv is burndvh(orbit:periapsis, orbit:apoapsis, ccorb:apoapsis, body).
-set l to l+fmt(dv,10,4)+" m/s".
-if abs(dv)<eps break.
-local bt is limit(0,9999,dv*mass/limit(eps,999,availablethrust)).
-set l to l+fmt(bt,10,4)+" s".
-if abs(bt)<1/1000 break.
-}
-print l. log l to okto_log.
-return mpinc().}) .
-mpadd({
-local l is "peri: "
-+fmt(orbit:periapsis/1000,12,1)
-+fmt(ccorb:periapsis/1000,12,1)
-+fmt((orbit:periapsis-ccorb:periapsis)/1000,12,1)
-+" km ".
-until false {
-local dt is eta:apoapsis.
-set l to l+fmt(dt,10,1)+" s".
-if dt<10 break.
-if dt>orbit:period/12 break.
-local dv is burndvh(orbit:apoapsis, orbit:periapsis, ccorb:periapsis, body).
-set l to l+fmt(dv,10,4)+" m/s".
-if abs(dv)<eps break.
-local bt is limit(0,9999,dv*mass/limit(eps,999,availablethrust)).
-set l to l+fmt(bt,10,4)+" s".
-if abs(bt)<1/1000 break.
-}
-print l. log l to okto_log.
-return mpinc().}) .
 mpadd({
 local ie is orbit:inclination-ccorb:inclination.
 local le is orbit:lan-ccorb:lan.
@@ -207,20 +169,37 @@ lock throttle to Ct.
 return 1/50.
 }).
 mpadd({
+local dt is eta:periapsis.
+if dt<0 return mpinc().
+if dt<300 set dt to dt+orbit:period.
+if mnv_plan:typename = "Node" and mnv_plan:eta<dt return mpinc().
+local mnv is mnaph(time:seconds + dt, ccorb:apoapsis).
+if abs(mnv:prograde)>1/10 set mnv_plan to mnv.
+return mpinc().}).
+mpadd({
+if apoapsis < 0 return mpinc().
+local dt is eta:apoapsis.
+if dt<300 set dt to dt+orbit:apood.
+if mnv_plan:typename = "Node" and mnv_plan:eta<dt return mpinc().
+local mnv is mnaph(time:seconds + dt, ccorb:periapsis).
+if abs(mnv:prograde)>1/10 set mnv_plan to mnv.
+return mpinc().}).
+mpadd({
+local err is orbit:argumentofperiapsis-ccorb:argumentofperiapsis.
+if abs(err)<1 return mpinc().
 local l is "aop:  "
 +fmt(orbit:argumentofperiapsis,12,4)
 +fmt(ccorb:argumentofperiapsis,12,4)
-+fmt((orbit:argumentofperiapsis-ccorb:argumentofperiapsis),12,4)
++fmt(err,12,4)
 +" deg".
 until false {
 break.
 }
 print l. log l to okto_log.
 return mpinc().}).
-mpadd(pdas).
-mpadd({
-return mpput(mpi_park, 5*wfcmd).
-}).}
+mpone({if mnv_plan:typename="Node" add mnv_plan.}).
+mpadd(pdas). mpadd(mnwait). mpadd(mnexec). mpadd(mnfini). mpadd(pdas).
+mpadd({return mpput(mpi_park, 5*wfcmd).}).}
 mprun(). print "program terminated".}.
 lock wfnow to kuniverse:timewarp:rate.
 lock wfcmd to kuniverse:timewarp:ratelist[warp].

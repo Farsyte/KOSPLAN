@@ -5,7 +5,9 @@ set mpi to nvget(1,"mpi",0).
 set mpadd to { parameter d. mpl:add(d). }.
 set mpone to { parameter d. mpl:add({ d(). return mpinc(). }). }.
 set mpsay to { parameter s. mpl:add({ print s. return mpinc(). }). }.
-set mpput to { parameter i,t.
+set mpput to {
+parameter i.
+parameter t is 0.
 set mpi to nvput(1, "mpi", i).
 return t. }.
 set mpclr to { parameter t is 0.

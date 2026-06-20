@@ -80,12 +80,13 @@ on to the next mission step immediately.
 
 * mpput(i): explicitly set the mission plan step number
 
-This function notifies the mission plan manager
-that the next step call should use the next
-step on the step list.
+This function notifies the mission plan manager that the next step
+call should use the given value as the step number for next step.
 
 #+begin_src ks :results none :tangle ../Archive/mp.ks
-  set mpput to { parameter i,t.
+  set mpput to {
+    parameter i.
+    parameter t is 0.
     set mpi to nvput(1, "mpi", i).
   return t. }.
 #+end_src
