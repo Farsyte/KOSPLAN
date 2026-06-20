@@ -16,11 +16,22 @@ then we can't get as close to apospsis at full throttle.
 Throttle and steering will continue to make the orbit
 more circular until they are locked otherwise.
 
+NOTE: the gain, currently /20, needs to assure that
+our maximum acceleration is sufficient to keep the
+apoapsis point out in front of us. /10 was enough
+for OKTO I with no payload. Adding a goo caused us
+to not be able to circularize.
+
+It would probably be a good idea to set this value
+based on how long a calculated circularization burn
+would take to run. But then, if we are going to go
+to all that trouble, may as well use mncirc.
+
 #+begin_src ks :results none :tangle ../Archive/simplecirc.ks
   set simplecirc to {
     if periapsis>apoapsis-100 return mpinc().
     lock steering to prograde.
-    lock throttle to max(0,min(1,(2-eta:apoapsis/10))) *
+    lock throttle to max(0,min(1,(2-eta:apoapsis/20))) *
       max(1/100,min(1,1-vang(steering:vector,prograde:vector)/5)).
   return 1. }.
 #+end_src

@@ -4,7 +4,6 @@ import("fmt").
 import("mn").
 import("sw").
 import("ascent").
-import("simplecirc").
 import("hud").
 set okto_log to home:combine("okto.log").
 if exists(okto_log) open(okto_log):clear().
@@ -56,8 +55,13 @@ swadj(qeta-30).
 if wfnow>1 return wfcmd/10.
 if qeta>20 return mod(qeta+9.9,1).
 t0put(qeta-10).
+local dfi is { parameter incl, hv.
+local az is choose 450-incl if hv>0 else 450+incl.
+local afh to abs(90-incl)-90.
+if hv<0 set afh to -afh.
+return mod(az+afh*4/90, 360).}.
 set launch_t0 to nvput(1, "launch_t0", t0).
-set launch_az to nvput(1, "launch_az", choose 356 if hv > 0 else 184).
+set launch_az to nvput(1, "launch_az", dfi(ccinc,hv)).
 set launch_ap to nvput(1, "launch_ap", 80000).
 HUD("Will launch in "+round(t0-time:seconds,1)+" seconds.").
 return mpinc(). }).
@@ -92,7 +96,7 @@ mpadd({ if altitude>body:atm:height return mpinc().
 lock steering to prograde. lock throttle to 0. return 1. }).
 mpone({hud(TEE()+": SPACE!").}).
 mpone({hud(TEE()+": "+round(stage:deltav:vacuum,1)+ " m/s ΔV remains").}).
-mpadd(simplecirc).
+mpadd(mncirc). mpadd(mnwait). mpadd(mnexec).
 mpone({hud(TEE()+": "+round(stage:deltav:vacuum,1)+ " m/s ΔV remains").}).
 mpadd(pdas).
 mpadd({
@@ -143,7 +147,7 @@ mpadd(pdas). mpadd(mnwait). mpadd(mnexec). mpadd(mnfini). mpadd(pdas).
 { local mpi_park is mpl:length.
 local mnv_plan is false.
 mpadd({
-hud(TEE()+": Maintaining Assigned Orbit").
+hud(TEE()+": Maintaining Assigned Orbit", false).
 set mnv_plan to false. mnclr().
 return mpinc(). }).
 mpadd({
@@ -164,16 +168,13 @@ swadj(swtime).
 if wfnow>1 return 1/10.
 set Cs to -ccpos*mydir.
 set Ct to limit(0,1,1.5-cceta/lt).
-lock steering to Cs.
-lock throttle to Ct.
-return 1/50.
-}).
+lock steering to Cs. lock throttle to Ct. return 1/50.}).
 mpadd({
 local dt is eta:periapsis.
 if dt<0 return mpinc().
 if dt<300 set dt to dt+orbit:period.
 if mnv_plan:typename = "Node" and mnv_plan:eta<dt return mpinc().
-local mnv is mnaph(time:seconds + dt, ccorb:apoapsis).
+local mnv is mnth(time:seconds + dt, ccorb:apoapsis).
 if abs(mnv:prograde)>1/10 set mnv_plan to mnv.
 return mpinc().}).
 mpadd({
@@ -181,7 +182,7 @@ if apoapsis < 0 return mpinc().
 local dt is eta:apoapsis.
 if dt<300 set dt to dt+orbit:apood.
 if mnv_plan:typename = "Node" and mnv_plan:eta<dt return mpinc().
-local mnv is mnaph(time:seconds + dt, ccorb:periapsis).
+local mnv is mnth(time:seconds + dt, ccorb:periapsis).
 if abs(mnv:prograde)>1/10 set mnv_plan to mnv.
 return mpinc().}).
 mpadd({
