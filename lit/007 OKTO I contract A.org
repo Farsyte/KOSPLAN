@@ -13,12 +13,24 @@ Original:
 | LAN         |      92.7 | °  |
 | AOP         |      34.0 | °  |
 
-Updated:
+Mission Plan Budget:
+    ΔV 80x80 to 80x14562:                     874 m/s
+    ΔV 80x14562 to 11828x14562:               317 m/s
+    ΔV 80x80 to 11828x14562:                 1191 m/s
+
+Reposition 1:
 | Apoapsis    | 14531.302 | km |
 | Periapsis   | 11826.834 | km |
 | Inclination |      80.1 | °  |
 | LAN         |      92.5 | °  |
 | AOP         |      33.9 | °  |
+
+Reposition 2:
+| Apoapsis    | 13350.337 | km |
+| Periapsis   | 12658.469 | km |
+| Inclination |      80.1 | °  |
+| LAN         |      92.5 | °  |
+| AOP         |       n/a | °  |
 
 Contracts never specify MEP or TEP.
 
@@ -34,17 +46,19 @@ Exact figures found in the save file:
   // nvput(1,"ccaop", 33.976668135252595).
 
   // reassigned
+  // nvput(1,"ccbod", "kerbin").
+  // nvput(1,"ccsma", 13779068.040243205).
+  // nvput(1,"ccecc", 0.098136795572055777).
+  // nvput(1,"ccinc", 80.103887429784223).
+  // nvput(1,"cclan", 92.465394480974567).
+  // nvput(1,"ccaop", 33.94479181892337).
+
+  // reassigned
   nvput(1,"ccbod", "kerbin").
-  nvput(1,"ccsma", 13779068.040243205).
-  nvput(1,"ccecc", 0.098136795572055777).
-  nvput(1,"ccinc", 80.103887429784223).
-  nvput(1,"cclan", 92.465394480974567).
-  nvput(1,"ccaop", 33.94479181892337).
-  // ignore meanAnomalyAtEpoch = 3.1423817895428741
-  // ignore epoch = 194699.36948058938
+  nvput(1,"ccsma", 13604402.680300854).
+  nvput(1,"ccecc", 0.025428082562523022).
+  nvput(1,"ccinc", 80.130545818452205).
+  nvput(1,"cclan", 92.465404353011081).
+  nvput(1,"ccaop", 34.805122521885046).
 #+end_src
 
-Mission Plan Budget:
-    ΔV 80x80 to 80x14562:                     874 m/s
-    ΔV 80x14562 to 11828x14562:               317 m/s
-    ΔV 80x80 to 11828x14562:                 1191 m/s

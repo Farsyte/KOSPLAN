@@ -23,7 +23,7 @@ does seem to work just fine.
   set mnclr to { for n in allnodes remove n. }.
 #+end_src
 
-* mnexec -- execute the next maneuver node
+* mnexec -- STEP: execute the next maneuver node
 
 #+begin_src ks :results none :tangle ../Archive/mn.ks
   set mnexec to {
@@ -85,7 +85,7 @@ Come back and recompute in no longer than a second.
   return min(1,mnl_dt). }.
 #+end_src
 
-* mnfini -- clean up after mnexec
+* mnfini -- STEP: clean up after mnexec
 
 The mnexec step leaves the (nearly) exhausted maneuver
 node scheduled and leaves THROTTLE and STEERING locked
@@ -105,7 +105,7 @@ our attitude where it is, and clears the maneuver plan.
   }.
 #+end_src
 
-* mnwait -- wait until time to start the burn for the maneuver node
+* mnwait -- STEP: wait until time to start the burn for the maneuver node
 
 It is the responsibility of the mission to assure
 that we are in a good state to wait for the next
@@ -164,7 +164,7 @@ warp factor in time!
   swadj(dt-30). return 1/10. }.
 #+end_src
 
-* mncirc -- plan maneuver to circularize at next periapsos or apoapsis
+* mncirc -- STEP: plan maneuver to circularize at next periapsos or apoapsis
 
 It is the responsibility of the mission to assure
 that we are in a good state to plan and execute
@@ -232,7 +232,42 @@ add it to the maneuver schedule.
   } return mpinc(1/50).}.
 #+end_src
 
-* mnapo(h) -- plan maneuver to adjust apoapsis at next periapsis
+* mnth(t,h) -- SUPPORT: build node for time T to set opposing altitude to H.
+
+Establish a node centered at T seconds UT which
+sets the periapsis and apoapsis to the altitude
+at time T, and the altitude given as H.
+
+Works best if the altitude at time T is near the
+current periapsis or apoapsis.
+
+This will include a radial component to cancel
+the existing radial velocity at T, along with
+the prograde component to adjust the altitude
+of the opposing point.
+
+The computation of the prograde component takes
+into account the fact that the radial component
+will change periapsis and apoapsis, but does
+not change the semi-major axis.
+
+In normal usage, the magnitude of the prograde
+component will dominate the burn.
+
+#+begin_src ks :results none :tangle ../Archive/mn.ks
+  set mnth to {
+    parameter t.
+    parameter h.
+    local mu is body:mu.
+    local r0 is body:radius.
+    local r1 is posat(t,ship).
+    local v1 is velat(t,ship).
+    local vr is vdot(v1,r1:normalized).
+    local dp is burndv(r1:mag,r0*2+apoapsis+periapsis-r1:mag,r0+h,mu).
+    return node(t,-vr,0,dp). }.
+#+end_src
+
+* mnatp(h) -- STEP BUILDER: at periapis, set other altitude to h.
 
 It is the responsibility of the mission to assure
 that we are in a good state to plan and execute
@@ -252,53 +287,35 @@ If the burn to raise the apoapsis would be the
 same at our periapsis and our apoapsis, then
 schedule the burn to commence immediately.
 
-#+begin_src ks :results none :tangle ../Archive/mn.ks
-  set mnapo to { parameter des_apo. return {
-#+end_src
+Procedure:
 
-Cancel any existing maneuver nodes.
-This is useful if we reboot after setting up the
-node but before the mission step is updated.
+- Cancel any existing maneuver nodes.
+  This is useful if we reboot after setting up the
+  node but before the mission step is updated.
 
-#+begin_src ks :results none :tangle ../Archive/mn.ks
-  mnclr().
-#+end_src
+- Do nothing more if we are outbound on a hyperbolic
+  orbit, detected by eta:periapsis being negative.
 
-Unless otherwise decided, center the burn at the
-periapsis. If we are outbound on an escape trajectory
-then end the step without building a node.
+- Center the burn at the periapsis.
 
-#+begin_src ks :results none :tangle ../Archive/mn.ks
-  local dt is eta:periapsis.
-  if dt<0 return mpinc().
-#+end_src
+- Use MNTH above to set up a node, and schedule it
+  if the prograde burn is nontrivial.
 
-Compute the delta-v for the nominal burn at our
-current periapsis to raise the apoapsis, and the
-best estimate of burn time.
+NOTE: this might schedule a burn that is TOO SOON,
+in that we could not possibly achieve half of the
+burn before the scheduled time.
+
 
 #+begin_src ks :results none :tangle ../Archive/mn.ks
-  local r0 is body:radius.
-  local dv is burndvh(periapsis,apoapsis,des_apo).
-  local tb is bt(abs(dv)).
+  set mnatp to { parameter des_apo. return {
+    mnclr().
+    if eta:periapsis<0 return mpinc().
+    local mnv is mnth(time:seconds+eta:periapsis,des_apo).
+    if bt(mnv:prograde)>1/1000 add mnv.
+    return mpinc(1/50).}.}.
 #+end_src
 
-In the *FUTURE* perhaps we can detect that we are
-in a sufficiently circular orbit that we can do
-the burn at any time.
-
-If the computed burn time is not trivial, create
-the node.
-
-#+begin_src ks :results none :tangle ../Archive/mn.ks
-  if bt>1/1000 add node(time:seconds+dt,0,0,dv).
-#+end_src
-
-#+begin_src ks :results none :tangle ../Archive/mn.ks
-  return mpinc(1/50).}.}.
-#+end_src
-
-* mnperi(h) -- plan maneuver to adjust periapsis at next apoapsis
+* mnata(h) -- STEP BUILDER: at apoapsis, set other altitude to h.
 
 It is the responsibility of the mission to assure
 that we are in a good state to plan and execute
@@ -318,49 +335,25 @@ If the burn to raise the periapsis would be the
 same at our apoapsis and our periapsis, then
 schedule the burn to commence immediately.
 
-#+begin_src ks :results none :tangle ../Archive/mn.ks
-  set mnperi to { parameter des_peri. return {
-#+end_src
+Procedure:
 
-Cancel any existing maneuver nodes.
-This is useful if we reboot after setting up the
-node but before the mission step is updated.
+- Cancel any existing maneuver nodes.
+  This is useful if we reboot after setting up the
+  node but before the mission step is updated.
 
-#+begin_src ks :results none :tangle ../Archive/mn.ks
-  mnclr().
-#+end_src
+- Do nothing more if we are on a hyperbolic orbit,
+  detected by apoapsis being negative.
 
-Unless otherwise decided, center the burn at the
-apoapsis. If we are outbound on an escape trajectory
-then end the step without building a node.
+- Center the burn at the apoapsis. 
+
+- Use MNTH above to set up a node, and schedule it
+  if the prograde burn is nontrivial.
 
 #+begin_src ks :results none :tangle ../Archive/mn.ks
-  if orbit:hasnextpatch return mpinc().
-  local dt is eta:apoapsis.
+  set mnata to { parameter des_peri. return {
+    mnclr().
+    if apoapsis<0 return mpinc().
+    local mnv is mnth(time:seconds+eta:apoapsis,des_peri).
+    if bt(mnv:prograde)>1/1000 add mnv.
+    return mpinc(1/50).}.}.
 #+end_src
-
-Compute the delta-v for the nominal burn at our
-current apoapsis to raise the periapsis, and the
-best estimate of burn time.
-
-#+begin_src ks :results none :tangle ../Archive/mn.ks
-  local r0 is body:radius.
-  local dv is burndvh(apoapsis,periapsis,des_peri).
-  local tb is bt(abs(dv)).
-#+end_src
-
-In the *FUTURE* perhaps we can detect that we are
-in a sufficiently circular orbit that we can do
-the burn at any time.
-
-If the computed burn time is not trivial, create
-the node.
-
-#+begin_src ks :results none :tangle ../Archive/mn.ks
-  if bt>1/1000 add node(time:seconds+dt,0,0,dv).
-#+end_src
-
-#+begin_src ks :results none :tangle ../Archive/mn.ks
-  return mpinc(1/50).}.}.
-#+end_src
-

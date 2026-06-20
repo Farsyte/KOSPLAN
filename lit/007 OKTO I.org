@@ -539,8 +539,8 @@ Executing the node is the usual sequence.
 When we get to our new apoapsis, raise our periapsis
 to the assigned altitude.
 
-TODO we need a generic "at next apo, set peri to ..."
-TODO we need a generic "at next peri, set apo to ..."
+TODO use the generic "at next apo, set peri to ..."
+TODO use the generic "at next peri, set apo to ..."
 
 #+begin_src ks :results none :tangle ../Archive/home/007 OKTO I/go.ks
   mpadd({
@@ -564,83 +564,26 @@ This is how we do a loop in the mission plan.
 
 #+begin_src ks :results none :tangle ../Archive/home/007 OKTO I/go.ks
   { local mpi_park is mpl:length.
+    local mnv_plan is false.
 #+end_src
 
 ***** Notify when we at the top.
 
 #+begin_src ks :results none :tangle ../Archive/home/007 OKTO I/go.ks
-    mpadd({
-      hud(TEE()+": Maintaining Assigned Orbit").
-      return mpinc(). }).
-#+end_src
-
-***** TODO Possibly correct the periapsis.
-
-#+begin_src ks :results none :tangle ../Archive/home/007 OKTO I/go.ks
-  mpadd({ // fix apoapsis by burning prograde or retrograde at periapsis.
-    local l is "apo:  "
-      +fmt(orbit:apoapsis/1000,12,1)
-      +fmt(ccorb:apoapsis/1000,12,1)
-      +fmt((orbit:apoapsis-ccorb:apoapsis)/1000,12,1)
-      +" km ".
-
-    until false {
-      local dt is eta:periapsis.
-      set l to l+fmt(dt,10,1)+" s".
-      if dt<10 break.
-      if dt>orbit:period/12 break.
-
-      local dv is burndvh(orbit:periapsis, orbit:apoapsis, ccorb:apoapsis, body).
-      set l to l+fmt(dv,10,4)+" m/s".
-      if abs(dv)<eps break.
-
-      local bt is limit(0,9999,dv*mass/limit(eps,999,availablethrust)).
-      set l to l+fmt(bt,10,4)+" s".
-
-      if abs(bt)<1/1000 break.
-
-      // TODO: add code to apply dv prograde or retrograde at dt.
-      // something like: add node(time:seconds+dt, 0, 0, dv).
-
-    }
-    print l. log l to okto_log.
-  return mpinc().}) .
-#+end_src
-
-***** TODO possibly correct the apoapsis.
-
-#+begin_src ks :results none :tangle ../Archive/home/007 OKTO I/go.ks
-  mpadd({ // fix periapsis by burning prograde or retrograde at apoapsis.
-    local l is "peri: "
-      +fmt(orbit:periapsis/1000,12,1)
-      +fmt(ccorb:periapsis/1000,12,1)
-      +fmt((orbit:periapsis-ccorb:periapsis)/1000,12,1)
-      +" km ".
-
-    until false {
-      local dt is eta:apoapsis.
-      set l to l+fmt(dt,10,1)+" s".
-      if dt<10 break.
-      if dt>orbit:period/12 break.
-
-      local dv is burndvh(orbit:apoapsis, orbit:periapsis, ccorb:periapsis, body).
-      set l to l+fmt(dv,10,4)+" m/s".
-      if abs(dv)<eps break.
-
-      local bt is limit(0,9999,dv*mass/limit(eps,999,availablethrust)).
-      set l to l+fmt(bt,10,4)+" s".
-
-      if abs(bt)<1/1000 break.
-
-      // TODO: add code to apply dv prograde or retrograde at dt.
-      // something like: add node(time:seconds+dt, 0, 0, dv).
-
-    }
-    print l. log l to okto_log.
-  return mpinc().}) .
+  mpadd({
+    hud(TEE()+": Maintaining Assigned Orbit", false).
+    set mnv_plan to false. mnclr().
+    return mpinc(). }).
 #+end_src
 
 ***** Fix the orbital plane.
+
+TODO: can we build a maneuver node instead?
+- pick the next AN or DN of orbit vs ccorb
+- predict our velocity at that location
+- compute ΔV using our velocity and the normal vector
+  need to assure we are ROTATING around the nodal line,
+  not just cnceling our speed through the plane.
 
 This fixes both LAN and Inclination, as they are just
 two different measurements of an error in the orbital
@@ -678,46 +621,75 @@ TODO see what happens for LARGE inclination changes,
 then adjust the code as necessary.
 
 #+begin_src ks :results none :tangle ../Archive/home/007 OKTO I/go.ks
-        local mydir is vcrs(-body:position,velocity:orbit):normalized.
+  local mydir is vcrs(-body:position,velocity:orbit):normalized.
 
-        local cceta is ccpos / ccvel.
-        local lt is abs(ccvel)*2/maxa.
+  local cceta is ccpos / ccvel.
+  local lt is abs(ccvel)*2/maxa.
 
-        // etb is time until the lt point.
-        local etb is cceta - lt.
+  // etb is time until the lt point.
+  local etb is cceta - lt.
 
-        // How far we travel when
-        // accelerating at maxa/2
-        // for lt seconds.
-        // local ld is (1/2) * (maxa/2) * lt^2.
+  // How far we travel when
+  // accelerating at maxa/2
+  // for lt seconds.
+  // local ld is (1/2) * (maxa/2) * lt^2.
 
-        local ld is ccvel^2/maxa.
+  local ld is ccvel^2/maxa.
 
-        // break out of this to print
-        // plane-sync data.
+  // break out of this to print
+  // plane-sync data.
 
-        local swtime is etb/2 - 30.
-        swadj(swtime).
+  local swtime is etb/2 - 30.
+  swadj(swtime).
 
-        if wfnow>1 return 1/10.
+  if wfnow>1 return 1/10.
 
-        // if we get to here, we are actively maneuvering.
+  // if we get to here, we are actively maneuvering.
 
-        set Cs to -ccpos*mydir.
-        set Ct to limit(0,1,1.5-cceta/lt).
-
-        lock steering to Cs.
-        lock throttle to Ct.
-        return 1/50.
-      }).
+  set Cs to -ccpos*mydir.
+  set Ct to limit(0,1,1.5-cceta/lt).
+  lock steering to Cs. lock throttle to Ct. return 1/50.}).
 #+end_src
+
+***** Development Code.
+
+****** maybe create a node to fix apoapsis.
+
+#+begin_src ks :results none :tangle ../Archive/home/007 OKTO I/go.ks
+  mpadd({  // adjust apoapsis at next periapsis.
+    local dt is eta:periapsis.
+    if dt<0 return mpinc().              // hyperbolic
+    if dt<300 set dt to dt+orbit:period. // next time around
+    if mnv_plan:typename = "Node" and mnv_plan:eta<dt return mpinc().
+    local mnv is mnth(time:seconds + dt, ccorb:apoapsis).
+    if abs(mnv:prograde)>1/10 set mnv_plan to mnv.
+    return mpinc().}).
+#+end_src
+
+****** maybe create a node to fix periapsis.
+
+#+begin_src ks :results none :tangle ../Archive/home/007 OKTO I/go.ks
+  mpadd({  // adjust periapsis at next apoapsis.
+    if apoapsis < 0 return mpinc().
+    local dt is eta:apoapsis.
+    if dt<300 set dt to dt+orbit:apood.
+    if mnv_plan:typename = "Node" and mnv_plan:eta<dt return mpinc().
+    local mnv is mnth(time:seconds + dt, ccorb:periapsis).
+    if abs(mnv:prograde)>1/10 set mnv_plan to mnv.
+    return mpinc().}).
+#+end_src
+
+***** TODO fix AOP ...?
 
 #+begin_src ks :results none :tangle ../Archive/home/007 OKTO I/go.ks
   mpadd({
+    local err is orbit:argumentofperiapsis-ccorb:argumentofperiapsis.
+    if abs(err)<1 return mpinc().
+
     local l is "aop:  "
       +fmt(orbit:argumentofperiapsis,12,4)
       +fmt(ccorb:argumentofperiapsis,12,4)
-      +fmt((orbit:argumentofperiapsis-ccorb:argumentofperiapsis),12,4)
+      +fmt(err,12,4)
       +" deg".
 
     // Adjusting AOP might be hard in general.
@@ -735,22 +707,23 @@ then adjust the code as necessary.
   return mpinc().}).
 #+end_src
 
-***** Safe the throttle and fix orientation.
+***** If we have a maneuver node, execute it.
 
-Just in case we escape from a correction step without
-it cutting the throttle, assure it is cut here; then
-fix the orientation of the craft.
+Note that this safes the throttle and fixes the orientation
+before and after handling the node.
 
 #+begin_src ks :results none :tangle ../Archive/home/007 OKTO I/go.ks
-  mpadd(pdas).
+  mpone({if mnv_plan:typename="Node" add mnv_plan.}).
 #+end_src
 
-***** branch back to the top of orbit management with a delay.
+#+begin_src ks :results none :tangle ../Archive/home/007 OKTO I/go.ks
+  mpadd(pdas). mpadd(mnwait). mpadd(mnexec). mpadd(mnfini). mpadd(pdas).
+#+end_src
+
+***** branch back to the top of orbit management after a delay.
 
 #+begin_src ks :results none :tangle ../Archive/home/007 OKTO I/go.ks
-  mpadd({ // loop back to the mpi_park step.
-    return mpput(mpi_park, 5*wfcmd).
-  }).}
+  mpadd({return mpput(mpi_park, 5*wfcmd).}).}
 #+end_src
 
 **** The orbit management loop never ends.

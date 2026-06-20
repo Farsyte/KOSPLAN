@@ -2,6 +2,14 @@ math - simple math stuff
 
 * Constants (pi, g0, e, inf, eps)
 
+NOTE: the INF value used here must be less than the
+10^38 value returned by KOS functions that are returning
+a value indicating HUGE, such as ETA:APOAPSIS for
+hyperbolic trajectories.
+
+However note, testing for hyperbolic is better done
+by looking for negative APOAPSIS values.
+
 #+begin_src ks :results none :tangle ../Archive/math.ks
   set pi to constant:pi.
   set g0 to constant:g0.
