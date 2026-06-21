@@ -3,6 +3,8 @@ go.ks -- GO script for the Big Hopper
 This script manages the flight of the Big Hopper, which is
 fairly simple: 
 
+Verified on *20260621* booted from boot/local
+
 * Import Required Packages
 
 #+begin_src ks :results none :tangle ../../Archive/home/002 Big Hopper/go.ks
@@ -20,7 +22,6 @@ finds nothing more specific for this mission.
   set h1 to body:atm:height + 1000.
   set h2 to h1 + 1000.
 #+end_src
-
 
 * Provide a GO function.
 
