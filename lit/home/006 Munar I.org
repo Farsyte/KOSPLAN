@@ -1,0 +1,315 @@
+go.ks -- GO script for Munar I, the first MUN Fly-By.
+
+This script manages the flight of the 006 Munar One A, which
+is starting to get more complicated.
+
+This flight is unique in that it pauses at many steps to
+wait for science to be collected.
+
+* Import Required Packages
+
+Our required packages do not fit in 10000 bytes.
+
+#+begin_src ks :results none :tangle ../../Archive/home/006 Munar I/go.ks
+  import("ascent").
+  import("fancystager").
+  import("hud").
+  import("mp").
+  import("simplecirc").
+  import("sw").
+  import("time").
+  import("xfer").
+  import("aeroperi").
+#+end_src
+
+* During package import: set parameters
+
+This function is executed by IMPORT when it
+finds nothing more specific for this mission.
+
+#+begin_src ks :results none :tangle ../../Archive/home/006 Munar I/go.ks
+#+end_src
+
+* Local mission steps and helper functions
+
+** pdas -- Point Down At Sun
+
+#+begin_src ks :results none :tangle ../../Archive/home/006 Munar I/go.ks
+  local pdas is {
+    local h is vcrs(body:position,ship:velocity:orbit).
+    lock throttle to 0.
+    lock steering to lookdirup(h,-sun:position).
+  BAYS ON. }.
+#+end_src
+
+** hold -- Wait until bay is closed.
+
+#+begin_src ks :results none :tangle ../../Archive/home/006 Munar I/go.ks
+  local hold is { if not bays mpinc().
+  hud("BAY "+(choose "OPEN" if BAYS else "OK"), false). return 2. }.
+#+end_src
+
+* Provide a GO function.
+
+This function is executed by IMPORT when it
+finds nothing more specific for this mission.
+
+#+begin_src ks :results none :tangle ../../Archive/home/006 Munar I/go.ks
+  set go to {
+#+end_src
+
+** Start an autostager in the background
+
+#+begin_src ks :results none :tangle ../../Archive/home/006 Munar I/go.ks
+  fancystager().
+#+end_src
+
+** Define Mission Phases
+
+*** WAIT HERE until ready to continue.
+
+#+begin_src ks :results none :tangle ../../Archive/home/006 Munar I/go.ks
+  mpone({BAYS ON.}).
+  mpadd(hold).
+#+end_src
+
+*** Schedule the launch.
+
+#+begin_src ks :results none :tangle ../../Archive/home/006 Munar I/go.ks
+  mpone({t0put(7-mod(time:seconds,1)).}).
+#+end_src
+
+*** Countdown.
+#+begin_src ks :results none :tangle ../../Archive/home/006 Munar I/go.ks
+  mpadd({
+    local t is met().
+    local d is round(-t).
+    if d<=0 return mpinc().
+    if d<=5 hud("T-"+d).
+    return 1-mod(t,1).
+  }).
+#+end_src
+
+*** Ignite the engines.
+
+#+begin_src ks :results none :tangle ../../Archive/home/006 Munar I/go.ks
+  mpone({
+    if maxthrust>0 return mpinc().
+    if not stage:ready return 1/10.
+    lock throttle to 1.
+    lock steering to facing.
+    stage. t0put(time:seconds).
+  }).
+  mpone({hud("ignition").}).
+#+end_src
+
+*** damp attitude rate until safe to maneuver
+
+#+begin_src ks :results none :tangle ../../Archive/home/006 Munar I/go.ks
+  mpadd({ if alt:radar>=50 return mpinc().
+    lock throttle to 1.
+    lock steering to facing.
+    bays off.
+  return 1/10. }).
+  mpone({hud("pitchover at T+"+ydhms(met())).}).
+#+end_src
+
+*** control pitch and heading until apoapsis is high enough
+
+#+begin_src ks :results none :tangle ../../Archive/home/006 Munar I/go.ks
+  mpadd(ascent(90,80000)).
+  mpone({lock throttle to 0. hud("MECO at T+"+ydhms(met())).}).
+#+end_src
+
+*** coast until above atmosphere.
+
+#+begin_src ks :results none :tangle ../../Archive/home/006 Munar I/go.ks
+  mpadd({ if altitude>body:atm:height return mpinc().
+  lock steering to prograde. lock throttle to 0. return 1. }).
+  mpone({hud("SPACE! at T+"+ydhms(met())).}).
+#+end_src
+
+*** circularize at apoapsis.
+
+#+begin_src ks :results none :tangle ../../Archive/home/006 Munar I/go.ks
+  mpadd(simplecirc).
+  mpone({hud("ORBIT! at T+"+ydhms(met())).}).
+#+end_src
+
+*** WAIT HERE until ready to continue.
+
+#+begin_src ks :results none :tangle ../../Archive/home/006 Munar I/go.ks
+  mpone(pdas). mpadd(hold). mpone(pdas).
+#+end_src
+
+*** plan trans-munar injection
+
+#+begin_src ks :results none :tangle ../../Archive/home/006 Munar I/go.ks
+  mpone(xfer("mun")).
+#+end_src
+
+*** WAIT HERE until ready to continue.
+
+#+begin_src ks :results none :tangle ../../Archive/home/006 Munar I/go.ks
+  mpone(pdas). mpadd(hold). mpone(pdas).
+#+end_src
+
+*** perform  trans-munar injection
+  
+#+begin_src ks :results none :tangle ../../Archive/home/006 Munar I/go.ks
+  mpadd(mnwait).
+  mpadd(mnexec).
+  mpadd(mnfini).
+#+end_src
+
+*** WAIT HERE until ready to continue.
+
+#+begin_src ks :results none :tangle ../../Archive/home/006 Munar I/go.ks
+  mpone(pdas). mpadd(hold). mpone(pdas).
+#+end_src
+
+*** SAFEWARP to just before transition to MUN SOI
+
+#+begin_src ks :results none :tangle ../../Archive/home/006 Munar I/go.ks
+  mpadd({ if not orbit:hasnextpatch return mpinc().
+    local dt is eta:transition-60.
+    if dt<=0 return mpinc().
+  swadj(dt). return 1/10. }).
+  mpadd(swend).
+#+end_src
+
+*** wait until inside MUN SOI
+
+#+begin_src ks :results none :tangle ../../Archive/home/006 Munar I/go.ks
+  mpadd({ if not orbit:hasnextpatch return mpinc().
+    if body:name <> "Kerbin" return mpinc().
+  return 1. }).
+#+end_src
+
+*** WAIT HERE until ready to continue.
+
+#+begin_src ks :results none :tangle ../../Archive/home/006 Munar I/go.ks
+  mpone(pdas). mpadd(hold). mpone(pdas).
+#+end_src
+
+*** assure mun periapsis between 20 and 50 km
+
+#+begin_src ks :results none :tangle ../../Archive/home/006 Munar I/go.ks
+  mpadd({
+    if periapsis<20000 {
+      lock steering to prograde.
+      lock throttle to limit(0,1,(periapsis+100-40000)/1000) *
+        limit(1/100,1,(10-vang(prograde:vector,facing:vector))/5).
+      return 1/10.
+    }
+    if periapsis>50000 {
+      lock steering to retrograde.
+      lock throttle to limit(0,1,(periapsis+100-40000)/1000) *
+        limit(1/100,1,(10-vang(retrograde:vector,facing:vector))/5).
+      return 1/10.
+    }
+  return mpinc(). }).
+  mpone(pdas). mpadd(hold). mpone(pdas).
+#+end_src
+
+*** SAFEWARP to a bit before periapsis
+
+#+begin_src ks :results none :tangle ../../Archive/home/006 Munar I/go.ks
+  mpadd({ if eta:periapsis<60 return mpinc().
+    local dt is eta:periapsis-120.
+    if dt<=0 return mpinc().
+  swadj(dt). return 1/10. }).
+  mpadd(swend).
+#+end_src
+
+*** WAIT HERE until ready to continue.
+
+#+begin_src ks :results none :tangle ../../Archive/home/006 Munar I/go.ks
+  mpone(pdas). mpadd(hold). mpone(pdas).
+#+end_src
+
+*** SAFEWARP to just before transition out of MUN SOI
+
+#+begin_src ks :results none :tangle ../../Archive/home/006 Munar I/go.ks
+  mpadd({ if not orbit:hasnextpatch return mpinc().
+    local dt is eta:transition-60.
+    if dt<=0 return mpinc().
+  swadj(dt). return 1/10. }).
+  mpadd(swend).
+#+end_src
+
+*** wait until out of MUN SOI
+
+#+begin_src ks :results none :tangle ../../Archive/home/006 Munar I/go.ks
+  mpadd({ if not orbit:hasnextpatch return mpinc().
+    if body:name = "Kerbin" return mpinc().
+  return 1. }).
+#+end_src
+
+*** tune aerobraking target altitude.
+
+#+begin_src ks :results none :tangle ../../Archive/home/006 Munar I/go.ks
+  mpadd(aeroperi).
+  mpone(pdas). mpadd(hold). mpone(pdas).
+#+end_src
+
+*** SAFEWARP to 120 km over kerbin using mnwait.
+
+#+begin_src ks :results none :tangle ../../Archive/home/006 Munar I/go.ks
+  mpone({
+    local t1 is time:seconds + 60.
+    local t2 is time:seconds + eta:periapsis.
+    local rx is body:radius + 120000.
+    until (t2-t1)<1 {
+      local t3 is t1 + (t2-t1)/2.
+      local r3 is posat(t3,ship):mag.
+    if r3 < rx set t2 to t3. else set t1 to t3. }
+    mnclr().
+  add node(t1,0,0,-1).}).
+  mpadd(mnwait).
+  mpone({ mnclr(). }).
+    mpone(pdas).
+#+end_src
+
+*** BURN RETROGRADE until out of fuel (when below 80 km)
+
+It is *EXPECTED* that the auto-stager will stage away
+the flamed-out engine, empty fuel tank, science cluster,
+probe core, battery, solar panel, and autopilot computer.
+
+#+begin_src ks :results none :tangle ../../Archive/home/006 Munar I/go.ks
+  mpadd({
+    if altitude>80000 return 1.
+    if altitude<40000 and apoapsis<60000 return mpinc().
+    lock steering to srfretrograde.
+    lock throttle to limit(1/100,1,(10-vang(srfretrograde:vector,facing:vector))/5).
+  return 1. }).
+#+end_src
+
+*** if we get here, finish configuring vessel for aerobraking.
+
+It is *EXPECTED* that the staging to stage 0 will stage away
+the flamed-out engine, empty fuel tank, science cluster,
+probe core, battery, solar panel, and autopilot computer.
+
+#+begin_src ks :results none :tangle ../../Archive/home/006 Munar I/go.ks
+  mpadd({ lock throttle to 0. lock steering to srfretrograde.
+    if stage:number=0 mpinc().
+  if stage:ready stage. return 1. }).
+#+end_src
+
+*** If we get here ... we are done.
+
+Congratulations. Your autopilot was adding mass to the
+part of the vehicle that floated down on the parachute.
+
+#+begin_src ks :results none :tangle ../../Archive/home/006 Munar I/go.ks
+  mpadd({ unlock throttle. unlock steering. return mpinc(). }).
+#+end_src
+
+* Run the Mission, then End the Program.
+
+  #+begin_src ks :results none :tangle ../../Archive/home/006 Munar I/go.ks
+    mprun(). print "program terminated".}.
+#+end_src
+

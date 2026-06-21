@@ -6,7 +6,6 @@ import("fmt").
 import("hud").
 import("mp").
 import("mnpro").
-import("simplecirc").
 import("sw").
 import("time").
 import("xfer").
@@ -45,7 +44,10 @@ mpone({lock throttle to 0. hud("MECO").}).
 mpadd({ if altitude>body:atm:height return mpinc().
 lock steering to prograde. lock throttle to 0. return 1. }).
 mpone({hud("SPACE!").}).
-mpadd(simplecirc).
+mpadd(mncirc).
+mpadd(mnwait).
+mpadd(mnexec).
+mpadd(mnfini).
 mpone({hud("ORBIT!").}).
 mpadd(pdas).
 mpadd(xfer("mun")).

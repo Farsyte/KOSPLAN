@@ -1,0 +1,179 @@
+mnpro - prograde burn related maneuvers
+
+* Import All Dependencies
+
+#+begin_src ks :results none :tangle ../Archive/mnpro.ks
+  import("burndv").
+#+end_src
+
+* mnpro(t,h) -- SUPPORT: build node for time T to set opposing altitude to H.
+
+Establish a node centered at T seconds UT which
+sets the periapsis and apoapsis to the altitude
+at time T, and the altitude given as H.
+
+Works best if the altitude at time T is near the
+current periapsis or apoapsis.
+
+This will include a radial component to cancel
+the existing radial velocity at T, along with
+the prograde component to adjust the altitude
+of the opposing point.
+
+The computation of the prograde component takes
+into account the fact that the radial component
+will change periapsis and apoapsis, but does
+not change the semi-major axis.
+
+In normal usage, the magnitude of the prograde
+component will dominate the burn.
+
+#+begin_src ks :results none :tangle ../Archive/mnpro.ks
+  set mnpro to {
+    parameter t.
+    parameter h.
+    local mu is body:mu.
+    local r0 is body:radius.
+    local r1 is posat(t,ship).
+    local v1 is velat(t,ship).
+    local vr is vdot(v1,r1:normalized).
+    local dp is burndv(r1:mag,r0*2+apoapsis+periapsis-r1:mag,r0+h,mu).
+    return node(t,-vr,0,dp). }.
+#+end_src
+
+* mnatp(h) -- STEP BUILDER: at periapis, set other altitude to h.
+
+It is the responsibility of the mission to assure
+that we are in a good state to plan and execute
+a maneuver node.
+
+- the ship is not timewarping
+- the ship is not currently producing thrust
+- the ship is able to produce thrust
+- there are no pending maneuver nodes
+
+These conditions checked during flight will prevent
+us from building a node:
+- we are outbound on an escape orbit
+- the correction burn would be trivial
+
+If the burn to raise the apoapsis would be the
+same at our periapsis and our apoapsis, then
+schedule the burn to commence immediately.
+
+Procedure:
+
+- Cancel any existing maneuver nodes.
+  This is useful if we reboot after setting up the
+  node but before the mission step is updated.
+
+- Do nothing more if we are outbound on a hyperbolic
+  orbit, detected by eta:periapsis being negative.
+
+- Center the burn at the periapsis.
+
+- Use MNPRO above to set up a node, and schedule it
+  if the prograde burn is nontrivial.
+
+NOTE: this might schedule a burn that is TOO SOON,
+in that we could not possibly achieve half of the
+burn before the scheduled time.
+
+#+begin_src ks :results none :tangle ../Archive/mnpro.ks
+  set mnatp to { parameter des_apo. return {
+    mnclr().
+    if eta:periapsis<0 return mpinc().
+    local mnv is mnpro(time:seconds+eta:periapsis,des_apo).
+    if bt(mnv:prograde)>1/1000 add mnv.
+    return mpinc(1/50).}.}.
+#+end_src
+
+* mnata(h) -- STEP BUILDER: at apoapsis, set other altitude to h.
+
+It is the responsibility of the mission to assure
+that we are in a good state to plan and execute
+a maneuver node.
+
+- the ship is not timewarping
+- the ship is not currently producing thrust
+- the ship is able to produce thrust
+- there are no pending maneuver nodes
+
+These conditions checked during flight will prevent
+us from building a node:
+- we are outbound on an escape orbit
+- the correction burn would be trivial
+
+If the burn to raise the periapsis would be the
+same at our apoapsis and our periapsis, then
+schedule the burn to commence immediately.
+
+Procedure:
+
+- Cancel any existing maneuver nodes.
+  This is useful if we reboot after setting up the
+  node but before the mission step is updated.
+
+- Do nothing more if we are on a hyperbolic orbit,
+  detected by apoapsis being negative.
+
+- Center the burn at the apoapsis. 
+
+- Use MNPRO above to set up a node, and schedule it
+  if the prograde burn is nontrivial.
+
+NOTE: this might schedule a burn that is TOO SOON,
+in that we could not possibly achieve half of the
+burn before the scheduled time.
+
+#+begin_src ks :results none :tangle ../Archive/mnpro.ks
+  set mnata to { parameter des_peri. return {
+    mnclr().
+    if apoapsis<0 return mpinc().
+    local mnv is mnpro(time:seconds+eta:apoapsis,des_peri).
+    if bt(mnv:prograde)>1/1000 add mnv.
+    return mpinc(1/50).}.}.
+#+end_src
+
+* mncirc -- STEP: plan maneuver to circularize at next periapsis or apoapsis
+
+It is the responsibility of the mission to assure
+that we are in a good state to plan and execute
+a maneuver node.
+
+- the ship is not timewarping
+- the ship is not currently producing thrust
+- the ship is able to produce thrust
+- there are no pending maneuver nodes
+
+These conditions checked during flight will prevent
+us from building a node:
+- we are outbound on an escape orbit
+- the correction burn would be trivial
+
+Procedure:
+
+- Cancel any existing maneuver nodes.
+  This is useful if we reboot after setting up the
+  node but before the mission step is updated.
+
+- Schedule the burn at our next periapsis or apoapsis,
+  or return with no node if hyperbolic outbound.
+
+- Use MNPRO above to set up a node, and schedule it
+  if the prograde burn is nontrivial.
+
+NOTE: this might schedule a burn that is TOO SOON,
+in that we could not possibly achieve half of the
+burn before the scheduled time.
+
+#+begin_src ks :results none :tangle ../Archive/mnpro.ks
+  set mncirc to {
+  mnclr().
+  local tp is eta:periapsis. if tp<0 return mpinc().
+  local ta is eta:apoapsis.
+  local h1 is choose apoapsis if ta>0 and ta<tp else periapsis.
+  local mnv is mnpro(time:seconds+dt, h1).
+  if bt(mnv:prograde)>1/1000 add mnv.
+  return mpinc(1/50).}.
+#+end_src

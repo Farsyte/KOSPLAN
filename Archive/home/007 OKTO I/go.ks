@@ -1,7 +1,7 @@
 import("nv").
 import("math").
 import("fmt").
-import("mn").
+import("mnpro").
 import("sw").
 import("ascent").
 import("hud").
@@ -174,7 +174,7 @@ local dt is eta:periapsis.
 if dt<0 return mpinc().
 if dt<300 set dt to dt+orbit:period.
 if mnv_plan:typename = "Node" and mnv_plan:eta<dt return mpinc().
-local mnv is mnth(time:seconds + dt, ccorb:apoapsis).
+local mnv is mnpro(time:seconds + dt, ccorb:apoapsis).
 if abs(mnv:prograde)>1/10 set mnv_plan to mnv.
 return mpinc().}).
 mpadd({
@@ -182,7 +182,7 @@ if apoapsis < 0 return mpinc().
 local dt is eta:apoapsis.
 if dt<300 set dt to dt+orbit:apood.
 if mnv_plan:typename = "Node" and mnv_plan:eta<dt return mpinc().
-local mnv is mnth(time:seconds + dt, ccorb:periapsis).
+local mnv is mnpro(time:seconds + dt, ccorb:periapsis).
 if abs(mnv:prograde)>1/10 set mnv_plan to mnv.
 return mpinc().}).
 mpadd({
@@ -202,5 +202,3 @@ mpone({if mnv_plan:typename="Node" add mnv_plan.}).
 mpadd(pdas). mpadd(mnwait). mpadd(mnexec). mpadd(mnfini). mpadd(pdas).
 mpadd({return mpput(mpi_park, 5*wfcmd).}).}
 mprun(). print "program terminated".}.
-lock wfnow to kuniverse:timewarp:rate.
-lock wfcmd to kuniverse:timewarp:ratelist[warp].

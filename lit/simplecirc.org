@@ -8,30 +8,23 @@ simplecirc.ks - circularize at next apoapsis
 
 * Set up the simplecirc delegate
 
-NOTE: tuning of the eta:apoapsis related computation
-needs to take into account how long a planned burn for
-circularization would take. If we have to burn longer,
-then we can't get as close to apospsis at full throttle.
+This is the simplest circularization technique
+that I have seen: burn as needed to keep the
+current apoapsis a fixed time in the future.
 
-Throttle and steering will continue to make the orbit
-more circular until they are locked otherwise.
+It has a disadvantage: for vessels that have
+lower thrust-to-mass ratios, the lead time
+embedded in this code may be too short, and
+it will give up when it passes apoapsis.
 
-NOTE: the gain, currently /20, needs to assure that
-our maximum acceleration is sufficient to keep the
-apoapsis point out in front of us. /10 was enough
-for OKTO I with no payload. Adding a goo caused us
-to not be able to circularize.
-
-It would probably be a good idea to set this value
-based on how long a calculated circularization burn
-would take to run. But then, if we are going to go
-to all that trouble, may as well use mncirc.
+For such vessels, please use *mncirc* found
+in the *mnpro* package instead.
 
 #+begin_src ks :results none :tangle ../Archive/simplecirc.ks
   set simplecirc to {
     if periapsis>apoapsis-100 return mpinc().
     lock steering to prograde.
-    lock throttle to max(0,min(1,(2-eta:apoapsis/20))) *
+    lock throttle to max(0,min(1,(2-eta:apoapsis/10))) *
       max(1/100,min(1,1-vang(steering:vector,prograde:vector)/5)).
   return 1. }.
 #+end_src

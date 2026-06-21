@@ -1,4 +1,4 @@
-import("mn").
+import("mnpro").
 set go to {
 mpadd({
 set h to vcrs(body:position,ship:velocity:orbit).

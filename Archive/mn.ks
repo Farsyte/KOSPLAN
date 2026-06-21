@@ -40,33 +40,3 @@ if hasnode and mnv:deltav:mag > 0
 else facing.
 if dt <= 0 return mpinc().
 swadj(dt-30). return 1/10. }.
-set mncirc to {
-mnclr().
-local dt is min(eta:periapsis, eta:apoapsis).
-if dt>0 and dt<inf {
-local t is time:seconds+dt.
-local dv is sqrt(body:mu/posat(t,ship):mag)-velat(t,ship):mag.
-if abs(dv)*mass*1000>=maxthrust add node(t,0,0,dv).
-} return mpinc(1/50).}.
-set mnth to {
-parameter t.
-parameter h.
-local mu is body:mu.
-local r0 is body:radius.
-local r1 is posat(t,ship).
-local v1 is velat(t,ship).
-local vr is vdot(v1,r1:normalized).
-local dp is burndv(r1:mag,r0*2+apoapsis+periapsis-r1:mag,r0+h,mu).
-return node(t,-vr,0,dp). }.
-set mnatp to { parameter des_apo. return {
-mnclr().
-if eta:periapsis<0 return mpinc().
-local mnv is mnth(time:seconds+eta:periapsis,des_apo).
-if bt(mnv:prograde)>1/1000 add mnv.
-return mpinc(1/50).}.}.
-set mnata to { parameter des_peri. return {
-mnclr().
-if apoapsis<0 return mpinc().
-local mnv is mnth(time:seconds+eta:apoapsis,des_peri).
-if bt(mnv:prograde)>1/1000 add mnv.
-return mpinc(1/50).}.}.

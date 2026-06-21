@@ -1,4 +1,4 @@
-sbt - burn time computation
+hud - wrapped HUD display
 
 * Import All Dependencies
 
