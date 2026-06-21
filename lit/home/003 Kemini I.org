@@ -3,6 +3,8 @@
 This script manages the flight of the Kemini I, which is
 less simple.
 
+Verified on *20260621* booted from boot/local
+
 * Import Required Packages
 
 #+begin_src ks :results none :tangle ../../Archive/home/003 Kemini I/go.ks
