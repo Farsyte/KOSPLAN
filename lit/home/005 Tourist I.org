@@ -3,6 +3,8 @@ go.ks -- GO script for Tourist I aka The Space Taxi
 This script manages the flight of the Tourist I, which is
 less simple.
 
+Verified on *20260621* booted from boot/local
+
 * Import Required Packages
 
 #+begin_src ks :results none :tangle ../../Archive/home/005 Tourist I/go.ks
