@@ -53,10 +53,8 @@ finds nothing more specific for this mission.
 
 #+begin_src ks :results none :tangle ../../Archive/home/004 Flappy Bird/go.ks
   mpadd({
-    if not stage:ready return 1/10.
-    stage.
-    return mpinc().
-  }).
+    print "Activate engines to launch".
+    return choose mpinc() if maxthrust>0 else 2.}).
 #+end_src
 
 *** release the brakes
