@@ -24,14 +24,14 @@ local t is met().
 local d is round(-t).
 if d<=0 return mpinc().
 if d<=5 hud("T-"+d).
-return 1-mod(t,1).
+return 1-mod(t,1)-1/50.
 }).
 mpone({
 if maxthrust>0 return mpinc().
 if not stage:ready return 1/10.
 lock throttle to 1.
 lock steering to facing.
-stage. t0put(time:seconds).
+stage. t0put(0).
 }).
 mpone({hud("ignition").}).
 mpadd({ if alt:radar>=50 return mpinc().

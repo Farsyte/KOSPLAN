@@ -10,7 +10,7 @@ set met to choose met_f if t0 < inf else met_h.
 return t0. }.
 set ydhms to { parameter sec.
 set sec to round(sec).
-if sec<0 return "-"+ydydhms(-sec).
+if sec<0 return "-"+ydhms(-sec).
 local ts is TIMESTAMP(round(sec)).
 if ts:year<2 and ts:day<2 return ts:CLOCK.
 if ts:year<2 return (ts:day-1)+"d+"+ts:CLOCK.

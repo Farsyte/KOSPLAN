@@ -6,6 +6,12 @@ is starting to get more complicated.
 This flight is unique in that it pauses at many steps to
 wait for science to be collected.
 
+Verified on *20260621* booted from boot/local
+
+-- did not reboot while we were LOS on the farside of mun,
+   but boot/local should hold when starting imports
+   until we recover signal.
+
 * Import Required Packages
 
 Our required packages do not fit in 10000 bytes.
@@ -86,7 +92,7 @@ finds nothing more specific for this mission.
     local d is round(-t).
     if d<=0 return mpinc().
     if d<=5 hud("T-"+d).
-    return 1-mod(t,1).
+    return 1-mod(t,1)-1/50.
   }).
 #+end_src
 
@@ -98,7 +104,7 @@ finds nothing more specific for this mission.
     if not stage:ready return 1/10.
     lock throttle to 1.
     lock steering to facing.
-    stage. t0put(time:seconds).
+    stage. t0put(0).
   }).
   mpone({hud("ignition").}).
 #+end_src
