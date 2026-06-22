@@ -8,7 +8,7 @@ do
    base=${org%.org}
    ks=../../Archive/boot/${base}.ks
    if [ ! -e "$ks" ] || [ "$ks" -ot "$org" ]; then
-     printf '== tangle %s\n' "$org"
+     # printf '== tangle %s\n' "$org"
      python ../../bin/tangle.py "$org"
    fi
 done

@@ -1,8 +1,7 @@
-import("mn").
 import("time").
 set swra to LIST(0, 4, 6, 30, 60, 600, 6000, 60000).
-lock wfnow to kuniverse:timewarp:rate.
-lock wfcmd to kuniverse:timewarp:ratelist[warp].
+set wfnow to { return kuniverse:timewarp:rate. }.
+set wfcmd to { return kuniverse:timewarp:ratelist[warp]. }.
 set swend to {
 if warp>0 set warp to 0.
 if not kuniverse:timewarp:issettled return 1/10.

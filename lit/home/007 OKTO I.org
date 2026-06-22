@@ -3,13 +3,13 @@ OKTO I/go.ks: Prototype Satellite System
 * Import Required Packages
 
 #+begin_src ks :results none :tangle ../../Archive/home/007 OKTO I/go.ks
-  import("nv").
-  import("math").
-  import("fmt").
-  import("mnpro").
-  import("sw").
   import("ascent").
+  import("fmt").
   import("hud").
+  import("math").
+  import("mnpro").
+  import("nv").
+  import("sw").
 #+end_src
 
 ** What is the typical mission plan?
@@ -22,28 +22,11 @@ Example: placing a sattelite in a polar orbit.
 - add maneuver to raise apoapsis to apoapsis of the target orbit
 - at apoapsis: add maneuver to raise periapsis to periapsis of the target orbit
 
-Mike's orbit was 790+410 m/s.
-
-My contract 1: 874+317=1191
-My contract 2: 867+347=1214
-
-Mike says budget 4100 m/s to get into polar orbit.
-
-For my test launch, estimating ship will have:
-- 2200±25 m/s ΔV available before circularization
-- 2075±25 m/s ΔV available after circularization
-
-Should be good for higher altitude satellites
-and for moving satellites to new orbits.
+This code is configured to print the estimated Delta-V
+to get into the orbit. Optionally, it can be modified
+to freeze after printing, or to remove the print.
 
 * Configuration Parameters and Support Functions at Import Time
-
-** Set up per-reboot log files
-
-#+begin_src ks :results none :tangle ../../Archive/home/007 OKTO I/go.ks
-  set okto_log to home:combine("okto.log").
-  if exists(okto_log) open(okto_log):clear().
-#+end_src
 
 ** Pick a Mission
 
@@ -77,8 +60,8 @@ the Delta-V requirements to go from a parking
 orbit to the assigned orbit.
 
 #+begin_src ks :results none :tangle ../../Archive/home/007 OKTO I/go.ks
-  // import("plan"). deletepath("1:/plan.ks").
-  // plan_sat(80000,ccorb:periapsis,ccorb:apoapsis,ccorb:body).
+  import("plan").
+  plan_sat(80000,ccorb:periapsis,ccorb:apoapsis,ccorb:body).
   // until false { }
 #+end_src
 
@@ -126,7 +109,7 @@ the OKTO I will also extend the antenna).
 #+begin_src ks :results none :tangle ../../Archive/home/007 OKTO I/go.ks
   set pdas to { lights on. lock throttle to 0.
     lock steering to lookdirup(vcrs(sun:velocity:orbit,sun:position),-sun:position).
-    if wfcmd>1 or 5>vang(facing:upvector,steering:upvector) mpinc().
+    if wfcmd()>1 or 5>vang(facing:upvector,steering:upvector) mpinc().
     return 1. }.
 #+end_src
 
@@ -163,9 +146,7 @@ on in the future.
       (stage:number=3) or
       (stage:number=2 and altitude>70000) or
       (stage:number<3 and maxthrust=0)) then {
-        stage. HUD(TEE()+": STAGE "+stage:number).
-        lock throttle to 0.
-        return stage:number>0.}
+        stage. lock throttle to 0. return stage:number>0.}
 #+end_src
 
 The WHEN..THEN condition above can be simplified if we
@@ -177,6 +158,8 @@ execution efficiency.
 ** Define Mission Phases
 
 *** Wait until the next launch window
+
+TODO turn this into support code for other missions
 
 During boot, we fetch the contract satellite orbital
 elements and construct an Orbit object.
@@ -222,14 +205,13 @@ an angle within that plane.
   local angle is arctan2(hv, hp)+180.
 #+end_src
 
-TODO estimate how long until a good launch window
-use SAFEWARP to get us close
+Use SAFEWARP to get us close to the launch window.
 When we are close to the window:
 - double check that WARP is 0 and SETTLED
 - lock down the launch time T0
 - pass control to the COUNTDOWN step
 
-pick behavior based on quadrant.
+Pick behavior based on quadrant.
 angle is increasing over time.
 
 - Quad 3: approaching NORTH departure
@@ -243,55 +225,39 @@ into the next quadrant.
 
 #+begin_src ks :results none :tangle ../../Archive/home/007 OKTO I/go.ks
   local quad is floor(angle/90).
-  if quad=0 or quad=2 {swadj(body:rotationperiod/8). return wfcmd/10.}
+  if quad=0 or quad=2 {swadj(body:rotationperiod/8). return wfcmd()/10.}
 #+end_src
 
 Otherwise, use safewarp to manage warping
 to a comfortable margin before the
 end of the current quadrant.
 
+We actually need to launch shortly before
+arriving in the target plane. To estimate, I
+did several launches at the plane, and they
+consistently ended up with the plane rotated
+by about two degrees.
+
+So, apply a bias to QETA making us launch when
+we are two degrees away from the plane.
+
+We can now use SAFEWARP to skip forward to
+about thirty seconds before when we want to
+launch.
+
 #+begin_src ks :results none :tangle ../../Archive/home/007 OKTO I/go.ks
   local aeoq is angle-90*quad.
   local qeta is aeoq * body:rotationperiod/360.
 
-  // we can bias qeta to rotate our resulting orbital plane
-  // around kerbin's axis. It looks like I need to lead the
-  // target plane by about 2°.
   set qeta to qeta - 2*body:rotationperiod/360.
 
   swadj(qeta-30).
-  if wfnow>1 return wfcmd/10.
+  if wfnow()>1 return wfcmd()/10.
 #+end_src
 
 If we get here, we are close to the end of a launch
-quadrant. Uncomment this to remind me of what values we
-computed above.
-
-#+begin_src ks :results none :tangle ../../Archive/home/007 OKTO I/go.ks
-  // log
-  //   "hp: "+fmt(hp,8,5)+", "+
-  //   "hv: "+fmt(hv,8,5)+", "+
-  //   "angle: "+fmt(angle,8,3)+", "+
-  //   "qeta: "+fmt(qeta,8,3) to okto_log.
-#+end_src
-
-Leading up to my test launch:
-
-|       hp |      hv |   angle |   qeta |
-|----------+---------+---------+--------|
-| -0.04379 | 0.99902 | 272.510 | 30.528 |
-| -0.04365 | 0.99905 | 272.502 | 30.024 |
-| -0.04336 | 0.99906 | 272.485 | 29.024 |
-| -0.04306 | 0.99907 | 272.468 | 28.024 |
-| -0.04277 | 0.99908 | 272.451 | 27.024 |
-| -0.04248 | 0.99910 | 272.435 | 26.024 |
-| -0.04219 | 0.99911 | 272.418 | 25.024 |
-| -0.04190 | 0.99912 | 272.401 | 24.024 |
-| -0.04161 | 0.99913 | 272.385 | 23.024 |
-| -0.04132 | 0.99915 | 272.368 | 22.024 |
-| -0.04103 | 0.99916 | 272.351 | 21.024 |
-| -0.04073 | 0.99917 | 272.335 | 20.024 |
-| -0.04044 | 0.99918 | 272.318 | 19.024 |
+quadrant. This is a good place to add a ton of PRINT
+or LOG lines to monitor the values computed above.
 
 Monitor numbers closely until 20 seconds before the
 estimated launch window. Continue the process if the
@@ -301,43 +267,68 @@ Tune the bias added to qeta here so that we observe qeta
 values that are an integer plus a SMALL fraction, try
 for under one phys tick but settle for under two if that
 is what we get. NOTE: This tuning depends on MPRUN not
-adjusting dt before calling the wait.
+adjusting dt before calling the wait. That change was
+made to MPRUN during OKTO I development. previously it
+applied a bias to try to counteract the fact that WAIT
+actually waits for one phys-tick longer.
 
 #+begin_src ks :results none :tangle ../../Archive/home/007 OKTO I/go.ks
   if qeta>20 return mod(qeta+9.9,1).
 #+end_src
 
-We are close enough that we can commit to the launch
+We are now close enough that we can commit to the launch
 parameters (t0, az, ap) and move along to the next step
-in the plan.
+in the plan. Note that it is not really all that safe to
+commit these values until we are looking at a time to
+launch that is very small.
 
 The launch azimuth is along the direction of the
-inclined orbit, plus a correction of up to four
-degrees toward the west for polar orbits and less
-for less inclined orbits.
+inclined orbit, plus a correction of up to four degrees
+toward the west for polar orbits and less for less
+inclined orbits. This was originally moved into a
+function to ease development and debug (lots of prints
+and several returns for several cases), and there is
+really no reason to turn the function back into inline
+code.
+
+This is ugly. Basically, the sign of HV indicates
+whether we are launching northish or southish, we
+use 90-incl because incl is from the north while pitch
+is from horizontal, we use 450 so we can mod(...,360)
+to get heading from 0 to 360.
+
+AFH as angle from horizontal, and it is important that
+if inclination is 135° the AFH is just the 45° from
+westward up to north-and-west. This allows the addition
+of a bias that ramps from zero at 000 and 180 inclination,
+up to 4 at 090 and 270 inclination.
+
+No idea if the bias being linear with respect to the
+angle from horizontal is right, but it is close enough
+that I saw good results on an orbit at ... 36° I think.
 
 #+begin_src ks :results none :tangle ../../Archive/home/007 OKTO I/go.ks
-  t0put(qeta-10).
-
   local dfi is { parameter incl, hv.
     local az is choose 450-incl if hv>0 else 450+incl.
     local afh to abs(90-incl)-90.
     if hv<0 set afh to -afh.
     return mod(az+afh*4/90, 360).}.
+#+end_src
 
-  // expect dfi(090, +1) == 356
-  // expect dfi(090, -1) == 184
+Values are in hand (or the dfi function), so we record
+them to onboard nonvolatile storage. Remember, T0PUT now
+takes an elapsed time forward from now.
 
-  // expect dfi(000,  0) == 090
-  // expect dfi(180,  0) == 270
-
-  // print "hv: "+hv.
-  // print "ccinc: "+ccinc.
-  // print "dfi(ccinc,hv) is "+dfi(ccinc,hv).
-
+#+begin_src ks :results none :tangle ../../Archive/home/007 OKTO I/go.ks
+  t0put(qeta-10).
   set launch_t0 to nvput(1, "launch_t0", t0).
   set launch_az to nvput(1, "launch_az", dfi(ccinc,hv)).
   set launch_ap to nvput(1, "launch_ap", 80000).
+#+end_src
+
+Notify the flight engineer and move on to the next step.
+
+#+begin_src ks :results none :tangle ../../Archive/home/007 OKTO I/go.ks
   HUD("Will launch in "+round(t0-time:seconds,1)+" seconds.").
   return mpinc(). }).
 #+end_src
@@ -407,6 +398,10 @@ of the steering so that we land on the desired plane.
   - determine velocity toward plane
   - set plane-normal component of thrust to control toward-plane velocity
 
+The current simple code lands us in a fairly good plane,
+close enough that we can correct it once we get to orbit
+with a fairly small burn.
+
 #+begin_src ks :results none :tangle ../../Archive/home/007 OKTO I/go.ks
   lock af to limit(0,1,altitude/launch_ap).
   lock cp to limit(0,90,90-120*sqrt(af)).
@@ -422,8 +417,6 @@ actually not going below 1% of the desired throttle.
   lock tf to min(1,sqrt(max(0,(launch_ap+20-apoapsis)/1000))).
   lock va to vang(FACING:VECTOR, STEERING:VECTOR).
   lock ef to limit(.01,1,(45-va)/30).
-  // log "tf="+tf+", maxt="+maxt+", va="+va+", ef="+ef to okto_log.
-  // print TEE()+" tf="+round(tf*100,1)+"%, maxt="+round(maxt,1)+", maxa="+round(maxa,1)+", va="+round(va,1)+", ef="+round(ef*100,1)+"%".
   lock throttle to ef*tf*min(1,20/maxa).
 #+end_src
 
@@ -462,11 +455,16 @@ re-evaluate the ascent every second.
 
 **** Initial Node
 
+TODO turn this code into generic support code for other missions.
+
 Set the DV to the value computed based on
 our current orbit being exactly circular.
 
 Since it is not, our results might be a bit rough, but
 the important thing now is the Argument of Periapsis.
+
+In practice, our orbit is close enough that the results
+can be corrected by our orbit maintenance loop.
 
 #+begin_src ks :results none :tangle ../../Archive/home/007 OKTO I/go.ks
   local dv is burndvh(altitude,altitude,ccorb:apoapsis,body).
@@ -563,7 +561,6 @@ When we get to our new apoapsis, raise our periapsis
 to the assigned altitude.
 
 TODO use the generic "at next apo, set peri to ..."
-TODO use the generic "at next peri, set apo to ..."
 
 #+begin_src ks :results none :tangle ../../Archive/home/007 OKTO I/go.ks
   mpadd({
@@ -581,7 +578,14 @@ TODO use the generic "at next peri, set apo to ..."
   mpadd(pdas). mpadd(mnwait). mpadd(mnexec). mpadd(mnfini). mpadd(pdas).
 #+end_src
 
+TODO use the generic "at next peri, set apo to ..."
+- because we are likely to need that correction.
+- or just leae it to orbit management.
+
 **** Orbit Management Loop
+
+TODO extract these steps to a common tool collection
+- to be used by other missions that need orbit-keeping.
 
 This is how we do a loop in the mission plan.
 
@@ -665,7 +669,7 @@ then adjust the code as necessary.
   local swtime is etb/2 - 30.
   swadj(swtime).
 
-  if wfnow>1 return 1/10.
+  if wfnow()>1 return 1/10.
 
   // if we get to here, we are actively maneuvering.
 
@@ -746,7 +750,7 @@ before and after handling the node.
 ***** branch back to the top of orbit management after a delay.
 
 #+begin_src ks :results none :tangle ../../Archive/home/007 OKTO I/go.ks
-  mpadd({return mpput(mpi_park, 5*wfcmd).}).}
+  mpadd({return mpput(mpi_park, 5*wfcmd()).}).}
 #+end_src
 
 **** The orbit management loop never ends.

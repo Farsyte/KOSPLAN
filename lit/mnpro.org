@@ -3,6 +3,7 @@ mnpro - prograde burn related maneuvers
 * Import All Dependencies
 
 #+begin_src ks :results none :tangle ../Archive/mnpro.ks
+  import("mn").
   import("math").
 #+end_src
 

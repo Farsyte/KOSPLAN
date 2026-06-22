@@ -9,10 +9,7 @@ set n to d:combine(p).
 if exists(n) return n.
 if d:length < 1 return home:combine(p).
 set d to d:parent.}}.
-set ius to uniqueset("import").
 set import to { parameter p.
-if ius:contains(p) return.
-ius:add(p).
 wait until homeconnection:isconnected.
-runpath(find(p)). }.
+runoncepath(find(p)).}.
 import("go"). go().

@@ -27,7 +27,6 @@ come back soon to detect when warp is settled.
 * Import Required Packages
 
 #+begin_src ks :results none :tangle ../Archive/sw.ks
-  import("mn").
   import("time").
 #+end_src
 
@@ -56,16 +55,22 @@ planned action.
   set swra to LIST(0, 4, 6, 30, 60, 600, 6000, 60000).
 #+end_src
 
-* wfnow -- locked to current timewarp multiplier.
+* wfnow() -- current timewarp multiplier.
+
+NOTE: if we use LOCK WFNOW TO kuniverse:timewarp:rate
+the WFNOW symbol is not visible to the calling script.
+
+NOTE: if we use FUNCTION WFNOW { return kuniverse:timewarp:rate.}
+the WFNOW symbol is not visible to the calling script.
 
 #+begin_src ks :results none :tangle ../Archive/sw.ks
-  lock wfnow to kuniverse:timewarp:rate.
+  set wfnow to { return kuniverse:timewarp:rate. }.
 #+end_src
 
-* wfcmd -- locked to commanded timewarp multiplier.
+* wfcmd() -- commanded timewarp multiplier.
 
 #+begin_src ks :results none :tangle ../Archive/sw.ks
-  lock wfcmd to kuniverse:timewarp:ratelist[warp].
+  set wfcmd to { return kuniverse:timewarp:ratelist[warp]. }.
 #+end_src
 
 * swend(): assure we are not warping.

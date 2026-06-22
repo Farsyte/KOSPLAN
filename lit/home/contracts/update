@@ -5,12 +5,12 @@ sdir=$(cd "$(dirname "$sscr")"; env PWD= /bin/pwd)
 cd "$sdir"
 for org in *.org
 do
-    base=${org%.org}
-    lp=${base%% contract *}
-    rp=${base##* contract }
-    ks="../../../Archive/home/${lp}/${rp}/current_contract.ks"
-    if [ ! -e "$ks" ] || [ "$ks" -ot "$org" ]; then
-        printf '== tangle %s\n' "$org"
-        python "../../../bin/tangle.py" "$org"
-    fi
+  base=${org%.org}
+  lp=${base%% contract *}
+  rp=${base##* contract }
+  ks="../../../Archive/home/${lp}/${rp}/current_contract.ks"
+  if [ ! -e "$ks" ] || [ "$ks" -ot "$org" ]; then
+    # printf '== tangle %s\n' "$org"
+    python "../../../bin/tangle.py" "$org"
+  fi
 done

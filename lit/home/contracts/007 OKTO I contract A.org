@@ -4,61 +4,30 @@ New unmanned satellite around Kerbin
 with antenna and power generation
 fully assembled when launched
 
+have a thermometer on the satellite
+
 From the contract display:
 
-Original:
-| Apoapsis    | 14561.934 | km |
-| Periapsis   | 11827.733 | km |
+| Apoapsis    | 15607.449 | km |
+| Periapsis   | 12562.103 | km |
 | Inclination |      90.0 | °  |
-| LAN         |      92.7 | °  |
-| AOP         |      34.0 | °  |
+| LAN         |     267.9 | °  |
+| AOP         |     345.1 | °  |
 
 Mission Plan Budget:
     ΔV 80x80 to 80x14562:                     874 m/s
     ΔV 80x14562 to 11828x14562:               317 m/s
     ΔV 80x80 to 11828x14562:                 1191 m/s
 
-Reposition 1:
-| Apoapsis    | 14531.302 | km |
-| Periapsis   | 11826.834 | km |
-| Inclination |      80.1 | °  |
-| LAN         |      92.5 | °  |
-| AOP         |      33.9 | °  |
-
-Reposition 2:
-| Apoapsis    | 13350.337 | km |
-| Periapsis   | 12658.469 | km |
-| Inclination |      80.1 | °  |
-| LAN         |      92.5 | °  |
-| AOP         |       n/a | °  |
-
 Contracts never specify MEP or TEP.
 
-Exact figures found in the save file:
+Exact figures found in the save file.
 
 #+begin_src ks :results none :tangle ../../../Archive/home/007 OKTO I/A/current_contract.ks
-  // contract 1
-  // nvput(1,"ccbod", "kerbin").
-  // nvput(1,"ccsma", 13794833.44693533).
-  // nvput(1,"ccecc", 0.099102352499879767).
-  // nvput(1,"ccinc", 90).
-  // nvput(1,"cclan", 92.689733324893666).
-  // nvput(1,"ccaop", 33.976668135252595).
-
-  // reassigned
-  // nvput(1,"ccbod", "kerbin").
-  // nvput(1,"ccsma", 13779068.040243205).
-  // nvput(1,"ccecc", 0.098136795572055777).
-  // nvput(1,"ccinc", 80.103887429784223).
-  // nvput(1,"cclan", 92.465394480974567).
-  // nvput(1,"ccaop", 33.94479181892337).
-
-  // reassigned
   nvput(1,"ccbod", "kerbin").
-  nvput(1,"ccsma", 13604402.680300854).
-  nvput(1,"ccecc", 0.025428082562523022).
-  nvput(1,"ccinc", 80.130545818452205).
-  nvput(1,"cclan", 92.465404353011081).
-  nvput(1,"ccaop", 34.805122521885046).
+  nvput(1,"ccsma", 14684776.213241206).
+  nvput(1,"ccecc", 0.10369059705984643).
+  nvput(1,"ccinc", 90).
+  nvput(1,"cclan", 267.91899334076766).
+  nvput(1,"ccaop", 345.06443341498488).
 #+end_src
-

@@ -1,12 +1,10 @@
-import("nv").
-import("math").
-import("fmt").
-import("mnpro").
-import("sw").
 import("ascent").
+import("fmt").
 import("hud").
-set okto_log to home:combine("okto.log").
-if exists(okto_log) open(okto_log):clear().
+import("math").
+import("mnpro").
+import("nv").
+import("sw").
 if homeconnection:isconnected {
 print "importing current_contract".
 import("current_contract").
@@ -21,6 +19,8 @@ set ccmep to nvget(1,"ccmep", 0).
 set cctep to nvget(1,"cctep", 0).
 set ccbod to nvget(1,"ccbod", "kerbin").
 set ccorb to CREATEORBIT(ccinc, ccecc, ccsma, cclan, ccaop, ccmep, cctep, ccbod).
+import("plan").
+plan_sat(80000,ccorb:periapsis,ccorb:apoapsis,ccorb:body).
 set launch_t0 to nvget(1, "launch_t0", t0).
 set launch_az to nvget(1, "launch_az", 90).
 set launch_ap to nvget(1, "launch_ap", 80000).
@@ -28,7 +28,7 @@ lock maxt to max(eps, ship:availablethrust).
 lock maxa to maxt/mass.
 set pdas to { lights on. lock throttle to 0.
 lock steering to lookdirup(vcrs(sun:velocity:orbit,sun:position),-sun:position).
-if wfcmd>1 or 5>vang(facing:upvector,steering:upvector) mpinc().
+if wfcmd()>1 or 5>vang(facing:upvector,steering:upvector) mpinc().
 return 1. }.
 set go to {
 if stage:number>0
@@ -36,9 +36,7 @@ when stage:ready and (
 (stage:number=3) or
 (stage:number=2 and altitude>70000) or
 (stage:number<3 and maxthrust=0)) then {
-stage. HUD(TEE()+": STAGE "+stage:number).
-lock throttle to 0.
-return stage:number>0.}
+stage. lock throttle to 0. return stage:number>0.}
 mpadd({
 local th is vcrs(ccorb:position-body:position,ccorb:velocity:orbit):normalized.
 local sp is -body:position:normalized.
@@ -47,19 +45,19 @@ local hp is vdot(th, sp).
 local hv is vdot(th, sv).
 local angle is arctan2(hv, hp)+180.
 local quad is floor(angle/90).
-if quad=0 or quad=2 {swadj(body:rotationperiod/8). return wfcmd/10.}
+if quad=0 or quad=2 {swadj(body:rotationperiod/8). return wfcmd()/10.}
 local aeoq is angle-90*quad.
 local qeta is aeoq * body:rotationperiod/360.
 set qeta to qeta - 2*body:rotationperiod/360.
 swadj(qeta-30).
-if wfnow>1 return wfcmd/10.
+if wfnow()>1 return wfcmd()/10.
 if qeta>20 return mod(qeta+9.9,1).
-t0put(qeta-10).
 local dfi is { parameter incl, hv.
 local az is choose 450-incl if hv>0 else 450+incl.
 local afh to abs(90-incl)-90.
 if hv<0 set afh to -afh.
 return mod(az+afh*4/90, 360).}.
+t0put(qeta-10).
 set launch_t0 to nvput(1, "launch_t0", t0).
 set launch_az to nvput(1, "launch_az", dfi(ccinc,hv)).
 set launch_ap to nvput(1, "launch_ap", 80000).
@@ -165,7 +163,7 @@ local etb is cceta - lt.
 local ld is ccvel^2/maxa.
 local swtime is etb/2 - 30.
 swadj(swtime).
-if wfnow>1 return 1/10.
+if wfnow()>1 return 1/10.
 set Cs to -ccpos*mydir.
 set Ct to limit(0,1,1.5-cceta/lt).
 lock steering to Cs. lock throttle to Ct. return 1/50.}).
@@ -200,5 +198,5 @@ print l. log l to okto_log.
 return mpinc().}).
 mpone({if mnv_plan:typename="Node" add mnv_plan.}).
 mpadd(pdas). mpadd(mnwait). mpadd(mnexec). mpadd(mnfini). mpadd(pdas).
-mpadd({return mpput(mpi_park, 5*wfcmd).}).}
+mpadd({return mpput(mpi_park, 5*wfcmd()).}).}
 mprun(). print "program terminated".}.
