@@ -1,0 +1,70 @@
+import("nv").
+import("time").
+set radalt0 to nvget(1,"radalt0",alt:radar).
+lock ra to alt:radar-radalt0.
+set radcal to { parameter h0 is alt:radar.
+set radalt0 to nvput(1,"radalt0",h0).}.
+set mpradcal to { parameter h0. return mpone({radcal(h0).}).}.
+set mss to nvget(1,"status","KOSPLAN Initializing").
+set putstat to { parameter m.
+set mss to nvput(1,"status",m). }.
+set mpstat to { parameter m. return mpone({putstat(m).}).}.
+set mphold_thrust to {
+mpadd({
+return choose mpinc() if maxthrust>0 else 1/100.}).}.
+set mpcount to { mpadd({
+local t is -met().
+local d is round(t).
+if d<=1 mpinc().
+if d<=5 hud(TEE()).
+return t-round(t-1)-1/50.}).} .
+set mpt0 to {
+mpadd(
+{
+calradar().
+t0put(0).
+}
+).
+}.
+set mplaunch to {mpadd({
+if ra>50 return mpinc().
+lock steering to facing.
+if ship:thrust>0 return 1/100.
+lock throttle to 1.
+if maxthrust>0 return 1/100.
+if stage:ready stage.
+return 1/100.}).}.
+set meco to {mpadd({
+lock throttle to 0.
+lock steering to prograde.
+return mpinc().}).}.
+set coast to {mpadd({
+if altitude>=body:atm:height or verticalspeed<0 return mpinc().
+lock throttle to 0. lock steering to prograde. return 1.}).}.
+set fws to { parameter u,w.
+return u:tostring:trim:padright(w):substring(0,w).}.
+set openterm to {
+if career():candoactions
+core:part:getmodule("kOSProcessor"):
+doevent("Open Terminal").}.
+set pagenew to {
+openterm().
+set tw to terminal:width-1.
+clearscreen.
+for i in range(10) print fws(" ",tw-1).
+print fws("UT:",tw-1) at (0,0).
+print fws("MET:",tw-1) at (0,1).
+print fws("Status:",tw-1) at (0,2).
+}.
+set pageupdate to {
+set tw to terminal:width-1.
+print fws(time:full,tw-9) at (8,0).
+print fws(TEE(),tw-9) at (8,1).
+print fws(status,16) at (8,2).
+print fws(mss,tw-25) at (24,2).
+}.
+pagenew().
+set pagetime to round(time:seconds).
+when pagetime<=time:seconds then {
+set pagetime to round(time:seconds*5 + 1)/5+1/50.
+pageupdate(). return not abort. }

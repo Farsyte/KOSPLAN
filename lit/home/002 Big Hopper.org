@@ -4,11 +4,13 @@ This script manages the flight of the Big Hopper, which is
 fairly simple: 
 
 Verified on *20260621* booted from boot/local
+Updated on *20260622* to the New Paradigm.
 
 * Import Required Packages
 
 #+begin_src ks :results none :tangle ../../Archive/home/002 Big Hopper/go.ks
   import("mp").
+  import("simple").
 #+end_src
 
 * During package import: set parameters
@@ -34,31 +36,26 @@ finds nothing more specific for this mission.
 
 ** Define Mission Phases
 
-*** prompt the flight engineer to initiate the flight.
-
-#+begin_src ks :results none :tangle ../../Archive/home/002 Big Hopper/go.ks
-  mpone({print "Press SPACE to go toward SPACE".}).
-#+end_src
-
 *** hold on pad until we have thrust.
 
 #+begin_src ks :results none :tangle ../../Archive/home/002 Big Hopper/go.ks
-  mpadd({ if maxthrust>0 return mpinc().
-  return 1/10. }).
+  mpstat("Waiting for Launch").
+  mphold_thrust().
 #+end_src
 
-*** damp attitude rate until safe to maneuver
+*** launch, and damp attitude rate until safe to pitch over
 
 #+begin_src ks :results none :tangle ../../Archive/home/002 Big Hopper/go.ks
-  mpadd({ if alt:radar>=50 return mpinc().
-    lock throttle to 1.
-    lock steering to facing.
-  return 1/10. }).
+  mpstat("Liftoff"). 
+  mplaunch().
 #+end_src
 
 *** control pitch and heading until apoapsis is high enough
 
+Logic unique to this vessel.
+
 #+begin_src ks :results none :tangle ../../Archive/home/002 Big Hopper/go.ks
+  mpstat("Powered Ascent").
   mpadd({ if verticalspeed<=0 or apoapsis>=h2 return mpinc().
     lock steering to heading(az,po,0).
     lock throttle to max(5/100,(h2-apoapsis)/1000).
@@ -67,7 +64,10 @@ finds nothing more specific for this mission.
 
 *** maintain attitude until max altitude
 
+Logic unique to this vessel.
+
 #+begin_src ks :results none :tangle ../../Archive/home/002 Big Hopper/go.ks
+  mpstat("Unpowered Ascent").
   mpadd({ if verticalspeed<=0 or altitude>=h1 return mpinc().
     lock steering to heading(az,po,0).
     lock throttle to 0.
@@ -80,6 +80,7 @@ Do we need to rotate the vessel to "throw" the ascent
 stage away from the capsule?
 
 #+begin_src ks :results none :tangle ../../Archive/home/002 Big Hopper/go.ks
+  mpstat("Prepare for Descent").
   mpadd({ if not stage:ready return 1/10.
     lock steering to heading(az,90,0).
     lock throttle to 0.
@@ -90,6 +91,7 @@ stage away from the capsule?
 *** control attitude during descent until chutes are safe.
 
 #+begin_src ks :results none :tangle ../../Archive/home/002 Big Hopper/go.ks
+  mpstat("Descent").
   mpadd({ if altitude <= 5000 { return mpinc(). }
     lock steering to heading(az,90,0).
     lock throttle to 0.
@@ -99,6 +101,7 @@ stage away from the capsule?
 *** Deploy Chutes.
 
 #+begin_src ks :results none :tangle ../../Archive/home/002 Big Hopper/go.ks
+  mpstat("Deploy Chutes").
   mpadd({ if not stage:ready return 1/10.
     lock steering to heading(az,90,0).
     lock throttle to 0.
@@ -108,19 +111,32 @@ stage away from the capsule?
 *** damp attitude rates while parachute is armed or deployed
 
 #+begin_src ks :results none :tangle ../../Archive/home/002 Big Hopper/go.ks
+  mpstat("Prepare for Landing").
   mpadd({ if alt:radar <= 50 return mpinc().
     lock steering to facing.
     lock throttle to 0.
   return 1/10. }).
 #+end_src
 
-*** hold nose vertical during and after landing
+*** hold nose vertical during landing
 
 #+begin_src ks :results none :tangle ../../Archive/home/002 Big Hopper/go.ks
+  mpstat("Landing").
   mpadd({
+    if verticalspeed >= 0 mpinc().
     lock steering to heading(90,90,0).
     lock throttle to 0.
   return 1. }).
+#+end_src
+
+*** Release controls when landed.
+
+#+begin_src ks :results none :tangle ../../Archive/home/002 Big Hopper/go.ks
+  mpstat("Landed").
+  mpadd({
+    unlock steering.
+    unlock throttle.
+    return 1.}).
 #+end_src
 
 * Run the Mission, then End the Program.

@@ -1,0 +1,181 @@
+simple.ks - a collection of common simple steps
+
+* Import Required Packages
+
+#+begin_src ks :results none :tangle ../Archive/simple.ks
+  import("nv").
+  import("time").
+#+end_src
+
+* Radar Altimeter Calibration
+
+** radalt0 - value of alt:radar taken when in contact with surface.
+
+#+begin_src ks :results none :tangle ../Archive/simple.ks
+  set radalt0 to nvget(1,"radalt0",alt:radar).
+#+end_src
+
+** ra - LOCK evaluating to radar altitude (for this file only)
+
+#+begin_src ks :results none :tangle ../Archive/simple.ks
+  lock ra to alt:radar-radalt0.
+#+end_src
+
+** radcal(h) - calibrate the radar altimeter.
+
+Construct a LOCK called RA that reads zero when the
+radar altimeter ALT:RADAR reads H, which defaults to the
+current ALT:RADAR value.
+
+Call this with no parameters when resting on the ground.
+
+Call this with a number determined when designing the
+vessel when a lander is approaching a landing; the value
+must be determined by deploying just the lander stage
+and examining the ALT:RADAR value.
+
+#+begin_src ks :results none :tangle ../Archive/simple.ks
+  set radcal to { parameter h0 is alt:radar.
+    set radalt0 to nvput(1,"radalt0",h0).}.
+#+end_src
+
+** mpradcal(h0) -- add mission plan step to calibrate LANDER radar.
+
+The appropriate value of H0 is specific to the stage of
+the vessel, and the value used in this call must be
+determined when designing the vessel by capturing ALT:RADAR
+with the lander sitting on a surface.
+
+#+begin_src ks :results none :tangle ../Archive/simple.ks
+  set mpradcal to { parameter h0. return mpone({radcal(h0).}).}.
+#+end_src
+
+* Mission Status String
+
+This is probably a good string to put at the top
+of a mission data display screen.
+
+** mss - variable holding current mission status string
+
+#+begin_src ks :results none :tangle ../Archive/simple.ks
+  set mss to nvget(1,"status","KOSPLAN Initializing").
+#+end_src
+
+** putstat(m) - update mission status string
+
+#+begin_src ks :results none :tangle ../Archive/simple.ks
+  set putstat to { parameter m.
+    set mss to nvput(1,"status",m). }.
+#+end_src
+
+** mpstat(m) - add step to set Mission Status String
+
+#+begin_src ks :results none :tangle ../Archive/simple.ks
+  set mpstat to { parameter m. return mpone({putstat(m).}).}.
+#+end_src
+
+* mphold_thrust - add "wait for thrust" to mission plan.
+
+#+begin_src ks :results none :tangle ../Archive/simple.ks
+  set mphold_thrust to {
+    mpadd({
+      return choose mpinc() if maxthrust>0 else 1/100.}).}.
+#+end_src
+
+* mpcount - add "display countdown" to mission plan.
+
+#+begin_src ks :results none :tangle ../Archive/simple.ks
+  set mpcount to { mpadd({
+    local t is -met().
+    local d is round(t).
+    if d<=1 mpinc().
+    if d<=5 hud(TEE()).
+    return t-round(t-1)-1/50.}).} .
+#+end_src
+
+* mpt0 - add "instant of launch" tasks.
+
+#+begin_src ks :results none :tangle ../Archive/simple.ks
+  set mpt0 to {
+    mpadd(
+      {
+        calradar().
+        t0put(0).
+        
+      }
+      ).
+  }.
+#+end_src
+
+* mplaunch - add "launch to 50 meters" to mission plan.
+
+Stage if we need to stage.
+Throttle up if we need to throttle up.
+Lock steering to minimize change in attitude.
+Wait in this stage until 50 meters above the ground.
+
+#+begin_src ks :results none :tangle ../Archive/simple.ks
+  set mplaunch to {mpadd({
+    if ra>50 return mpinc().
+    lock steering to facing.
+    if ship:thrust>0 return 1/100.
+    lock throttle to 1.
+    if maxthrust>0 return 1/100.
+    if stage:ready stage.
+    return 1/100.}).}.
+#+end_src
+
+* meco - add "main engine cut-off" to mission plan.
+
+#+begin_src ks :results none :tangle ../Archive/simple.ks
+  set meco to {mpadd({
+    lock throttle to 0.
+    lock steering to prograde.
+    return mpinc().}).}.
+#+end_src
+
+* coast - add "coast to space" to mission plan.
+
+#+begin_src ks :results none :tangle ../Archive/simple.ks
+  set coast to {mpadd({
+    if altitude>=body:atm:height or verticalspeed<0 return mpinc().
+    lock throttle to 0. lock steering to prograde. return 1.}).}.
+#+end_src
+
+* Display Update.
+
+#+begin_src ks :results none :tangle ../Archive/simple.ks
+
+  set fws to { parameter u,w.
+    return u:tostring:trim:padright(w):substring(0,w).}.
+
+  set openterm to {
+    if career():candoactions
+      core:part:getmodule("kOSProcessor"):
+        doevent("Open Terminal").}.
+
+  set pagenew to {
+    openterm().
+    set tw to terminal:width-1.
+    clearscreen.
+    for i in range(10) print fws(" ",tw-1).
+    print fws("UT:",tw-1) at (0,0).
+    print fws("MET:",tw-1) at (0,1).
+    print fws("Status:",tw-1) at (0,2).
+  }.
+
+  set pageupdate to {
+    set tw to terminal:width-1.
+    print fws(time:full,tw-9) at (8,0).
+    print fws(TEE(),tw-9) at (8,1).
+    print fws(status,16) at (8,2).
+    print fws(mss,tw-25) at (24,2).
+  }.
+
+  pagenew().
+  set pagetime to round(time:seconds).
+  when pagetime<=time:seconds then {
+    set pagetime to round(time:seconds*5 + 1)/5+1/50.
+    pageupdate(). return not abort. }
+#+end_src
+

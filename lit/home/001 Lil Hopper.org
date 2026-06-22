@@ -8,11 +8,13 @@ NOTE: be sure to splash down in the water. We may be coming
 down too fast to survive impact on solid ground.
 
 Verified on *20260621* booted from boot/local
+Updated on *20260622* to the New Paradigm.
 
 * Import Required Packages
 
 #+begin_src ks :results none :tangle ../../Archive/home/001 Lil Hopper/go.ks
   import("mp").
+  import("simple").
 #+end_src
 
 * Provide a GO function.
@@ -22,30 +24,34 @@ finds nothing more specific for this mission.
 
 #+begin_src ks :results none :tangle ../../Archive/home/001 Lil Hopper/go.ks
   set go to {
-  mpone({print "Press SPACE to go toward SPACE".}).
 #+end_src
 
-* Define Mission Phases
+** Define Mission Phases
 
-** hold on pad until we have thrust.
+*** hold on pad until we have thrust.
 
 #+begin_src ks :results none :tangle ../../Archive/home/001 Lil Hopper/go.ks
-  mpadd({ if maxthrust>0 return mpinc().
-  return 1/10. }).
+  mpstat("Waiting for Launch").
+  mphold_thrust().
 #+end_src
 
-** damp attitude rate until safe to pitch over
+*** launch, and damp attitude rate until safe to pitch over
 
 #+begin_src ks :results none :tangle ../../Archive/home/001 Lil Hopper/go.ks
-  mpadd({ if alt:radar>=50 return mpinc().
-    lock throttle to 1.
-    lock steering to facing.
-  return 1/10. }).
+  mpstat("Liftoff"). 
+  mplaunch().
 #+end_src
 
-** pitchover during ascent until max altitude
+*** pitchover during ascent until max altitude
+
+Point the nose "surface prograde" but corrected
+to be at least two degrees away from up, and
+always at heading 090.
+
+Logic unique to this vessel.
 
 #+begin_src ks :results none :tangle ../../Archive/home/001 Lil Hopper/go.ks
+  mpstat("Ascent").
   mpadd({ if verticalspeed <= 0 return mpinc().
     lock pitch to max(-90,min(90-2, 90-vang(up:vector,velocity:surface))).
     lock steering to heading(90,pitch,0).
@@ -53,34 +59,42 @@ finds nothing more specific for this mission.
   return 1/10. }).
 #+end_src
 
-** point prograde during descent until time to activate chutes
+*** point prograde during descent until time to activate chutes
+
+Keep the nose "surface prograde" but corrected
+to be at heading 090.
 
 #+begin_src ks :results none :tangle ../../Archive/home/001 Lil Hopper/go.ks
+  mpstat("Descent").
   mpadd({ if altitude <= 3000 { stage. return mpinc(). }
+    lock pitch to max(-90,min(90-2, 90-vang(up:vector,velocity:surface))).
     lock steering to heading(90,pitch,0).
     lock throttle to 0.
   return 1/10. }).
 #+end_src
 
-** damp attitude rates while parachute is armed or deployed
+*** damp attitude rates while parachute is armed or deployed
 
 #+begin_src ks :results none :tangle ../../Archive/home/001 Lil Hopper/go.ks
+  mpstat("Arrival").
   mpadd({ if alt:radar <= 50 return mpinc().
     lock steering to facing.
   return 1/10. }).
 #+end_src
 
-** push nose to vertical during final landing
+*** push nose to vertical during final landing
 
 #+begin_src ks :results none :tangle ../../Archive/home/001 Lil Hopper/go.ks
+  mpstat("Landing").
   mpadd({ if verticalspeed >= 0 return mpinc().
     lock steering to heading(90,90,0).
   return 1/10. }).
 #+end_src
 
-** tilt nose horizontal at landing
+*** tilt nose horizontal at landing
 
 #+begin_src ks :results none :tangle ../../Archive/home/001 Lil Hopper/go.ks
+  mpstat("Landed").
   mpadd({
     lock steering to heading(90,0,0).
   return 1. }).

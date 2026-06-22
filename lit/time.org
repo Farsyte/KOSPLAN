@@ -57,7 +57,7 @@ Uses TIME:FULL then removes zero elements from the front.
   }.
 #+end_src
 
-* TEE() -- printable MET as "T[+-]###y##h##m#.##s"
+* TEE() -- printable MET in a user-friendly way.
 
 #+begin_src ks :results none :tangle ../Archive/time.ks
   set TEE to { local t is met().
