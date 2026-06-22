@@ -1,4 +1,4 @@
-import("burndv").
+import("math").
 set mnpro to {
 parameter t.
 parameter h.
@@ -23,9 +23,10 @@ if bt(mnv:prograde)>1/1000 add mnv.
 return mpinc(1/50).}.}.
 set mncirc to {
 mnclr().
-local tp is eta:periapsis. if tp<0 return mpinc().
+local dt is eta:periapsis. if dt<0 return mpinc().
 local ta is eta:apoapsis.
-local h1 is choose apoapsis if ta>0 and ta<tp else periapsis.
+set h1 to apoapsis.
+if ta>0 and ta<dt set dt to ta. else set h1 to periapsis.
 local mnv is mnpro(time:seconds+dt, h1).
 if bt(mnv:prograde)>1/1000 add mnv.
 return mpinc(1/50).}.

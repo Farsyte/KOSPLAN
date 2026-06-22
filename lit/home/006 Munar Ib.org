@@ -78,8 +78,8 @@ finds nothing more specific for this mission.
     local t is -met().
     local d is round(t).
     if d<=1 mpinc().
-    if d<=5 hud("...").
-    return t-round(t-1).}).
+    if d<=5 hud(TEE()).
+    return t-round(t-1)-1/50.}).
 #+end_src
 
 *** Ignite the engines.
@@ -90,7 +90,7 @@ finds nothing more specific for this mission.
     if not stage:ready return 1/10.
     lock throttle to 1.
     lock steering to facing.
-    hud("ignition"). stage. t0put(0).}).
+    hud(TEE()+" Ignition"). stage. t0put(0).}).
 #+end_src
 
 *** damp attitude rate until safe to maneuver
@@ -101,14 +101,14 @@ finds nothing more specific for this mission.
     lock steering to facing.
     bays off.
   return 1/10. }).
-  mpone({hud("pitchover").}).
+  mpone({hud(TEE()+" Pitchover").}).
 #+end_src
 
 *** control pitch and heading until apoapsis is high enough
 
 #+begin_src ks :results none :tangle ../../Archive/home/006 Munar Ib/go.ks
   mpadd(ascent(90,80000)).
-  mpone({lock throttle to 0. hud("MECO").}).
+  mpone({lock throttle to 0. hud(TEE()+" MECO").}).
 #+end_src
 
 *** coast until above atmosphere.
@@ -116,14 +116,14 @@ finds nothing more specific for this mission.
 #+begin_src ks :results none :tangle ../../Archive/home/006 Munar Ib/go.ks
   mpadd({ if altitude>body:atm:height return mpinc().
   lock steering to prograde. lock throttle to 0. return 1. }).
-  mpone({hud("SPACE!").}).
+  mpone({hud(TEE()+" SPACE!").}).
 #+end_src
 
 *** circularize at apoapsis.
 
 #+begin_src ks :results none :tangle ../../Archive/home/006 Munar Ib/go.ks
   mpadd(simplecirc).
-  mpone({hud("ORBIT!").}).
+  mpone({hud(TEE()+" ORBIT!").}).
   mpadd(pdas).
 #+end_src
 
@@ -132,10 +132,10 @@ finds nothing more specific for this mission.
 #+begin_src ks :results none :tangle ../../Archive/home/006 Munar Ib/go.ks
   mpadd(xfer("mun")).
   mpadd(mnwait).
-  mpone({hud("Trans-Munar Injection").}).
+  mpone({hud(TEE()+" Trans-Munar Injection").}).
   mpadd(mnexec).
   mpadd(mnfini).
-  mpone({hud("Trans-Munar Trajectory Established").}).
+  mpone({hud(TEE()+" Trans-Munar Trajectory Established").}).
   mpadd(pdas). 
 #+end_src
 
@@ -157,7 +157,7 @@ finds nothing more specific for this mission.
     if not orbit:hasnextpatch return mpinc().
     if body:name <> "Kerbin" return mpinc().
     return 1. }).
-  mpone({hud("Entering MUN SOI").}).
+  mpone({hud(TEE()+" Entering MUN SOI").}).
   mpadd(pdas).
 #+end_src
 
@@ -189,7 +189,7 @@ finds nothing more specific for this mission.
   mpadd(mnwait).
   mpadd(mnexec).
   mpadd(mnfini).
-  mpone({hud("MUN Orbit").}).
+  mpone({hud(TEE()+" MUN Orbit").}).
 #+end_src
 
 *** HOLD in this step until done gathering science.
@@ -201,11 +201,11 @@ finds nothing more specific for this mission.
 *** escape from MUN orbit
 
 #+begin_src ks :results none :tangle ../../Archive/home/006 Munar Ib/go.ks
-  mpone({hud("Planning MUN Escape").}).
+  mpone({hud(TEE()+" Planning MUN Escape").}).
   mpadd(escape).
   mpadd(pdas).
   mpadd(mnwait).
-  mpone({hud("Leaving MUN Orbit").}).
+  mpone({hud(TEE()+" Leaving MUN Orbit").}).
   mpadd(mnexec).
   mpadd(mnfini).
 #+end_src
@@ -226,7 +226,7 @@ finds nothing more specific for this mission.
   mpadd({ if not orbit:hasnextpatch return mpinc().
     if body:name = "Kerbin" return mpinc().
     return 1. }).
-  mpone({hud("Returning to KERBIN").}).
+  mpone({hud(TEE()+" Returning to KERBIN").}).
 #+end_src
 
 *** tune aerobraking target altitude.
@@ -250,7 +250,7 @@ finds nothing more specific for this mission.
     mnclr().
   add node(t1,0,0,-1).}).
   mpadd(mnwait).
-  mpone({hud("Ready for AEROBRAKING").}).
+  mpone({hud(TEE()+" Ready for AEROBRAKING").}).
   mpone({ mnclr(). }).
   mpadd(pdas).
 #+end_src
@@ -277,7 +277,7 @@ the flamed-out engine, empty fuel tank, science cluster,
 probe core, battery, solar panel, and autopilot computer.
 
 #+begin_src ks :results none :tangle ../../Archive/home/006 Munar Ib/go.ks
-  mpone({hud("Final Stage Separation").}).
+  mpone({hud(TEE()+" Final Stage Separation").}).
   mpadd({ lock throttle to 0. lock steering to srfretrograde.
     if stage:number=0 mpinc().
   if stage:ready stage. return 1. }).
@@ -289,14 +289,14 @@ Congratulations. Your autopilot was adding mass to the
 part of the vehicle that floated down on the parachute.
 
 #+begin_src ks :results none :tangle ../../Archive/home/006 Munar Ib/go.ks
-  mpone({hud("What CPU is running this code?").}).
+  mpone({hud(TEE()+" What CPU is running this code?").}).
   mpadd({ unlock throttle. unlock steering. return mpinc(). }).
-  mpone({hud("Falling Off the Bottom").}).
+  mpone({hud(TEE()+" Falling Off the Bottom").}).
 #+end_src
 
 * Run the Mission, then End the Program.
 
   #+begin_src ks :results none :tangle ../../Archive/home/006 Munar Ib/go.ks
-    mprun(). HUD("program terminated").}.
+    mprun(). HUD(TEE()+" program terminated").}.
 #+end_src
 

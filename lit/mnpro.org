@@ -3,7 +3,7 @@ mnpro - prograde burn related maneuvers
 * Import All Dependencies
 
 #+begin_src ks :results none :tangle ../Archive/mnpro.ks
-  import("burndv").
+  import("math").
 #+end_src
 
 * mnpro(t,h) -- SUPPORT: build node for time T to set opposing altitude to H.
@@ -167,12 +167,22 @@ NOTE: this might schedule a burn that is TOO SOON,
 in that we could not possibly achieve half of the
 burn before the scheduled time.
 
+Confirmed that this works to circularize around Mun when
+inbound on a hyperbolic.
+
+The current juggling of dt, ta, and h1 avoids the
+alternate, where we capture both etas and both
+altitudes, then set dt and h1 using two CHOOSE
+expressions with the same condition.
+
+
 #+begin_src ks :results none :tangle ../Archive/mnpro.ks
   set mncirc to {
   mnclr().
-  local tp is eta:periapsis. if tp<0 return mpinc().
+  local dt is eta:periapsis. if dt<0 return mpinc().
   local ta is eta:apoapsis.
-  local h1 is choose apoapsis if ta>0 and ta<tp else periapsis.
+  set h1 to apoapsis.
+  if ta>0 and ta<dt set dt to ta. else set h1 to periapsis.
   local mnv is mnpro(time:seconds+dt, h1).
   if bt(mnv:prograde)>1/1000 add mnv.
   return mpinc(1/50).}.
