@@ -122,6 +122,29 @@ of a mission data display screen.
     lock throttle to 0. lock steering to prograde. return 1.}).}.
 #+end_src
 
+* mpcirc - simple circularization
+
+This is the simplest circularization technique
+that I have seen: burn as needed to keep the
+current apoapsis a fixed time in the future.
+
+It has a disadvantage: for vessels that have
+lower thrust-to-mass ratios, the lead time
+embedded in this code may be too short, and
+it will give up when it passes apoapsis.
+
+For such vessels, please use *mncirc* found
+in the *mnpro* package instead.
+
+#+begin_src ks
+  set mpcirc to {mpadd({
+    if periapsis>apoapsis-100 return mpinc().
+    lock steering to prograde.
+    lock throttle to max(0,min(1,(2-eta:apoapsis/10))) *
+      max(1/100,min(1,1-vang(steering:vector,prograde:vector)/5)).
+    return 1.}).}.
+#+end_src
+
 * mppdab - orient vehicle to Point Down At Body
 
 Step terminates when the vessel is within
@@ -173,7 +196,7 @@ a few degrees of the desired attitude.
     openterm().
     set tw to terminal:width-1.
     clearscreen.
-    for i in range(terminal:height) print pr(" ",tw-1).
+    for i in range(24) print pr(" ",tw-1).
   }.
 
   set pageupdate to {

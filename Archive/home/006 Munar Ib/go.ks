@@ -8,7 +8,6 @@ import("mnpro").
 import("moon").
 import("mp").
 import("simple").
-import("simplecirc").
 import("sw").
 import("time").
 import("xfer").

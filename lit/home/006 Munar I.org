@@ -24,7 +24,7 @@ Our required packages do not fit in 10000 bytes.
   import("fancystager").
   import("hud").
   import("mp").
-  import("simplecirc").
+  import("simple").
   import("sw").
   import("time").
   import("xfer").

@@ -3,7 +3,6 @@ import("hold").
 import("fancystager").
 import("simple").
 import("ascent").
-import("simplecirc").
 import("aero").
 set go to {
 brakes off.

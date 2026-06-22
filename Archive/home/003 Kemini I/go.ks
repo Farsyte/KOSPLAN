@@ -3,11 +3,11 @@ import("hold").
 import("fancystager").
 import("simple").
 import("ascent").
-import("simplecirc").
 import("aero").
 set go to {
 brakes off.
 fancystager().
+mpone({bays off.}).
 mpstat("Waiting for Launch").
 mphold_thrust().
 mplaunch().

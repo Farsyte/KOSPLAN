@@ -2,7 +2,7 @@ ship = 005 Tourist I
 version = 1.12.5
 description = Get to Space and return safely, with tourists.
 type = VAB
-size = 4.07129002,16.3759079,1.76778758
+size = 4.07129288,16.3758698,1.76778758
 steamPublishedFileId = 0
 persistentId = 2032183891
 rot = 0,0,0,0
@@ -1825,9 +1825,9 @@ PART
 		name = ModuleAnimateGeneric
 		isEnabled = True
 		aniState = LOCKED
-		animSwitch = False
-		animTime = 1
-		animSpeed = 10
+		animSwitch = True
+		animTime = 0
+		animSpeed = -10
 		deployPercent = 100
 		animationIsDisabled = False
 		stagingEnabled = True
@@ -4797,7 +4797,7 @@ PART
 	part = fuelTank_4286889548
 	partName = Part
 	persistentId = 2159880177
-	pos = -3.58412649E-06,23.6145706,2.40447071E-06
+	pos = -3.58412649E-06,23.614584,2.40447071E-06
 	attPos = 0,0,0
 	attPos0 = 0,-1.82500267,0
 	rot = 0,0,1,0
@@ -4954,7 +4954,7 @@ PART
 	part = fuelTank_4286889502
 	partName = Part
 	persistentId = 329400003
-	pos = -3.58412649E-06,21.6511784,2.40447071E-06
+	pos = -3.58412649E-06,21.6511993,2.40447071E-06
 	attPos = 0,0,0
 	attPos0 = 0,1.96345139,0
 	rot = 0,0,0,1
@@ -5117,7 +5117,7 @@ PART
 	part = liquidEngine2.v2_4286889456
 	partName = Part
 	persistentId = 1222922183
-	pos = -3.58412649E-06,20.7388477,2.40447071E-06
+	pos = -3.58412649E-06,20.7388897,2.40447071E-06
 	attPos = 0,0,0
 	attPos0 = 0,-0.912500381,0
 	rot = 0,0,0,1
@@ -5486,10 +5486,10 @@ PART
 	part = basicFin_4286889224
 	partName = Part
 	persistentId = 240304399
-	pos = 0.43293345,20.8403683,-0.432934284
+	pos = 0.432933718,20.840395,-0.432934493
 	attPos = 0,0,0
 	attPos0 = 0.432934433,-0.810855865,-0.432934344
-	rot = 1.43069414E-07,0.923879743,-5.92612857E-08,-0.382683545
+	rot = 1.43069414E-07,0.923879683,-5.92612821E-08,-0.382683456
 	attRot = 0,0,0,1
 	attRot0 = 1.430694E-07,0.923879623,-5.92612857E-08,-0.382683456
 	mir = 1,1,1
@@ -5620,7 +5620,7 @@ PART
 	part = basicFin_4286889186
 	partName = Part
 	persistentId = 2036735428
-	pos = -0.432944953,20.8403683,-0.432938784
+	pos = -0.432945848,20.840395,-0.432939559
 	attPos = 0,0,0
 	attPos0 = -0.432934225,-0.810855865,-0.432934344
 	rot = 5.92613034E-08,0.382683545,-1.43069428E-07,-0.923879862
@@ -5754,10 +5754,10 @@ PART
 	part = basicFin_4286889148
 	partName = Part
 	persistentId = 1396365051
-	pos = -0.432940185,20.8403683,0.432938695
+	pos = -0.432940483,20.840395,0.432939053
 	attPos = 0,0,0
 	attPos0 = -0.432934314,-0.810855865,0.432934344
-	rot = -5.92612857E-08,-0.382683545,-1.43069414E-07,-0.923879743
+	rot = -5.92612821E-08,-0.382683456,-1.43069414E-07,-0.923879683
 	attRot = 0,0,0,1
 	attRot0 = -5.92612892E-08,-0.382683456,-1.43069386E-07,-0.923879504
 	mir = 1,1,1
@@ -5888,7 +5888,7 @@ PART
 	part = basicFin_4286889110
 	partName = Part
 	persistentId = 1328627874
-	pos = 0.432937801,20.8403683,0.432943612
+	pos = 0.432938695,20.840395,0.432944387
 	attPos = 0,0,0
 	attPos0 = 0.432934344,-0.810855865,0.432934314
 	rot = -1.43069428E-07,-0.923879862,-5.92613034E-08,-0.382683545
@@ -6022,7 +6022,7 @@ PART
 	part = radialDecoupler_4286889072
 	partName = Part
 	persistentId = 2151840364
-	pos = -0.615528464,21.2648945,-1.29101727E-06
+	pos = -0.615529001,21.2649212,-1.82745907E-06
 	attPos = 0,-0.710536957,0
 	attPos0 = -0.615520775,0.324207306,4.47034836E-08
 	rot = 0,0,-2.66453801E-15,1
@@ -6106,19 +6106,16 @@ PART
 			ToggleAction
 			{
 				actionGroup = None
-				active = False
 				wasActiveBeforePartWasAdjusted = False
 			}
 			EnableAction
 			{
 				actionGroup = None
-				active = False
 				wasActiveBeforePartWasAdjusted = False
 			}
 			DisableAction
 			{
 				actionGroup = None
-				active = False
 				wasActiveBeforePartWasAdjusted = False
 			}
 		}
@@ -6226,7 +6223,7 @@ PART
 	part = solidBooster.v2_4286889012
 	partName = Part
 	persistentId = 2951988527
-	pos = -1.40213943,20.6046314,-1.1662225E-05
+	pos = -1.40214121,20.6046658,-1.34503643E-05
 	attPos = -3.57627869E-07,-0.645116806,2.08616257E-07
 	attPos0 = -0.786599934,-0.015209198,-7.4505806E-08
 	rot = 1.25607511E-15,-0.707106829,1.25607807E-15,0.707106829
@@ -6524,10 +6521,10 @@ PART
 	part = noseCone_4286888896
 	partName = Part
 	persistentId = 2266921289
-	pos = -1.40215194,21.8864841,-2.27486889E-05
+	pos = -1.40215528,21.8865204,-2.58481305E-05
 	attPos = 0,0,0
 	attPos0 = 2.98023259E-08,1.28183746,-1.42108547E-14
-	rot = -2.11758641E-22,0,4.87044025E-21,1
+	rot = -2.11758439E-22,0,5.50571496E-21,1
 	attRot = 0,0,0,1
 	attRot0 = -1.25607384E-15,0.707106829,-1.25607426E-15,0.707106829
 	mir = 1,1,1
@@ -6657,7 +6654,7 @@ PART
 	part = radialDecoupler_4286888854
 	partName = Part
 	persistentId = 3803874240
-	pos = 0.615521908,21.2648945,6.15956333E-06
+	pos = 0.615522385,21.2649212,6.69600513E-06
 	attPos = 0,-0.710536957,0
 	attPos0 = 0.615520835,0.324207306,-8.94069672E-08
 	rot = -2.66453801E-15,1,0,0
@@ -6741,19 +6738,16 @@ PART
 			ToggleAction
 			{
 				actionGroup = None
-				active = False
 				wasActiveBeforePartWasAdjusted = False
 			}
 			EnableAction
 			{
 				actionGroup = None
-				active = False
 				wasActiveBeforePartWasAdjusted = False
 			}
 			DisableAction
 			{
 				actionGroup = None
-				active = False
 				wasActiveBeforePartWasAdjusted = False
 			}
 		}
@@ -6861,7 +6855,7 @@ PART
 	part = solidBooster.v2_4286888794
 	partName = Part
 	persistentId = 2012497201
-	pos = 1.40213227,20.6046314,1.64711673E-05
+	pos = 1.40213406,20.6046658,1.82593067E-05
 	attPos = -1.1920929E-07,-0.645116806,4.17232513E-07
 	attPos0 = -0.786600113,-0.015209198,-1.1920929E-07
 	rot = 1.2560749E-15,0.707106829,-1.25607469E-15,0.707106829
@@ -7151,7 +7145,7 @@ PART
 	part = noseCone_4286888678
 	partName = Part
 	persistentId = 4009737911
-	pos = 1.40214455,21.8864841,2.73192127E-05
+	pos = 1.40214789,21.8865204,3.06570728E-05
 	attPos = 0,0,0
 	attPos0 = 0,1.28183746,-1.1385008E-14
 	rot = -8.47033048E-22,1,4.23516575E-22,0

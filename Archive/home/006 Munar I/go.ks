@@ -2,7 +2,7 @@ import("ascent").
 import("fancystager").
 import("hud").
 import("mp").
-import("simplecirc").
+import("simple").
 import("sw").
 import("time").
 import("xfer").

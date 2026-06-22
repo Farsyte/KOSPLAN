@@ -3,12 +3,6 @@
 
 simplestager.ks - simple auto-stager
 
-* Import Required Packages
-
-#+begin_src ks
-  import("mp").
-#+end_src
-
 * Set up the simplestager delegate
 
 Calling simplestager starts a background job running requently that
@@ -24,6 +18,5 @@ never saw any thrust from the stage.
     when t <= time:seconds then { if abort or stage:number<1 return false.
       set t to time:seconds + 1. if not stage:ready return true.
       set omt to mt. set mt to ship:maxthrustat(0).
-      log omt+","+mt to home:combine("ss.log").
       if mt<omt or mt=0 stage. return true. }.}.
 #+end_src

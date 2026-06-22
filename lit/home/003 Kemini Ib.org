@@ -18,7 +18,6 @@ path and resulting orbit.
   import("fancystager").
   import("simple").
   import("ascent").
-  import("simplecirc").
   import("aero").
 #+end_src
 
