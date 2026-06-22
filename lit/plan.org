@@ -1,9 +1,12 @@
+#+PROPERTY: header-args :results none
+#+PROPERTY: header-args :tangle ../Archive/plan.ks
+
 Mission Planning facility
 
 
 * Import Required Packages
 
-#+begin_src ks :results none :tangle ../Archive/plan.ks
+#+begin_src ks
   import("nv").
   import("math").
   import("fmt").
@@ -13,7 +16,7 @@ Mission Planning facility
 
 * plan satellite orbit insertion from starting orbit
 
-#+begin_src ks :results none :tangle ../Archive/plan.ks
+#+begin_src ks
 
   // pt: Print Orbit-to-Orbit ΔV
   local pt is {parameter h1,h2,h3,h4,dv.

@@ -1,3 +1,6 @@
+#+PROPERTY: header-args :results none
+#+PROPERTY: header-args :tangle ../Archive/gonew.ks
+
 gonew.ks -- template GO script
 
 This is the initial GO script that will be automatically
@@ -9,13 +12,13 @@ root of the archive runs.
 GO packages must provide a global called GO
 that can be called by saying GO().
 
-#+begin_src ks :results none :tangle ../Archive/gonew.ks
+#+begin_src ks
   set go to {
 #+end_src
 
 ** Inform the flight engineer that he needs to edit code.
 
-#+begin_src ks :results none :tangle ../Archive/gonew.ks
+#+begin_src ks
   print "STUB: please add mission code to ".
   print "  "+home:combine("go.ks"). }.
 #+end_src

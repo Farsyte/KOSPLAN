@@ -1,8 +1,11 @@
+#+PROPERTY: header-args :results none
+#+PROPERTY: header-args :tangle ../Archive/mnpro.ks
+
 mnpro - prograde burn related maneuvers
 
 * Import All Dependencies
 
-#+begin_src ks :results none :tangle ../Archive/mnpro.ks
+#+begin_src ks
   import("mn").
   import("math").
 #+end_src
@@ -29,7 +32,7 @@ not change the semi-major axis.
 In normal usage, the magnitude of the prograde
 component will dominate the burn.
 
-#+begin_src ks :results none :tangle ../Archive/mnpro.ks
+#+begin_src ks
   set mnpro to {
     parameter t.
     parameter h.
@@ -80,7 +83,7 @@ NOTE: this might schedule a burn that is TOO SOON,
 in that we could not possibly achieve half of the
 burn before the scheduled time.
 
-#+begin_src ks :results none :tangle ../Archive/mnpro.ks
+#+begin_src ks
   set mnatp to { parameter des_apo. return {
     mnclr().
     if eta:periapsis<0 return mpinc().
@@ -118,7 +121,7 @@ Procedure:
 - Do nothing more if we are on a hyperbolic orbit,
   detected by apoapsis being negative.
 
-- Center the burn at the apoapsis. 
+- Center the burn at the apoapsis.
 
 - Use MNPRO above to set up a node, and schedule it
   if the prograde burn is nontrivial.
@@ -127,7 +130,7 @@ NOTE: this might schedule a burn that is TOO SOON,
 in that we could not possibly achieve half of the
 burn before the scheduled time.
 
-#+begin_src ks :results none :tangle ../Archive/mnpro.ks
+#+begin_src ks
   set mnata to { parameter des_peri. return {
     mnclr().
     if apoapsis<0 return mpinc().
@@ -177,7 +180,7 @@ altitudes, then set dt and h1 using two CHOOSE
 expressions with the same condition.
 
 
-#+begin_src ks :results none :tangle ../Archive/mnpro.ks
+#+begin_src ks
   set mncirc to {
   mnclr().
   local dt is eta:periapsis. if dt<0 return mpinc().

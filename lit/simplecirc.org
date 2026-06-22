@@ -1,8 +1,11 @@
+#+PROPERTY: header-args :results none
+#+PROPERTY: header-args :tangle ../Archive/simplecirc.ks
+
 simplecirc.ks - circularize at next apoapsis
 
 * Import Required Packages
 
-#+begin_src ks :results none :tangle ../Archive/simplecirc.ks
+#+begin_src ks
   import("mp").
 #+end_src
 
@@ -20,11 +23,11 @@ it will give up when it passes apoapsis.
 For such vessels, please use *mncirc* found
 in the *mnpro* package instead.
 
-#+begin_src ks :results none :tangle ../Archive/simplecirc.ks
-  set simplecirc to {
+#+begin_src ks
+  set mpcirc to {mpadd({
     if periapsis>apoapsis-100 return mpinc().
     lock steering to prograde.
     lock throttle to max(0,min(1,(2-eta:apoapsis/10))) *
       max(1/100,min(1,1-vang(steering:vector,prograde:vector)/5)).
-  return 1. }.
+    return 1.}).}.
 #+end_src

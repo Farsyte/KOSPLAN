@@ -1,3 +1,6 @@
+#+PROPERTY: header-args :results none
+#+PROPERTY: header-args :tangle ../Archive/moon.ks
+
 moon.ks - code relating to moon missions
 
 developed during Mun mission series.
@@ -10,7 +13,7 @@ retrograde to bring the PERIAPSIS to the given altitude.
 This step repeats every physical tick until the periapsis
 is within the specified range.
 
-#+begin_src ks :results none :tangle ../Archive/moon.ks
+#+begin_src ks
   set fixperi to {
     parameter lo,md,hi. return {
 

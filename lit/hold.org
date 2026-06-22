@@ -1,0 +1,56 @@
+#+PROPERTY: header-args :results none
+#+PROPERTY: header-args :tangle ../Archive/hold.ks
+
+hold.ks - various HOLD steps.
+
+* Import Required Packages
+
+#+begin_src ks
+  import("mp").
+#+end_src
+
+* mphold_thrust - add "wait for thrust" to mission plan.
+
+#+begin_src ks
+  set mphold_thrust to {
+    mpadd({
+      return choose mpinc() if maxthrust>0 else 1/100.}).}.
+#+end_src
+
+* mphold_brakes - wait until engineer taps the brakes.
+
+#+begin_src ks
+  set mphold_brakes to {
+    mpadd({
+      if not brakes return 1/10.
+      brakes off. return mpinc().}).}.
+#+end_src
+
+* mphold_sas - wait until engineer taps the sas.
+
+#+begin_src ks
+  set mphold_sas to {
+    mpadd({
+      if not sas return 1/10.
+      sas off. return mpinc().}).}.
+#+end_src
+
+* mphold_rcs - wait until engineer taps the rcs.
+
+#+begin_src ks
+  set mphold_rcs to {
+    mpadd({
+      if not rcs return 1/10.
+      rcs off. return mpinc().}).}.
+#+end_src
+
+
+* mphold_bay - wait until engineer closes the bays.
+
+#+begin_src ks
+  set mphold_bay to {
+    mpadd({
+      if bays return 1/10.
+      return mpinc().}).}.
+#+end_src
+

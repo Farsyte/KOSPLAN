@@ -1,8 +1,11 @@
+#+PROPERTY: header-args :results none
+#+PROPERTY: header-args :tangle ../../Archive/home/007 OKTO I/go.ks
+
 OKTO I/go.ks: Prototype Satellite System
 
 * Import Required Packages
 
-#+begin_src ks :results none :tangle ../../Archive/home/007 OKTO I/go.ks
+#+begin_src ks
   import("ascent").
   import("fmt").
   import("hud").
@@ -30,7 +33,7 @@ to freeze after printing, or to remove the print.
 
 ** Pick a Mission
 
-#+begin_src ks :results none :tangle ../../Archive/home/007 OKTO I/go.ks
+#+begin_src ks
 
   // If we have a connection to the ground,
   // refresh our contract terms.
@@ -59,7 +62,7 @@ Uncomment when designing the vessel to obtain
 the Delta-V requirements to go from a parking
 orbit to the assigned orbit.
 
-#+begin_src ks :results none :tangle ../../Archive/home/007 OKTO I/go.ks
+#+begin_src ks
   import("plan").
   plan_sat(80000,ccorb:periapsis,ccorb:apoapsis,ccorb:body).
   // until false { }
@@ -71,7 +74,7 @@ These default to simple eastbound parking but
 will be explicitly upated in a mission step
 just before the actual launch.
 
-#+begin_src ks :results none :tangle ../../Archive/home/007 OKTO I/go.ks
+#+begin_src ks
   set launch_t0 to nvget(1, "launch_t0", t0).
   set launch_az to nvget(1, "launch_az", 90).
   set launch_ap to nvget(1, "launch_ap", 80000).
@@ -79,7 +82,7 @@ just before the actual launch.
 
 ** Locked Helpers (maxt, maxa)
 
-#+begin_src ks :results none :tangle ../../Archive/home/007 OKTO I/go.ks
+#+begin_src ks
   lock maxt to max(eps, ship:availablethrust).
   lock maxa to maxt/mass.
 #+end_src
@@ -106,7 +109,7 @@ the commanded attitude.
 This step also turns on the lights (which on
 the OKTO I will also extend the antenna).
 
-#+begin_src ks :results none :tangle ../../Archive/home/007 OKTO I/go.ks
+#+begin_src ks
   set pdas to { lights on. lock throttle to 0.
     lock steering to lookdirup(vcrs(sun:velocity:orbit,sun:position),-sun:position).
     if wfcmd()>1 or 5>vang(facing:upvector,steering:upvector) mpinc().
@@ -118,7 +121,7 @@ the OKTO I will also extend the antenna).
 This function is executed by IMPORT when it
 finds nothing more specific for this mission.
 
-#+begin_src ks :results none :tangle ../../Archive/home/007 OKTO I/go.ks
+#+begin_src ks
   set go to {
 #+end_src
 
@@ -140,7 +143,7 @@ this I am taking the trivial approach of cutting the throttle
 as we stage, and depending on the ascent code to turn it back
 on in the future.
 
-#+begin_src ks :results none :tangle ../../Archive/home/007 OKTO I/go.ks
+#+begin_src ks
   if stage:number>0
     when stage:ready and (
       (stage:number=3) or
@@ -164,7 +167,7 @@ TODO turn this into support code for other missions
 During boot, we fetch the contract satellite orbital
 elements and construct an Orbit object.
 
-#+begin_src ks :results none :tangle ../../Archive/home/007 OKTO I/go.ks
+#+begin_src ks
   mpadd({
 #+end_src
 
@@ -185,7 +188,7 @@ I want to launch when we are 2° before the end of the quadrant.
 - Before angle is 000, launch NORTHish.
 - Before angle is 180, launch SOUTHish.
 
-#+begin_src ks :results none :tangle ../../Archive/home/007 OKTO I/go.ks
+#+begin_src ks
   local th is vcrs(ccorb:position-body:position,ccorb:velocity:orbit):normalized.
   local sp is -body:position:normalized.
   local sv is ship:velocity:orbit:normalized.
@@ -196,12 +199,12 @@ for a 2D coordinate system, compute the projection
 of the th vector onto that plane, then pick out
 an angle within that plane.
 
-#+begin_src ks :results none :tangle ../../Archive/home/007 OKTO I/go.ks
+#+begin_src ks
   local hp is vdot(th, sp).
   local hv is vdot(th, sv).
 #+end_src
 
-#+begin_src ks :results none :tangle ../../Archive/home/007 OKTO I/go.ks
+#+begin_src ks
   local angle is arctan2(hv, hp)+180.
 #+end_src
 
@@ -223,7 +226,7 @@ If we are in Quadrant 0 or 2,
 use safewarp to manage warping
 into the next quadrant.
 
-#+begin_src ks :results none :tangle ../../Archive/home/007 OKTO I/go.ks
+#+begin_src ks
   local quad is floor(angle/90).
   if quad=0 or quad=2 {swadj(body:rotationperiod/8). return wfcmd()/10.}
 #+end_src
@@ -245,7 +248,7 @@ We can now use SAFEWARP to skip forward to
 about thirty seconds before when we want to
 launch.
 
-#+begin_src ks :results none :tangle ../../Archive/home/007 OKTO I/go.ks
+#+begin_src ks
   local aeoq is angle-90*quad.
   local qeta is aeoq * body:rotationperiod/360.
 
@@ -272,7 +275,7 @@ made to MPRUN during OKTO I development. previously it
 applied a bias to try to counteract the fact that WAIT
 actually waits for one phys-tick longer.
 
-#+begin_src ks :results none :tangle ../../Archive/home/007 OKTO I/go.ks
+#+begin_src ks
   if qeta>20 return mod(qeta+9.9,1).
 #+end_src
 
@@ -307,7 +310,7 @@ No idea if the bias being linear with respect to the
 angle from horizontal is right, but it is close enough
 that I saw good results on an orbit at ... 36° I think.
 
-#+begin_src ks :results none :tangle ../../Archive/home/007 OKTO I/go.ks
+#+begin_src ks
   local dfi is { parameter incl, hv.
     local az is choose 450-incl if hv>0 else 450+incl.
     local afh to abs(90-incl)-90.
@@ -319,7 +322,7 @@ Values are in hand (or the dfi function), so we record
 them to onboard nonvolatile storage. Remember, T0PUT now
 takes an elapsed time forward from now.
 
-#+begin_src ks :results none :tangle ../../Archive/home/007 OKTO I/go.ks
+#+begin_src ks
   t0put(qeta-10).
   set launch_t0 to nvput(1, "launch_t0", t0).
   set launch_az to nvput(1, "launch_az", dfi(ccinc,hv)).
@@ -328,14 +331,14 @@ takes an elapsed time forward from now.
 
 Notify the flight engineer and move on to the next step.
 
-#+begin_src ks :results none :tangle ../../Archive/home/007 OKTO I/go.ks
+#+begin_src ks
   HUD("Will launch in "+round(t0-time:seconds,1)+" seconds.").
   return mpinc(). }).
 #+end_src
 
 *** Provide a brief countdown.
 
-#+begin_src ks :results none :tangle ../../Archive/home/007 OKTO I/go.ks
+#+begin_src ks
   mpadd({
     local t is -met().
     if round(t)<=5 HUD(TEE()).
@@ -345,7 +348,7 @@ Notify the flight engineer and move on to the next step.
 
 *** Ignite the engines.
 
-#+begin_src ks :results none :tangle ../../Archive/home/007 OKTO I/go.ks
+#+begin_src ks
   mpone({
     if maxthrust>0 return mpinc().
     if not stage:ready return 1/10.
@@ -357,7 +360,7 @@ Notify the flight engineer and move on to the next step.
 
 *** damp attitude rate until safe to maneuver
 
-#+begin_src ks :results none :tangle ../../Archive/home/007 OKTO I/go.ks
+#+begin_src ks
   mpadd({ if alt:radar>=50 return mpinc().
     lock throttle to 1. lock steering to facing. return 1/10. }).
   mpone({hud(TEE()+": Pitchover").}).
@@ -367,7 +370,7 @@ Notify the flight engineer and move on to the next step.
 
 Ascent controller for a desired launch azimuth and altitude.
 
-#+begin_src ks :results none :tangle ../../Archive/home/007 OKTO I/go.ks
+#+begin_src ks
   mpadd({
 #+end_src
 
@@ -375,7 +378,7 @@ If we are coming down, end the step (this is bad).
 If we are above the atmosphere and our apoapsis
 is high enough, end the step (this is good).
 
-#+begin_src ks :results none :tangle ../../Archive/home/007 OKTO I/go.ks
+#+begin_src ks
   if verticalspeed<0 return mpinc().
   if altitude>=70000 and apoapsis>=launch_ap return mpinc().
 #+end_src
@@ -402,7 +405,7 @@ The current simple code lands us in a fairly good plane,
 close enough that we can correct it once we get to orbit
 with a fairly small burn.
 
-#+begin_src ks :results none :tangle ../../Archive/home/007 OKTO I/go.ks
+#+begin_src ks
   lock af to limit(0,1,altitude/launch_ap).
   lock cp to limit(0,90,90-120*sqrt(af)).
   lock steering to heading(launch_az, cp, 0).
@@ -413,7 +416,7 @@ reduce the throttle. Currently tuned to start reducing
 throttle at 15 degrees, down to zero at 45 degrees, but
 actually not going below 1% of the desired throttle.
 
-#+begin_src ks :results none :tangle ../../Archive/home/007 OKTO I/go.ks
+#+begin_src ks
   lock tf to min(1,sqrt(max(0,(launch_ap+20-apoapsis)/1000))).
   lock va to vang(FACING:VECTOR, STEERING:VECTOR).
   lock ef to limit(.01,1,(45-va)/30).
@@ -422,17 +425,17 @@ actually not going below 1% of the desired throttle.
 
 re-evaluate the ascent every second.
 
-#+begin_src ks :results none :tangle ../../Archive/home/007 OKTO I/go.ks
+#+begin_src ks
   return 1. }).
 #+end_src
 
-#+begin_src ks :results none :tangle ../../Archive/home/007 OKTO I/go.ks
+#+begin_src ks
   mpone({lock throttle to 0. hud(TEE()+": MECO").}).
 #+end_src
 
 *** coast until above atmosphere.
 
-#+begin_src ks :results none :tangle ../../Archive/home/007 OKTO I/go.ks
+#+begin_src ks
   mpadd({ if altitude>body:atm:height return mpinc().
   lock steering to prograde. lock throttle to 0. return 1. }).
   mpone({hud(TEE()+": SPACE!").}).
@@ -440,7 +443,7 @@ re-evaluate the ascent every second.
 
 *** circularize at apoapsis.
 
-#+begin_src ks :results none :tangle ../../Archive/home/007 OKTO I/go.ks
+#+begin_src ks
   mpone({hud(TEE()+": "+round(stage:deltav:vacuum,1)+ " m/s ΔV remains").}).
   mpadd(mncirc). mpadd(mnwait). mpadd(mnexec).
   mpone({hud(TEE()+": "+round(stage:deltav:vacuum,1)+ " m/s ΔV remains").}).
@@ -449,7 +452,7 @@ re-evaluate the ascent every second.
 
 *** Schedule when to raise apoapsis
 
-#+begin_src ks :results none :tangle ../../Archive/home/007 OKTO I/go.ks
+#+begin_src ks
   mpadd({
 #+end_src
 
@@ -466,7 +469,7 @@ the important thing now is the Argument of Periapsis.
 In practice, our orbit is close enough that the results
 can be corrected by our orbit maintenance loop.
 
-#+begin_src ks :results none :tangle ../../Archive/home/007 OKTO I/go.ks
+#+begin_src ks
   local dv is burndvh(altitude,altitude,ccorb:apoapsis,body).
   mnclr(). add node(time:seconds, 0, 0, dv). wait 0.
 #+end_src
@@ -477,7 +480,7 @@ cost function for an iterative cost minimizer.
 NOTE: the difference between the angles needs to be folded
 back into the -180 to +180 range for this to work well.
 
-#+begin_src ks :results none :tangle ../../Archive/home/007 OKTO I/go.ks
+#+begin_src ks
   local aop_ref is ccorb:argumentofperiapsis.
   local f is {parameter t. set nextnode:time to t. wait 0.
     return sa(nextnode:orbit:argumentofperiapsis-aop_ref)^2.}.
@@ -485,7 +488,7 @@ back into the -180 to +180 range for this to work well.
 
 Look at two points in the near future.
 
-#+begin_src ks :results none :tangle ../../Archive/home/007 OKTO I/go.ks
+#+begin_src ks
     // start in the future, then scan forward
     // until we see the error increase.
     local dt is orbit:period/12.
@@ -499,7 +502,7 @@ Look at two points in the near future.
 If we are looking at an increase in cost, push forward
 until we see an interval that is not increasing.
 
-#+begin_src ks :results none :tangle ../../Archive/home/007 OKTO I/go.ks
+#+begin_src ks
     // while the error is increasing, step forward.
     until c2<=c1 {
       set t1 to t2.
@@ -513,7 +516,7 @@ until we see an interval that is not increasing.
 Now, if we are looking at a decrease in cost, push forward
 until we see an interval that is not decreasing.
 
-#+begin_src ks :results none :tangle ../../Archive/home/007 OKTO I/go.ks
+#+begin_src ks
     // while the error is decreasing, step forward.
     until c2>=c1 {
       set t1 to t2.
@@ -529,7 +532,7 @@ in time, then compute a new time that should zero the
 error, assuming that the error in cost is proportional
 to the square of the error in time.
 
-#+begin_src ks :results none :tangle ../../Archive/home/007 OKTO I/go.ks
+#+begin_src ks
   until c1<=1e-8 {
     set dcdt to (c2-c1) / (t2-t1).
     set dt to c1/dcdt.
@@ -546,13 +549,13 @@ to the square of the error in time.
 Assure we leave the maneuver node at the T1 time (we may have
 evaluated a T2 time above as our last probe).
 
-#+begin_src ks :results none :tangle ../../Archive/home/007 OKTO I/go.ks
+#+begin_src ks
   set c1 to f(t1). return mpinc().}).
 #+end_src
 
 Executing the node is the usual sequence.
 
-#+begin_src ks :results none :tangle ../../Archive/home/007 OKTO I/go.ks
+#+begin_src ks
   mpadd(pdas). mpadd(mnwait). mpadd(mnexec). mpadd(mnfini). mpadd(pdas).
   mpone({hud("Moving from Parking to Assigned Orbit").}).
 #+end_src
@@ -562,7 +565,7 @@ to the assigned altitude.
 
 TODO use the generic "at next apo, set peri to ..."
 
-#+begin_src ks :results none :tangle ../../Archive/home/007 OKTO I/go.ks
+#+begin_src ks
   mpadd({
     mnclr().
     local h1 is apoapsis.
@@ -574,7 +577,7 @@ TODO use the generic "at next apo, set peri to ..."
   }).
 #+end_src
 
-#+begin_src ks :results none :tangle ../../Archive/home/007 OKTO I/go.ks
+#+begin_src ks
   mpadd(pdas). mpadd(mnwait). mpadd(mnexec). mpadd(mnfini). mpadd(pdas).
 #+end_src
 
@@ -589,14 +592,14 @@ TODO extract these steps to a common tool collection
 
 This is how we do a loop in the mission plan.
 
-#+begin_src ks :results none :tangle ../../Archive/home/007 OKTO I/go.ks
+#+begin_src ks
   { local mpi_park is mpl:length.
     local mnv_plan is false.
 #+end_src
 
 ***** Notify when we at the top.
 
-#+begin_src ks :results none :tangle ../../Archive/home/007 OKTO I/go.ks
+#+begin_src ks
   mpadd({
     hud(TEE()+": Maintaining Assigned Orbit", false).
     set mnv_plan to false. mnclr().
@@ -617,7 +620,7 @@ two different measurements of an error in the orbital
 plane. If both LAN and INC are within 0.1° then no
 further computation is needed here.
 
-#+begin_src ks :results none :tangle ../../Archive/home/007 OKTO I/go.ks
+#+begin_src ks
   mpadd({ // fix LAN and Inclination by adjusting velocity normal to the target plane.
 
     local ie is orbit:inclination-ccorb:inclination.
@@ -647,7 +650,7 @@ normal vector.
 TODO see what happens for LARGE inclination changes,
 then adjust the code as necessary.
 
-#+begin_src ks :results none :tangle ../../Archive/home/007 OKTO I/go.ks
+#+begin_src ks
   local mydir is vcrs(-body:position,velocity:orbit):normalized.
 
   local cceta is ccpos / ccvel.
@@ -682,7 +685,7 @@ then adjust the code as necessary.
 
 ****** maybe create a node to fix apoapsis.
 
-#+begin_src ks :results none :tangle ../../Archive/home/007 OKTO I/go.ks
+#+begin_src ks
   mpadd({  // adjust apoapsis at next periapsis.
     local dt is eta:periapsis.
     if dt<0 return mpinc().              // hyperbolic
@@ -695,7 +698,7 @@ then adjust the code as necessary.
 
 ****** maybe create a node to fix periapsis.
 
-#+begin_src ks :results none :tangle ../../Archive/home/007 OKTO I/go.ks
+#+begin_src ks
   mpadd({  // adjust periapsis at next apoapsis.
     if apoapsis < 0 return mpinc().
     local dt is eta:apoapsis.
@@ -708,7 +711,7 @@ then adjust the code as necessary.
 
 ***** TODO fix AOP ...?
 
-#+begin_src ks :results none :tangle ../../Archive/home/007 OKTO I/go.ks
+#+begin_src ks
   mpadd({
     local err is orbit:argumentofperiapsis-ccorb:argumentofperiapsis.
     if abs(err)<1 return mpinc().
@@ -739,17 +742,17 @@ then adjust the code as necessary.
 Note that this safes the throttle and fixes the orientation
 before and after handling the node.
 
-#+begin_src ks :results none :tangle ../../Archive/home/007 OKTO I/go.ks
+#+begin_src ks
   mpone({if mnv_plan:typename="Node" add mnv_plan.}).
 #+end_src
 
-#+begin_src ks :results none :tangle ../../Archive/home/007 OKTO I/go.ks
+#+begin_src ks
   mpadd(pdas). mpadd(mnwait). mpadd(mnexec). mpadd(mnfini). mpadd(pdas).
 #+end_src
 
 ***** branch back to the top of orbit management after a delay.
 
-#+begin_src ks :results none :tangle ../../Archive/home/007 OKTO I/go.ks
+#+begin_src ks
   mpadd({return mpput(mpi_park, 5*wfcmd()).}).}
 #+end_src
 
@@ -757,6 +760,6 @@ before and after handling the node.
 
 * Run the Mission, then End the Program.
 
-#+begin_src ks :results none :tangle ../../Archive/home/007 OKTO I/go.ks
+#+begin_src ks
   mprun(). print "program terminated".}.
 #+end_src

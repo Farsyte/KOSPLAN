@@ -1,8 +1,11 @@
+#+PROPERTY: header-args :results none
+#+PROPERTY: header-args :tangle ../Archive/hud.ks
+
 hud - wrapped HUD display
 
 * Import All Dependencies
 
-#+begin_src ks :results none :tangle ../Archive/hud.ks
+#+begin_src ks
   import("time").
 #+end_src
 
@@ -17,7 +20,7 @@ print a "HUD:" prefix that I do not want.
 
 In the future, this might print the message to a log file
 
-#+begin_src ks :results none :tangle ../Archive/hud.ks
+#+begin_src ks
   set hud to { parameter m. parameter p is true.
     if p print m.
     hudtext(m,5,2,24,WHITE,false). }.

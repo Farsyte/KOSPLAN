@@ -1,0 +1,34 @@
+#+PROPERTY: header-args :results none
+#+PROPERTY: header-args :tangle ../../../Archive/home/007 OKTO I/B/current_contract.ks
+
+007 OKTO I/B/current_contract.ks - orbital contract for OKTO I/B
+
+New unmanned satellite around Kerbin
+with antenna and power generation
+fully assembled when launched
+
+From the contract display:
+
+| Apoapsis    | 7810.059 | km |
+| Periapsis   | 6385.725 | km |
+| Inclination |     90.0 | °  |
+| LAN         |    273.9 | °  |
+| AOP         |    275.1 | °  |
+
+Mission Plan Budget:
+    ΔV 80x80 to 80x14562:                     874 m/s
+    ΔV 80x14562 to 11828x14562:               317 m/s
+    ΔV 80x80 to 11828x14562:                 1191 m/s
+
+Contracts never specify MEP or TEP.
+
+Exact figures found in the save file.
+
+#+begin_src ks
+  nvput(1,"ccbod", "kerbin").
+  nvput(1,"ccinc", 90).
+  nvput(1,"ccecc", 0.092514581651981939).
+  nvput(1,"ccsma", 7697891.7333093686).
+  nvput(1,"cclan", 273.92417669013355).
+  nvput(1,"ccaop", 275.14100456384057).
+#+end_src

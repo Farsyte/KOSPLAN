@@ -1,8 +1,11 @@
+#+PROPERTY: header-args :results none
+#+PROPERTY: header-args :tangle ../Archive/pre.ks
+
 pre - precomputed ship data.
 
 * Import all dependencies.
 
-#+begin_src ks :results none :tangle ../Archive/pre.ks
+#+begin_src ks
   import("math").
 #+end_src
 
@@ -10,7 +13,7 @@ pre - precomputed ship data.
 
 ** Approach: add up masses, append to list.
 
-#+begin_src ks :results none :tangle ../Archive/pre.ks
+#+begin_src ks
   set swet to list().
   local s is 0.
   until s>stage:number {
@@ -25,7 +28,7 @@ pre - precomputed ship data.
 
 * sthr[s] -- precomputed maxthrust for each stage.
 
-#+begin_src ks :results none :tangle ../Archive/pre.ks
+#+begin_src ks
   set sthr to list().
   local s is 0.
   until s>stage:number {
@@ -40,7 +43,7 @@ pre - precomputed ship data.
 
 * sisp[s] -- precomputed (G0*Isp) for each stage.
 
-#+begin_src ks :results none :tangle ../Archive/pre.ks
+#+begin_src ks
   set sisp to list().
   local s is 0.
   until s>stage:number {

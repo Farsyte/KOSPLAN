@@ -1,3 +1,6 @@
+#+PROPERTY: header-args :results none
+#+PROPERTY: header-args :tangle ../../Archive/home/008 Mun Lander I/go.ks
+
 go.ks -- GO script for Mun Lander I, the first MUN LANDER
 
 This script manages the flight of the 008 Mun Lander I, which
@@ -27,7 +30,7 @@ is an extremely significiant mission.
 
 Our required packages do not fit in 10000 bytes.
 
-#+begin_src ks :results none :tangle ../../Archive/home/008 Mun Lander I/go.ks
+#+begin_src ks
   import("aeroperi").
   import("ascent").
   import("escape").
@@ -47,7 +50,7 @@ Our required packages do not fit in 10000 bytes.
 
 ** pdas -- Point Down At Sun
 
-#+begin_src ks :results none :tangle ../../Archive/home/008 Mun Lander I/go.ks
+#+begin_src ks
   local pdas is {
     local h is vcrs(body:position,ship:velocity:orbit).
     lock throttle to 0.
@@ -59,7 +62,7 @@ Our required packages do not fit in 10000 bytes.
 
 ** hold -- Wait until bay is closed.
 
-#+begin_src ks :results none :tangle ../../Archive/home/008 Mun Lander I/go.ks
+#+begin_src ks
   local hold is { if not bays mpinc().
   hud("BAY "+(choose "OPEN" if BAYS else "OK"), false). return 2. }.
 #+end_src
@@ -69,13 +72,13 @@ Our required packages do not fit in 10000 bytes.
 This function is executed by IMPORT when it
 finds nothing more specific for this mission.
 
-#+begin_src ks :results none :tangle ../../Archive/home/008 Mun Lander I/go.ks
-  set go to {
+#+begin_src ks
+  set futurego to {
 #+end_src
 
 ** Start an autostager in the background
 
-#+begin_src ks :results none :tangle ../../Archive/home/008 Mun Lander I/go.ks
+#+begin_src ks
   fancystager().
 #+end_src
 
@@ -83,13 +86,13 @@ finds nothing more specific for this mission.
 
 *** Schedule the launch.
 
-#+begin_src ks :results none :tangle ../../Archive/home/008 Mun Lander I/go.ks
+#+begin_src ks
   mpone({t0put(7-mod(time:seconds,1)).}).
 #+end_src
 
 *** Countdown.
 
-#+begin_src ks :results none :tangle ../../Archive/home/008 Mun Lander I/go.ks
+#+begin_src ks
   mpadd({
     local t is -met().
     local d is round(t).
@@ -100,7 +103,7 @@ finds nothing more specific for this mission.
 
 *** Ignite the engines.
 
-#+begin_src ks :results none :tangle ../../Archive/home/008 Mun Lander I/go.ks
+#+begin_src ks
   mpone({
     if maxthrust>0 return mpinc().
     if not stage:ready return 1/10.
@@ -111,7 +114,7 @@ finds nothing more specific for this mission.
 
 *** damp attitude rate until safe to maneuver
 
-#+begin_src ks :results none :tangle ../../Archive/home/008 Mun Lander I/go.ks
+#+begin_src ks
   mpadd({ if alt:radar>=50 return mpinc().
     lock throttle to 1.
     lock steering to facing.
@@ -122,14 +125,14 @@ finds nothing more specific for this mission.
 
 *** control pitch and heading until apoapsis is high enough
 
-#+begin_src ks :results none :tangle ../../Archive/home/008 Mun Lander I/go.ks
+#+begin_src ks
   mpadd(ascent(90,80000)).
   mpone({lock throttle to 0. hud("MECO").}).
 #+end_src
 
 *** coast until above atmosphere.
 
-#+begin_src ks :results none :tangle ../../Archive/home/008 Mun Lander I/go.ks
+#+begin_src ks
   mpadd({ if altitude>body:atm:height return mpinc().
   lock steering to prograde. lock throttle to 0. return 1. }).
   mpone({hud("SPACE!").}).
@@ -137,7 +140,7 @@ finds nothing more specific for this mission.
 
 *** circularize at apoapsis.
 
-#+begin_src ks :results none :tangle ../../Archive/home/008 Mun Lander I/go.ks
+#+begin_src ks
   mpadd(mncirc).
   mpadd(mnwait).
   mpadd(mnexec).
@@ -148,19 +151,19 @@ finds nothing more specific for this mission.
 
 *** trans-munar injection
 
-#+begin_src ks :results none :tangle ../../Archive/home/008 Mun Lander I/go.ks
+#+begin_src ks
   mpadd(xfer("mun")).
   mpadd(mnwait).
   mpone({hud("Trans-Munar Injection").}).
   mpadd(mnexec).
   mpadd(mnfini).
   mpone({hud("Trans-Munar Trajectory Established").}).
-  mpadd(pdas). 
+  mpadd(pdas).
 #+end_src
 
 *** SAFEWARP to just before transition to MUN SOI
 
-#+begin_src ks :results none :tangle ../../Archive/home/008 Mun Lander I/go.ks
+#+begin_src ks
   mpadd({ if not orbit:hasnextpatch return mpinc().
     local dt is eta:transition-60.
     if dt<=0 return mpinc().
@@ -171,7 +174,7 @@ finds nothing more specific for this mission.
 
 *** wait until inside MUN SOI
 
-#+begin_src ks :results none :tangle ../../Archive/home/008 Mun Lander I/go.ks
+#+begin_src ks
   mpadd({
     if not orbit:hasnextpatch return mpinc().
     if body:name <> "Kerbin" return mpinc().
@@ -182,7 +185,7 @@ finds nothing more specific for this mission.
 
 *** Assure MUN periapsis between 12 and 16 km.
 
-#+begin_src ks :results none :tangle ../../Archive/home/008 Mun Lander I/go.ks
+#+begin_src ks
   mpadd({
     if periapsis<12000 {
       lock steering to prograde.
@@ -202,7 +205,7 @@ finds nothing more specific for this mission.
 
 *** Schedule circularization at MUN periapsis.
 
-#+begin_src ks :results none :tangle ../../Archive/home/008 Mun Lander I/go.ks
+#+begin_src ks
   mpadd(mncirc).
   mpadd(pdas).
   mpadd(mnwait).
@@ -211,15 +214,60 @@ finds nothing more specific for this mission.
   mpone({hud("MUN Orbit").}).
 #+end_src
 
-*** HOLD in this step until done gathering science.
+*** TODO pick a landing location
 
-#+begin_src ks :results none :tangle ../../Archive/home/008 Mun Lander I/go.ks
-  mpadd(pdas). mpadd(hold). mpadd(pdas).
+*** TODO deorbit and land
+
+*** TODO hold on the ground until ready to leave
+
+*** TESTING SUPPORT for "start on mun"
+
+IDEA: get the end of the mission working,
+then work backward toward "what do we need
+to do to get to where the rest of the mission
+can happen" ...
+
+Currently: start on the surface of Mun, and
+get the "launch, escape, return, aero" part
+of the mission working.
+
+We have the "from Mun 14x14 to Aero" part
+working from Munar Ib.
+
+#+begin_src ks
+  mpl:clear().
+#+end_src
+
+#+begin_src ks
+  mpadd({
+    if maxthrust>0 return mpinc().
+    lock throttle to 0.
+    hud("Activate Engines to Leave.").
+  }).
+#+end_src
+
+*** launch from mun into 14x14 orbit
+
+  #+begin_src ks
+  mpadd(ascent(90,14000)).
+  mpone({lock throttle to 0. hud("MECO").}).
+  mpadd(mncirc).
+  mpadd(mnwait).
+  mpadd(mnexec).
+  mpadd(mnfini).
+  mpone({hud("ORBIT!").}).
+  mpadd(pdas).
 #+end_src
 
 *** escape from MUN orbit
 
-#+begin_src ks :results none :tangle ../../Archive/home/008 Mun Lander I/go.ks
+This sequence was used previously from a
+retrograde orbit around mun, where we depart
+over the backside.
+
+This mission could have any inclination.
+
+#+begin_src ks
   mpone({hud("Planning MUN Escape").}).
   mpadd(escape).
   mpadd(pdas).
@@ -231,7 +279,7 @@ finds nothing more specific for this mission.
 
 *** SAFEWARP to just before transition out of MUN SOI
 
-#+begin_src ks :results none :tangle ../../Archive/home/008 Mun Lander I/go.ks
+#+begin_src ks
   mpadd({ if not orbit:hasnextpatch return mpinc().
     local dt is eta:transition-60.
     if dt<=0 return mpinc().
@@ -241,7 +289,7 @@ finds nothing more specific for this mission.
 
 *** wait until out of MUN SOI
 
-#+begin_src ks :results none :tangle ../../Archive/home/008 Mun Lander I/go.ks
+#+begin_src ks
   mpadd({ if not orbit:hasnextpatch return mpinc().
     if body:name = "Kerbin" return mpinc().
     return 1. }).
@@ -250,14 +298,14 @@ finds nothing more specific for this mission.
 
 *** tune aerobraking target altitude.
 
-#+begin_src ks :results none :tangle ../../Archive/home/008 Mun Lander I/go.ks
+#+begin_src ks
   mpadd(aeroperi).
   mpadd(pdas).
 #+end_src
 
 *** SAFEWARP to 120 km over kerbin using mnwait.
 
-#+begin_src ks :results none :tangle ../../Archive/home/008 Mun Lander I/go.ks
+#+begin_src ks
   mpone({
     local t1 is time:seconds + 60.
     local t2 is time:seconds + eta:periapsis.
@@ -280,7 +328,7 @@ It is *EXPECTED* that the auto-stager will stage away
 the flamed-out engine, empty fuel tank, science cluster,
 probe core, battery, solar panel, and autopilot computer.
 
-#+begin_src ks :results none :tangle ../../Archive/home/008 Mun Lander I/go.ks
+#+begin_src ks
   mpadd({
     if altitude>80000 return 1.
     if altitude<40000 and apoapsis<60000 return mpinc().
@@ -295,7 +343,7 @@ It is *EXPECTED* that the staging to stage 0 will stage away
 the flamed-out engine, empty fuel tank, science cluster,
 probe core, battery, solar panel, and autopilot computer.
 
-#+begin_src ks :results none :tangle ../../Archive/home/008 Mun Lander I/go.ks
+#+begin_src ks
   mpone({hud("Final Stage Separation").}).
   mpadd({ lock throttle to 0. lock steering to srfretrograde.
     if stage:number=0 mpinc().
@@ -307,7 +355,7 @@ probe core, battery, solar panel, and autopilot computer.
 Congratulations. Your autopilot was adding mass to the
 part of the vehicle that floated down on the parachute.
 
-#+begin_src ks :results none :tangle ../../Archive/home/008 Mun Lander I/go.ks
+#+begin_src ks
   mpone({hud("What CPU is running this code?").}).
   mpadd({ unlock throttle. unlock steering. return mpinc(). }).
   mpone({hud("Falling Off the Bottom").}).
@@ -315,7 +363,7 @@ part of the vehicle that floated down on the parachute.
 
 * Run the Mission, then End the Program.
 
-  #+begin_src ks :results none :tangle ../../Archive/home/008 Mun Lander I/go.ks
+  #+begin_src ks
     mprun(). HUD("program terminated").}.
 #+end_src
 

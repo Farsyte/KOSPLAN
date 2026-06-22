@@ -1,3 +1,6 @@
+#+PROPERTY: header-args :results none
+#+PROPERTY: header-args :tangle ../Archive/predict.ks
+
 predict - encapsulate position and velocity predictions
 
 * posat(T,O) -- predict Body-to-Target vector a time T.
@@ -9,7 +12,7 @@ that the SHIP is currently orbiting.
 
 The O parameter defaults to SHIP.
 
-#+begin_src ks :results none :tangle ../Archive/predict.ks
+#+begin_src ks
   set posat to { parameter t. parameter o is ship.
   return positionat(o,t)-body:position.}.
 #+end_src
@@ -23,7 +26,7 @@ that the SHIP is currently orbiting.
 
 The O parameter defaults to SHIP.
 
-#+begin_src ks :results none :tangle ../Archive/predict.ks
+#+begin_src ks
   set velat to { parameter t. parameter o is ship.
   return velocityat(o,t):orbit.}.
 #+end_src

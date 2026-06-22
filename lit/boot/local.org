@@ -1,3 +1,6 @@
+#+PROPERTY: header-args :results none
+#+PROPERTY: header-args :tangle ../../Archive/boot/local.ks
+
 local.ks -- bootstrap the KOSPLAN system for LOCAL missions
 
 BOOT VARIANT: activate packages directly from the archive.
@@ -22,13 +25,13 @@ Responsibilities:
 
 * wait until simulation is stable.
 
-#+begin_src ks :results none :tangle ../../Archive/boot/local.ks
+#+begin_src ks
   wait until ship:unpacked.
 #+end_src
 
 * warn if no connection to archive at boot.
 
-#+begin_src ks :results none :tangle ../../Archive/boot/local.ks
+#+begin_src ks
   if not homeconnection:isconnected
     print "WARNING: no connection to archive".
 #+end_src
@@ -40,7 +43,7 @@ name are stored. The import package will look for other packages in
 this directory first, then look in its parent, and so on until it has
 checked the root directory of the archive.
 
-#+begin_src ks :results none :tangle ../../Archive/boot/local.ks
+#+begin_src ks
   set home to path("0:/home"):combine(ship:name).
 #+end_src
 
@@ -54,7 +57,7 @@ improves the error message.
 
 REQUIRES: a connection to the archive.
 
-#+begin_src ks :results none :tangle ../../Archive/boot/local.ks
+#+begin_src ks
   set find to { parameter p.
     set d to home.
     until false {
@@ -79,7 +82,7 @@ ALWAYS use the correct letter case when importing a
 package. If you have a package "foo" and import "FOO"
 you might not have a good flight.
 
-#+begin_src ks :results none :tangle ../../Archive/boot/local.ks
+#+begin_src ks
   set import to { parameter p.
 #+end_src
 
@@ -92,7 +95,7 @@ out of range. If so, we have to either wait here
 until we get our connection back, or terminate the
 kOS program until the next reboot.
 
-#+begin_src ks :results none :tangle ../../Archive/boot/local.ks
+#+begin_src ks
   wait until homeconnection:isconnected.
 #+end_src
 
@@ -101,7 +104,7 @@ kOS program until the next reboot.
 The vessel now has a connection to the archive. Locate
 the package and run it.
 
-#+begin_src ks :results none :tangle ../../Archive/boot/local.ks
+#+begin_src ks
   runoncepath(find(p)).}.
 #+end_src
 
@@ -111,6 +114,6 @@ Once the IMPORT facility is available, it can be used to
 import the appropriate GO package, and run the GO
 function that the package is expected to provide.
 
-#+begin_src ks :results none :tangle ../../Archive/boot/local.ks
+#+begin_src ks
   import("go"). go().
 #+end_src

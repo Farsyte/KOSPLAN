@@ -21,24 +21,19 @@ def tangleto(rd, wrname):
             lc += 1
 
 def tangle(rdname):
-    wrote = {}
+    wrname = ""
+    wrsize = 0
+    ppfx = "#+PROPERTY: header-args :tangle "
     with open(rdname, 'r') as rd:
         for line in rd:
             line = line.strip()
-            if not line.startswith("#+begin_src "): continue
-            for w in line.split(":"):
-                if w.startswith("tangle "):
-                    wrname = w[7:]
-                    lc = tangleto(rd, wrname)
-                    x = wrname.find('Archive/')
-                    if x>=0: wrname = wrname[x+8:]
-                    wrote[wrname] = wrote.get(wrname,0) + lc
-                    break
-
-    if len(wrote) != 1:
-        print(f"WARNING: wrote {len(wrote)} files from {rdname}")
-    for wf,wc in wrote.items():
-        print(f"{rdname:32} {wc:3} {wf}")
+            if line.startswith(ppfx):
+                wrname = line[len(ppfx):]
+            if line.startswith("#+begin_src "):
+                wrsize += tangleto(rd, wrname)
+    x = wrname.find('Archive/')
+    if x>=0: wrname = wrname[x+8:]
+    print(f"{rdname:32} {wrsize:3} {wrname}")
 
 def main(args):
     for arg in args[1:]:

@@ -1,8 +1,11 @@
+#+PROPERTY: header-args :results none
+#+PROPERTY: header-args :tangle ../Archive/simplestager.ks
+
 simplestager.ks - simple auto-stager
 
 * Import Required Packages
 
-#+begin_src ks :results none :tangle ../Archive/simplestager.ks
+#+begin_src ks
   import("mp").
 #+end_src
 
@@ -14,8 +17,8 @@ stages when the maximum vacuum thrust of the vessel goes down.
 Note that the stager might not jettison an empty stage if it
 never saw any thrust from the stage.
 
-#+begin_src ks :results none :tangle ../Archive/simplestager.ks
-  set simplestager to { 
+#+begin_src ks
+  set simplestager to {
     local t is time:seconds.
     local mt is 0.
     when t <= time:seconds then { if abort or stage:number<1 return false.

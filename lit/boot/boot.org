@@ -1,7 +1,10 @@
+#+PROPERTY: header-args :results none
+#+PROPERTY: header-args :tangle ../../Archive/boot/boot.ks
+
 boot.ks -- minimal boot script for existing vessels that use it.
 
 This code is FROZEN when the vessel rolls out.
 
-#+begin_src ks :results none :tangle ../../Archive/boot/boot.ks
+#+begin_src ks
   wait until ship:unpacked.
 #+end_src

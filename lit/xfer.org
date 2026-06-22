@@ -1,11 +1,14 @@
+#+PROPERTY: header-args :results none
+#+PROPERTY: header-args :tangle ../Archive/xfer.ks
+
 xfer.ks - plan transfer to to a moon
 
 The ship and the destination are in orbit
-around the same body. 
+around the same body.
 
 * Import Required Packages
 
-#+begin_src ks :results none :tangle ../Archive/xfer.ks
+#+begin_src ks
   import("mp").
   import("math").
   import("hud").
@@ -14,7 +17,7 @@ around the same body.
 
 * gpl: Get Periapsis List for nextnode.
 
-#+begin_src ks :results none :tangle ../Archive/xfer.ks
+#+begin_src ks
   set gpl to {
     local l is list(). if not hasnode return l.
     local o is nextnode:orbit.
@@ -26,13 +29,13 @@ around the same body.
 
 * xfer(body): plan a free-return transfer to the named body.
 
-#+begin_src ks :results none :tangle ../Archive/xfer.ks
+#+begin_src ks
   set xfer to { parameter target_name. return {
 #+end_src
 
 ** set configuration information
-    
-#+begin_src ks :results none :tangle ../Archive/xfer.ks
+
+#+begin_src ks
   local dest is body(target_name).
   HUD("Planning transfer to "+dest:name).
   local mu is body:mu.
@@ -42,8 +45,8 @@ around the same body.
 #+end_src
 
 ** Set up a maneuver node at an arbitrary time.
-    
-#+begin_src ks :results none :tangle ../Archive/xfer.ks
+
+#+begin_src ks
   local t1_min is time:seconds + 300.
   local t1 is t1_min + 300.
   local t2 is t1.
@@ -61,7 +64,7 @@ If the orbits are not circular, then the body and dest
 state information changes each time we change the
 transfer orbit start time or transfer time.
 
-#+begin_src ks :results none :tangle ../Archive/xfer.ks
+#+begin_src ks
   local xapo is { parameter beyond.
 #+end_src
 
@@ -69,7 +72,7 @@ transfer orbit start time or transfer time.
 
 after updating t2, of course.
 
-#+begin_src ks :results none :tangle ../Archive/xfer.ks
+#+begin_src ks
   set t2 to time:seconds + mnv:orbit:eta:apoapsis.
   local curr_r is posat(t1, ship):mag.
   local new_rmax is posat(t2, dest):mag + beyond.
@@ -78,7 +81,7 @@ after updating t2, of course.
 Grab the rmin and rmax of the existing transfer for
 use in the visviva equations.
 
-#+begin_src ks :results none :tangle ../Archive/xfer.ks
+#+begin_src ks
   local old_rmin is mnv:orbit:periapsis + mnv:orbit:body:radius.
   local old_rmax is mnv:orbit:apoapsis + mnv:orbit:body:radius.
 #+end_src
@@ -87,7 +90,7 @@ Use visviva to determine the speed along the transfer
 as it was, and the speed along the transfer that gets
 us out to the new rmax.
 
-#+begin_src ks :results none :tangle ../Archive/xfer.ks
+#+begin_src ks
   local v1 is vv(curr_r, old_rmin, old_rmax, mu).
   local v2 is vv(curr_r, old_rmin, new_rmax, mu).
 #+end_src
@@ -95,7 +98,7 @@ us out to the new rmax.
 Update the maneuver node. Be sure to wait for a phys tick
 so that the derived data in mnv are updated.
 
-#+begin_src ks :results none :tangle ../Archive/xfer.ks
+#+begin_src ks
   set mnv:prograde to mnv:prograde + v2 - v1. wait 0. }.
 #+end_src
 
@@ -107,14 +110,14 @@ During configuration, we selected how far BEYOND the
 destination body we should place our apoapsis; this is
 what gives us the free-return trajectory.
 
-#+begin_src ks :results none :tangle ../Archive/xfer.ks
+#+begin_src ks
   xapo(planned_beyond).
   xapo(planned_beyond).
 #+end_src
 
 *** Scan forward for the best intercept.
 
-#+begin_src ks :results none :tangle ../Archive/xfer.ks
+#+begin_src ks
   local first_est_time is nextnode:time.
   local first_est_dpro is nextnode:prograde.
   local ae is 0.
@@ -134,7 +137,7 @@ after it has been incremented, both have an intercept;
 T1 is left pointing at the second time. If both were
 found, "daedt" is updated with the change in AE.
 
-#+begin_src ks :results none :tangle ../Archive/xfer.ks
+#+begin_src ks
   local measure_daedt is {
     if mnv:orbit:hasnextpatch return false.
     local old_ae is vang(posat(t2, ship), posat(t2, dest)).
@@ -150,7 +153,7 @@ This skips forward by 1/36th of the orbit period,
 so it might skip past an intercept if the window
 for the intercept is narrow.
 
-#+begin_src ks :results none :tangle ../Archive/xfer.ks
+#+begin_src ks
   until measure_daedt() {
     set t1 to t1 + orbit:period/36.
   set mnv:time to t1. wait 0. }
@@ -162,7 +165,7 @@ Adjust t1 to where we estimate that ae is minimized.
 
 This is a pretty good starting point for the transfer orbit.
 
-#+begin_src ks :results none :tangle ../Archive/xfer.ks
+#+begin_src ks
   local dt is -ae / daedt.
   set t1 to t1 + dt.
   until t1 > t1_min
@@ -187,13 +190,13 @@ periapsis over the destination is small enough that
 we can run this adjustment until it converges then
 go back to adjusting the other.
 
-#+begin_src ks :results none :tangle ../Archive/xfer.ks
+#+begin_src ks
   local fix_aero_using_prograde is {
 #+end_src
-    
+
 ***** Configure the process.
 
-#+begin_src ks :results none :tangle ../Archive/xfer.ks
+#+begin_src ks
   local pstep is 1/100.
   local hr is return_altitude.
   local hm is hr - 1000.
@@ -203,7 +206,7 @@ go back to adjusting the other.
 
 Loop until done, of course.
 
-#+begin_src ks :results none :tangle ../Archive/xfer.ks
+#+begin_src ks
   until false {
 #+end_src
 
@@ -213,7 +216,7 @@ maneuver does not have enough patches, then
 terminate this process so we can try another
 starting time.
 
-#+begin_src ks :results none :tangle ../Archive/xfer.ks
+#+begin_src ks
   local pl is gpl(). if pl:length < 3 {     // print ("warning: lost encounter while trying to fix aero [1].").
   set mnv:prograde to good_dpro. wait 0. break. }
 #+end_src
@@ -222,7 +225,7 @@ Update our record of a "good" prograde burn value.
 If our goal is met, we are done.
 Otherwise, change prograde by a small amount.
 
-#+begin_src ks :results none :tangle ../Archive/xfer.ks
+#+begin_src ks
   set good_dpro to mnv:prograde.
   local h1 to pl[2].
   if hm <= h1 and h1 <= hp break.
@@ -240,7 +243,7 @@ achieve the best value in our goal region.
 
 Update the maneuver node and loop back.
 
-#+begin_src ks :results none :tangle ../Archive/xfer.ks
+#+begin_src ks
   local pl is gpl(). if pl:length < 3 {     // print("warning: lost encounter while trying to fix aero [2].").
   set mnv:prograde to good_dpro. wait 0. break. }
 
@@ -268,13 +271,13 @@ It has been observed that the effect this has on the
 aerobraking altitude is small enough that we can
 converge by adjusting them alternately.
 
-#+begin_src ks :results none :tangle ../Archive/xfer.ks
+#+begin_src ks
   local fix_flyby_using_time is {
 #+end_src
 
 Configuration values.
 
-#+begin_src ks :results none :tangle ../Archive/xfer.ks
+#+begin_src ks
   local tstep is 1/1000.
   local hr is target_flyby_altitude.
   local hm is hr - 1000.
@@ -284,7 +287,7 @@ Configuration values.
 
 Loop until done.
 
-#+begin_src ks :results none :tangle ../Archive/xfer.ks
+#+begin_src ks
   until false {
 #+end_src
 
@@ -292,7 +295,7 @@ Before messing with scheduled time, stabilize
 our prograde burn to try to get to the center
 of the goal region for the aero capture.
 
-#+begin_src ks :results none :tangle ../Archive/xfer.ks
+#+begin_src ks
   fix_aero_using_prograde().
 #+end_src
 
@@ -301,7 +304,7 @@ from the maneuver node. If the result of the
 maneuver does not have enough patches, then
 terminate this process.
 
-#+begin_src ks :results none :tangle ../Archive/xfer.ks
+#+begin_src ks
   local pl is gpl(). if pl:length < 3 {     // print("warning: lost encounter while trying to fix flyby [1].").
   set mnv:time to good_time. wait 0. break.}
 #+end_src
@@ -310,7 +313,7 @@ Update our record of a "good" scheduld maneuver time.
 If our goal is met, we are done.
 Otherwise, change prograde by a small amount.
 
-#+begin_src ks :results none :tangle ../Archive/xfer.ks
+#+begin_src ks
   set good_time to mnv:time.
   local h1 to pl[1].
   if hm <= h1 and h1 <= hp break.
@@ -321,7 +324,7 @@ Grab the periapse values of all orbit patches from the
 maneuver node again. If the result of the maneuver does
 not have enough patches, then terminate this process.
 
-#+begin_src ks :results none :tangle ../Archive/xfer.ks
+#+begin_src ks
   local pl is gpl(). if pl:length < 3 {     // print("warning: lost encounter while trying to fix flyby [2].").
   set mnv:time to good_time. wait 0. break. }
 #+end_src
@@ -336,7 +339,7 @@ burn values that keep us in our goal windows.
 
 Update the maneuver node and loop back.
 
-#+begin_src ks :results none :tangle ../Archive/xfer.ks
+#+begin_src ks
   local h2 is pl[1].
   local peri_per_time is (h2 - h1) / tstep.
   local adj_time to (hr - h2) / peri_per_time.
@@ -353,7 +356,7 @@ This is sufficient.
 There are a bunch of debug prints here that might be
 useful if things are going wrong.
 
-#+begin_src ks :results none :tangle ../Archive/xfer.ks
+#+begin_src ks
   fix_flyby_using_time().
 
   // local final_est_time is nextnode:time.

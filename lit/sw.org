@@ -1,3 +1,6 @@
+#+PROPERTY: header-args :results none
+#+PROPERTY: header-args :tangle ../Archive/sw.ks
+
 sw.ks - SafeWait facility.
 
 This facility only supports RAILS warps.
@@ -26,7 +29,7 @@ come back soon to detect when warp is settled.
 
 * Import Required Packages
 
-#+begin_src ks :results none :tangle ../Archive/sw.ks
+#+begin_src ks
   import("time").
 #+end_src
 
@@ -51,7 +54,7 @@ generous. Much better than ending up maintaining a high
 timewarp for slightly too long and overshooting a
 planned action.
 
-#+begin_src ks :results none :tangle ../Archive/sw.ks
+#+begin_src ks
   set swra to LIST(0, 4, 6, 30, 60, 600, 6000, 60000).
 #+end_src
 
@@ -63,13 +66,13 @@ the WFNOW symbol is not visible to the calling script.
 NOTE: if we use FUNCTION WFNOW { return kuniverse:timewarp:rate.}
 the WFNOW symbol is not visible to the calling script.
 
-#+begin_src ks :results none :tangle ../Archive/sw.ks
+#+begin_src ks
   set wfnow to { return kuniverse:timewarp:rate. }.
 #+end_src
 
 * wfcmd() -- commanded timewarp multiplier.
 
-#+begin_src ks :results none :tangle ../Archive/sw.ks
+#+begin_src ks
   set wfcmd to { return kuniverse:timewarp:ratelist[warp]. }.
 #+end_src
 
@@ -79,7 +82,7 @@ Specifically, assures that TIMEWARP is 0
 and the TIMEWARP facility has settled
 before moving on to the next step.
 
-#+begin_src ks :results none :tangle ../Archive/sw.ks
+#+begin_src ks
   set swend to {
     if warp>0 set warp to 0.
     if not kuniverse:timewarp:issettled return 1/10.
@@ -91,7 +94,7 @@ before moving on to the next step.
 Look through SWRA to find the highest index for
 which the "return to zero" time is less than dt.
 
-#+begin_src ks :results none :tangle ../Archive/sw.ks
+#+begin_src ks
   set swfac to { parameter dt.
     local i is swra:length - 1.
     until i=0 or dt>swra[i]
@@ -115,7 +118,7 @@ This facility needs to be called at 10 Hz, or the
 vessel might remain in TIMEWARP too long and not
 be able to get out of warp in time.
 
-#+begin_src ks :results none :tangle ../Archive/sw.ks
+#+begin_src ks
   set swadj to { parameter dt.
     set o to warp.
     set n to swfac(dt).

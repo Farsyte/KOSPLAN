@@ -1,8 +1,11 @@
+#+PROPERTY: header-args :results none
+#+PROPERTY: header-args :tangle ../Archive/time.ks
+
 time - simple time stuff
 
 * Import Depencencies
 
-#+begin_src ks :results none :tangle ../Archive/time.ks
+#+begin_src ks
   import("math").
   import("nv").
 #+end_src
@@ -18,7 +21,7 @@ Missions are expected to change T0 several times.
 - when launch actually occurs:
     SET T0 to time:seconds.
 
-#+begin_src ks :results none :tangle ../Archive/time.ks
+#+begin_src ks
   set t0 to nvget(1, "t0", inf).
 #+end_src
 
@@ -27,7 +30,7 @@ Missions are expected to change T0 several times.
 Note that if T0 is not yet selected (T0=inf), indicate
 that we are in launch-hold at T-1 hour.
 
-#+begin_src ks :results none :tangle ../Archive/time.ks
+#+begin_src ks
   local met_h is { return -3600. }.
   local met_f is { return time:seconds - t0. }.
   set met to choose met_f if t0 < inf else met_h.
@@ -35,7 +38,7 @@ that we are in launch-hold at T-1 hour.
 
 * T0PUT(dt) -- establish T0 value.
 
-#+begin_src ks :results none :tangle ../Archive/time.ks
+#+begin_src ks
   set t0put to { parameter dt.
     set t0 to nvput(1, "t0", TIME:SECONDS+dt).
     set met to choose met_f if t0 < inf else met_h.
@@ -46,7 +49,7 @@ that we are in launch-hold at T-1 hour.
 
 Uses TIME:FULL then removes zero elements from the front.
 
-#+begin_src ks :results none :tangle ../Archive/time.ks
+#+begin_src ks
   set ydhms to { parameter sec.
     set sec to round(sec).
     if sec<0 return "-"+ydhms(-sec).
@@ -59,7 +62,7 @@ Uses TIME:FULL then removes zero elements from the front.
 
 * TEE() -- printable MET in a user-friendly way.
 
-#+begin_src ks :results none :tangle ../Archive/time.ks
+#+begin_src ks
   set TEE to { local t is met().
     return "T"+(choose "-" if t<0 else "+")+ydhms(abs(t)). }.
 #+end_src

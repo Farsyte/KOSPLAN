@@ -1,3 +1,6 @@
+#+PROPERTY: header-args :results none
+#+PROPERTY: header-args :tangle ../../Archive/home/000 000 000/go.ks
+
 go.ks -- GO script for 000 000 000 aka the Development Workstation
 
 This script is a framework within which KOSPLAN code
@@ -5,7 +8,7 @@ can be designed, implemented, tested, and debugged.
 
 * Import Required Packages
 
-#+begin_src ks :results none :tangle ../../Archive/home/000 000 000/go.ks
+#+begin_src ks
   import("mnpro").
 #+end_src
 
@@ -14,7 +17,7 @@ can be designed, implemented, tested, and debugged.
 This function is executed by IMPORT when it
 finds nothing more specific for this mission.
 
-#+begin_src ks :results none :tangle ../../Archive/home/000 000 000/go.ks
+#+begin_src ks
 #+end_src
 
 * Provide a GO function.
@@ -22,13 +25,13 @@ finds nothing more specific for this mission.
 This function is executed by IMPORT when it
 finds nothing more specific for this mission.
 
-#+begin_src ks :results none :tangle ../../Archive/home/000 000 000/go.ks
+#+begin_src ks
   set go to {
 #+end_src
 
 * do stuff
 
-#+begin_src ks :results none :tangle ../../Archive/home/000 000 000/go.ks
+#+begin_src ks
   mpadd({
     set h to vcrs(body:position,ship:velocity:orbit).
     lock steering to lookdirup(h,-sun:position).
@@ -41,13 +44,13 @@ finds nothing more specific for this mission.
 
 ** this test thing always starts at the top of the plan when rebooting.
 
-#+begin_src ks :results none :tangle ../../Archive/home/000 000 000/go.ks
+#+begin_src ks
   mpclr(). mprun().
 #+end_src
 
 * End the Program.
 
-#+begin_src ks :results none :tangle ../../Archive/home/000 000 000/go.ks
+#+begin_src ks
   print "program complete. ABORT to reboot.".
   wait until abort. abort off. reboot.}.
 #+end_src

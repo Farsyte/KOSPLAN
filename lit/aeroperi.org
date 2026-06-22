@@ -1,3 +1,6 @@
+#+PROPERTY: header-args :results none
+#+PROPERTY: header-args :tangle ../Archive/aeroperi.ks
+
 aeroperi -- tune periapsis for aero capture.
 
 This mission step is executed early in the transit
@@ -7,13 +10,13 @@ from MUN back to KERBIN.
 
 Our required packages do not fit in 10000 bytes.
 
-#+begin_src ks :results none :tangle ../Archive/aeroperi.ks
+#+begin_src ks
   import("math").
 #+end_src
 
 * aeroperi: tune kerbin periapsis for aerocapture.
 
-#+begin_src ks :results none :tangle ../Archive/aeroperi.ks
+#+begin_src ks
   set aeroperi to { if maxthrust <= 0 return 1. // try again soon, probably staging.
 #+end_src
 
@@ -23,7 +26,7 @@ Originally I wrote this with LOCK for every formula
 that changed over time. It is probably just easier
 to ask mp to run this every phys tick.
 
-#+begin_src ks :results none :tangle ../Archive/aeroperi.ks
+#+begin_src ks
   local r0 is ship:body:radius.
   local r1 is r0 + altitude.
   local r2 is r0 + 35000.
@@ -34,7 +37,7 @@ Use vis-viva to get the velocity that WOULD have
 our periapsis at the right altitude, and set up
 to burn to correct it.
 
-#+begin_src ks :results none :tangle ../Archive/aeroperi.ks
+#+begin_src ks
   local vo is velocity:orbit:mag.
   local vd is vv(r1, r2, r3, body:mu).
   local ds is vd - vo.
@@ -44,21 +47,21 @@ to burn to correct it.
 
 if the burn is trivial or we have no fuel, we are done.
 
-#+begin_src ks :results none :tangle ../Archive/aeroperi.ks
+#+begin_src ks
   if abs(ds)*1000<=ma or ship:LiquidFuel<=0 {
   lock throttle to 0. lock steering to facing. return mpinc(). }
 #+end_src
 
 steer us in the right direction.
 
-#+begin_src ks :results none :tangle ../Archive/aeroperi.ks
+#+begin_src ks
   lock steering to lookdirup(dv,facing:topvector).
 #+end_src
 
 cut throttle back as our facing error increases, but never to less
 than 1% of desired, and no roll off for small errors.
 
-#+begin_src ks :results none :tangle ../Archive/aeroperi.ks
+#+begin_src ks
   local ae is vang(facing:vector,dv).
   local ka is limit(1/100,1,(5-ae)*1.2/5).
   local th is limit(0,1,ka*5*dv:mag/ma).

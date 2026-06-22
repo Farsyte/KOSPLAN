@@ -18,7 +18,7 @@ local a is vang(facing:upvector,sun:position).
 if a>175 mpinc(). return 1. }.
 local hold is { if not bays mpinc().
 hud("BAY "+(choose "OPEN" if BAYS else "OK"), false). return 2. }.
-set go to {
+set futurego to {
 fancystager().
 mpone({t0put(7-mod(time:seconds,1)).}).
 mpadd({
@@ -90,7 +90,20 @@ mpadd(mnwait).
 mpadd(mnexec).
 mpadd(mnfini).
 mpone({hud("MUN Orbit").}).
-mpadd(pdas). mpadd(hold). mpadd(pdas).
+mpl:clear().
+mpadd({
+if maxthrust>0 return mpinc().
+lock throttle to 0.
+hud("Activate Engines to Leave.").
+}).
+mpadd(ascent(90,14000)).
+mpone({lock throttle to 0. hud("MECO").}).
+mpadd(mncirc).
+mpadd(mnwait).
+mpadd(mnexec).
+mpadd(mnfini).
+mpone({hud("ORBIT!").}).
+mpadd(pdas).
 mpone({hud("Planning MUN Escape").}).
 mpadd(escape).
 mpadd(pdas).

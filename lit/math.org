@@ -1,3 +1,6 @@
+#+PROPERTY: header-args :results none
+#+PROPERTY: header-args :tangle ../Archive/math.ks
+
 math - simple math stuff
 
 * Constants (pi, g0, e, inf, eps)
@@ -10,7 +13,7 @@ hyperbolic trajectories.
 However note, testing for hyperbolic is better done
 by looking for negative APOAPSIS values.
 
-#+begin_src ks :results none :tangle ../Archive/math.ks
+#+begin_src ks
   set pi to constant:pi.
   set g0 to constant:g0.
   set e to constant:e.
@@ -26,19 +29,19 @@ than L. Returns H if L is higher than H.
 
 Caller must assure that L <= H.
 
-#+begin_src ks :results none :tangle ../Archive/math.ks
+#+begin_src ks
   set limit to { parameter l,h,u. return max(l,min(h,u)). }.
 #+end_src
 
 * ua(a): fold angle a into the 000..360 range.
 
-#+begin_src ks :results none :tangle ../Archive/math.ks
+#+begin_src ks
   set ua to { parameter a. return choose 360-mod(-a,360) if a<0 else mod(a,360). }.
 #+end_src
 
 * sa(a): fold angle a into the -180..+180 range.
 
-#+begin_src ks :results none :tangle ../Archive/math.ks
+#+begin_src ks
   set sa to { parameter a. return ua(a+180)-180. }.
 #+end_src
 
@@ -50,7 +53,7 @@ Returns the velocity of a test mass at radius r1 moving
 in an orbit with periapsis radius r2 and apoapsis radius
 r3, in a gravitational field defined by MU = G*(M1+M2).
 
-#+begin_src ks :results none :tangle ../Archive/math.ks
+#+begin_src ks
   set vv to { parameter r1,r2,r3,mu.
   return sqrt(max(0,2*mu*(1/r1-1/(r2+r3)))). }.
 #+end_src
@@ -60,7 +63,7 @@ r3, in a gravitational field defined by MU = G*(M1+M2).
 At radius R1, transitioning from an R1xR2 orbit to an R1xR3 orbit
 where the R values are radii, not altitudes, and are in meters.
 
-#+begin_src ks :results none :tangle ../Archive/math.ks
+#+begin_src ks
   set burndv to { parameter r1,r2,r3,mu.
     return vv(r1,r1,r3,mu)-vv(r1,r1,r2,mu). }.
 #+end_src
@@ -69,7 +72,7 @@ where the R values are radii, not altitudes, and are in meters.
 
 Variant of burndv that takes input as METERS ASL, and the body.
 
-#+begin_src ks :results none :tangle ../Archive/math.ks
+#+begin_src ks
   set burndvh to { parameter h1,h2,h3,b.
     local r0 is b:radius.
     return burndv(r0+h1,r0+h2,r0+h3,b:mu). }.
@@ -102,6 +105,6 @@ Dunbaratu, comment on issue 3009, on Aug 26, 2021:
 > that like it does when you pass a position into, say,
 > body:geopositionof(vector).
 
-#+begin_src ks :results none :tangle ../Archive/math.ks
+#+begin_src ks
   set lefthand to { parameter u. return v(u:x,u:z,u:y). }.
 #+end_src

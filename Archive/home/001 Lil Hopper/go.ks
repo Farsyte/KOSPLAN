@@ -1,9 +1,9 @@
 import("mp").
+import("hold").
 import("simple").
 set go to {
 mpstat("Waiting for Launch").
 mphold_thrust().
-mpstat("Liftoff").
 mplaunch().
 mpstat("Ascent").
 mpadd({ if verticalspeed <= 0 return mpinc().

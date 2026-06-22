@@ -1,8 +1,11 @@
+#+PROPERTY: header-args :results none
+#+PROPERTY: header-args :tangle ../Archive/mn.ks
+
 mn - maneuver node support
 
 * Import All Dependencies
 
-#+begin_src ks :results none :tangle ../Archive/mn.ks
+#+begin_src ks
   import("math").
   import("mp").
   import("sw").
@@ -19,45 +22,45 @@ whether iterating through allnodes would have problems
 with a node being removed during the iteration, but it
 does seem to work just fine.
 
-#+begin_src ks :results none :tangle ../Archive/mn.ks
+#+begin_src ks
   set mnclr to { for n in allnodes remove n. }.
 #+end_src
 
 * mnexec -- STEP: execute the next maneuver node
 
-#+begin_src ks :results none :tangle ../Archive/mn.ks
+#+begin_src ks
   set mnexec to {
 #+end_src
 
 ** if no maneuver is scheduled, this step is complete.
 
-#+begin_src ks :results none :tangle ../Archive/mn.ks
+#+begin_src ks
   if not hasnode return mpinc().
 #+end_src
 
 ** assure we are not in timewarp.
 
-#+begin_src ks :results none :tangle ../Archive/mn.ks
+#+begin_src ks
   if warp>0 set warp to 0.
   if not kuniverse:timewarp:issettled return 1/10.
 #+end_src
 
 ** if we are out of fuel, we are done.
 
-#+begin_src ks :results none :tangle ../Archive/mn.ks
+#+begin_src ks
   if ship:liquidfuel <= 0 return mpinc().
 #+end_src
 
 ** if the remaining ΔV is trival, we are done.
 
-#+begin_src ks :results none :tangle ../Archive/mn.ks
+#+begin_src ks
   local mnv is nextnode.
   if mnv:deltav:mag<1/10 return mpinc().
 #+end_src
 
 ** Steer in the direction of the burn.
 
-#+begin_src ks :results none :tangle ../Archive/mn.ks
+#+begin_src ks
   lock steering to mnv:deltav.
 #+end_src
 
@@ -67,7 +70,7 @@ Throttle is the product of two 0..1 values.
 - A value decreasing from 1 to 0 as ΔV approaches 0
 - A value decreasing from 1 to 0 if we are not pointing the right way
 
-#+begin_src ks :results none :tangle ../Archive/mn.ks
+#+begin_src ks
   lock mnl_mt to max(eps, maxthrust).
   lock mnl_dv to mnv:deltav:mag.
   lock mnl_dt to mnl_dv * ship:mass / mnl_mt.
@@ -81,7 +84,7 @@ Throttle is the product of two 0..1 values.
 
 Come back and recompute in no longer than a second.
 
-#+begin_src ks :results none :tangle ../Archive/mn.ks
+#+begin_src ks
   return min(1,mnl_dt). }.
 #+end_src
 
@@ -94,7 +97,7 @@ as they were at the end of the burn.
 This function cuts the throttle, sets steering to keep
 our attitude where it is, and clears the maneuver plan.
 
-#+begin_src ks :results none :tangle ../Archive/mn.ks
+#+begin_src ks
   // All uses of mnexec must be immediately followed by mnfini.
   // Missions should probably also fix the facing.
   set mnfini to {
@@ -114,14 +117,14 @@ maneuver node.
 - the ship is not timewarping
 - the ship is not currently producing thrust
 
-#+begin_src ks :results none :tangle ../Archive/mn.ks
+#+begin_src ks
   set mnwait to {
 #+end_src
 
 If no maneuver is planned, or if the maneuver is
 trivially overdue, move on to the next step.
 
-#+begin_src ks :results none :tangle ../Archive/mn.ks
+#+begin_src ks
   if not hasnode return mpinc().
   local mnv is nextnode.
   if mnv:eta <= 0 return mpinc().
@@ -131,7 +134,7 @@ Work out when to start the burn, based on
 wanting to provide half of the ΔV before
 the scheduled burn instant and half after.
 
-#+begin_src ks :results none :tangle ../Archive/mn.ks
+#+begin_src ks
   local hbt is bt(mnv:deltav:mag/2).
   local dt is mnv:eta - hbt.
 #+end_src
@@ -143,7 +146,7 @@ to steer into a V(0,0,0) deltav, ando handle the case
 where the node goes away before someone else takes over
 steering.
 
-#+begin_src ks :results none :tangle ../Archive/mn.ks
+#+begin_src ks
   if dt < 60
     lock steering to
       choose mnv:deltav
@@ -151,7 +154,7 @@ steering.
       else facing.
 #+end_src
 
-#+begin_src ks :results none :tangle ../Archive/mn.ks
+#+begin_src ks
   if dt <= 0 return mpinc().
 #+end_src
 
@@ -160,6 +163,6 @@ that would allow us to come to a halt at the given time.
 But we DO need to call it frequently so it can lower the
 warp factor in time!
 
-#+begin_src ks :results none :tangle ../Archive/mn.ks
+#+begin_src ks
   swadj(dt-30). return 1/10. }.
 #+end_src

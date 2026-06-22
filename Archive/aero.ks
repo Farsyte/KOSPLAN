@@ -1,0 +1,26 @@
+import("mp").
+set mpaero to {
+mpstat("Adjusting Periapsis for Aerocapture").
+mpadd({
+if periapsis<40000 return mpinc().
+lock steering to retrograde.
+lock throttle to max(0,min(1,(periapsis+100-40000)/1000)) *
+max(1/100,min(1,(10-vang(retrograde:vector,facing:vector))/5)).}).
+mpstat("Aerobraking").
+mpadd({
+if altitude<=5000 return mpinc().
+lock steering to srfretrograde.
+return 1/10.}).
+mpstat("Prepare for Landing").
+mpadd({
+if stage:number=0 return mpinc().
+if not stage:ready return 1/10.
+stage. return 1/10.}).
+mpstat("Landing").
+mpadd({
+if alt:radar < 50 return mpinc().
+lock steering to facing. return 1/10.}).
+mpadd({
+if verticalspeed>=0 return mpinc().
+lock steering to heading(90,90,0). return 1/10.}).
+mpadd({unlock steering. sas on. return mpinc().}).}.

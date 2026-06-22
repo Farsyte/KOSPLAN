@@ -1,4 +1,5 @@
 import("mp").
+import("hold").
 import("simple").
 set po to 89.
 set az to 270.
@@ -7,7 +8,6 @@ set h2 to h1 + 1000.
 set go to {
 mpstat("Waiting for Launch").
 mphold_thrust().
-mpstat("Liftoff").
 mplaunch().
 mpstat("Powered Ascent").
 mpadd({ if verticalspeed<=0 or apoapsis>=h2 return mpinc().

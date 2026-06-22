@@ -4,8 +4,10 @@ import("escape").
 import("fancystager").
 import("fmt").
 import("hud").
-import("mp").
 import("mnpro").
+import("moon").
+import("mp").
+import("simple").
 import("simplecirc").
 import("sw").
 import("time").
@@ -22,28 +24,14 @@ hud("BAY "+(choose "OPEN" if BAYS else "OK"), false). return 2. }.
 set go to {
 fancystager().
 mpone({t0put(7-mod(time:seconds,1)).}).
-mpadd({
-local t is -met().
-local d is round(t).
-if d<=1 mpinc().
-if d<=5 hud(TEE()).
-return t-round(t-1)-1/50.}).
-mpone({
-if maxthrust>0 return mpinc().
-if not stage:ready return 1/10.
-lock throttle to 1.
-lock steering to facing.
-hud(TEE()+" Ignition"). stage. t0put(0).}).
-mpadd({ if alt:radar>=50 return mpinc().
-lock throttle to 1.
-lock steering to facing.
-bays off.
-return 1/10. }).
+mpadd(docount).
+mpone({hud(TEE()+" Ignition").}).
+mpadd(dolaunch).
 mpone({hud(TEE()+" Pitchover").}).
 mpadd(ascent(90,80000)).
-mpone({lock throttle to 0. hud(TEE()+" MECO").}).
-mpadd({ if altitude>body:atm:height return mpinc().
-lock steering to prograde. lock throttle to 0. return 1. }).
+mpadd(meco).
+mpone({hud(TEE()+" MECO").}).
+mpadd(coast).
 mpone({hud(TEE()+" SPACE!").}).
 mpadd(simplecirc).
 mpone({hud(TEE()+" ORBIT!").}).
@@ -67,20 +55,7 @@ if body:name <> "Kerbin" return mpinc().
 return 1. }).
 mpone({hud(TEE()+" Entering MUN SOI").}).
 mpadd(pdas).
-mpadd({
-if periapsis<12000 {
-lock steering to prograde.
-lock throttle to limit(0,1,(14000-periapsis-100)/1000) *
-limit(1/100,1,(10-vang(prograde:vector,facing:vector))/5).
-return 1/10.
-}
-if periapsis>16000 {
-lock steering to retrograde.
-lock throttle to limit(0,1,(periapsis+100-14000)/1000) *
-limit(1/100,1,(10-vang(retrograde:vector,facing:vector))/5).
-return 1/10.
-}
-return mpinc(). }).
+mpadd(fixperi(12000,14000,16000)).
 mpadd(pdas).
 mpadd(mncirc).
 mpadd(pdas).
