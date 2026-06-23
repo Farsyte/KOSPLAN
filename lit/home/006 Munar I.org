@@ -26,6 +26,7 @@ Verified on *20260621* booted from boot/local
   import("aeroperi").
   import("mp").
   import("sw").
+  import("mnpro").
   import("time").
 #+end_src
 
@@ -50,7 +51,6 @@ finds nothing more specific for this mission.
 
 #+begin_src ks
   mpstat("Launchpad Science").
-  mpone({bays on.}).
   mphold_bay().
 #+end_src
 
@@ -61,57 +61,36 @@ finds nothing more specific for this mission.
   mpone({t0put(7-mod(time:seconds,1)).}).
 #+end_src
 
-*** Countdown.
+*** Get to Orbit and collect science.
 
 #+begin_src ks
   mpcount().
-#+end_src
-
-*** launch
-
-#+begin_src ks
-  mpone({bays off.}). // just in case.
   mplaunch().
-#+end_src
-
-*** control pitch and heading until apoapsis is high enough
-
-#+begin_src ks
   mpstat("Powered Ascent").
   mpascent(90,80000).
-#+end_src
-
-*** coast until above atmosphere.
-
-#+begin_src ks
   mpstat("Unpowered Ascent").
   mpcoast().
-#+end_src
-
-*** circularize at apoapsis.
-
-#+begin_src ks
   mpstat("Circularizing").
-  mpcirc().
-#+end_src
-
-*** Collect Science on Orbit
-
-#+begin_src ks
+  mncirc().
+  mppdas().
   mpstat("Orbital Science").
-  mppdas(). mphold_bay(). mppdas().
+  mpone({bays on.}).
+  mphold_brakes().
 #+end_src
 
 *** Trans-Munar injection
 
 #+begin_src ks
+  mpstat("Starting Mun Transfer").
   mpxfer("mun").
+  mppdas().
 #+end_src
 
-*** WAIT HERE until ready to continue.
+*** Collect Science on the outbound transfer
 
 #+begin_src ks
-  mppdas(). mppdas(). mppdas().
+  mphold_brakes().
+  mpstat("Continuing to Mun SOI").
 #+end_src
 
 *** SAFEWARP to just before transition to MUN SOI
@@ -120,7 +99,7 @@ finds nothing more specific for this mission.
   mpadd({ if not orbit:hasnextpatch return mpinc().
     local dt is eta:transition-60.
     if dt<=0 return mpinc().
-  swadj(dt). return 1/10. }).
+    swadj(dt). return 1/10. }).
   mpadd(swend).
 #+end_src
 
@@ -132,10 +111,12 @@ finds nothing more specific for this mission.
   return 1. }).
 #+end_src
 
-*** WAIT HERE until ready to continue.
+*** Collect Science inbound to Mun
 
 #+begin_src ks
-  mppdas(). mppdas(). mppdas().
+  mppdas().
+  mphold_brakes().
+  mpstat("Continuing to Mun").
 #+end_src
 
 *** assure mun periapsis between 20 and 50 km
@@ -155,7 +136,7 @@ finds nothing more specific for this mission.
       return 1/10.
     }
   return mpinc(). }).
-  mppdas(). mppdas(). mppdas().
+  mppdas().
 #+end_src
 
 *** SAFEWARP to a bit before periapsis
@@ -164,14 +145,16 @@ finds nothing more specific for this mission.
   mpadd({ if eta:periapsis<60 return mpinc().
     local dt is eta:periapsis-120.
     if dt<=0 return mpinc().
-  swadj(dt). return 1/10. }).
+    swadj(dt). return 1/10. }).
   mpadd(swend).
 #+end_src
 
-*** WAIT HERE until ready to continue.
+*** Collect Science near Mun Periapsis.
 
 #+begin_src ks
-  mppdas(). mppdas(). mppdas().
+  mppdas().
+  mphold_brakes().
+  mpstat("Leaving Mun SOI").
 #+end_src
 
 *** SAFEWARP to just before transition out of MUN SOI
@@ -180,7 +163,7 @@ finds nothing more specific for this mission.
   mpadd({ if not orbit:hasnextpatch return mpinc().
     local dt is eta:transition-60.
     if dt<=0 return mpinc().
-  swadj(dt). return 1/10. }).
+    swadj(dt). return 1/10. }).
   mpadd(swend).
 #+end_src
 
@@ -189,17 +172,20 @@ finds nothing more specific for this mission.
 #+begin_src ks
   mpadd({ if not orbit:hasnextpatch return mpinc().
     if body:name = "Kerbin" return mpinc().
-  return 1. }).
+    return 1. }).
+  mpstat("Returning to Kerbin").
 #+end_src
 
 *** tune aerobraking target altitude.
 
 #+begin_src ks
   mpadd(aeroperi).
-  mppdas(). mppdas(). mppdas().
+  mppdas().
 #+end_src
 
 *** SAFEWARP to 120 km over kerbin using mnwait.
+
+For now, using a maneuver node.
 
 #+begin_src ks
   mpone({
@@ -211,10 +197,12 @@ finds nothing more specific for this mission.
       local r3 is posat(t3,ship):mag.
     if r3 < rx set t2 to t3. else set t1 to t3. }
     mnclr().
-  add node(t1,0,0,-1).}).
+    add node(t1,0,0,-1).}).
+
   mnwait().
   mpone({ mnclr(). }).
-    mppdas().
+  mppdas().
+  mpstat("Aerocapture").
 #+end_src
 
 *** BURN RETROGRADE until out of fuel (when below 80 km)
@@ -229,7 +217,7 @@ probe core, battery, solar panel, and autopilot computer.
     if altitude<40000 and apoapsis<60000 return mpinc().
     lock steering to srfretrograde.
     lock throttle to limit(1/100,1,(10-vang(srfretrograde:vector,facing:vector))/5).
-  return 1. }).
+    return 1. }).
 #+end_src
 
 *** if we get here, finish configuring vessel for aerobraking.
@@ -241,7 +229,7 @@ probe core, battery, solar panel, and autopilot computer.
 #+begin_src ks
   mpadd({ lock throttle to 0. lock steering to srfretrograde.
     if stage:number=0 mpinc().
-  if stage:ready stage. return 1. }).
+    if stage:ready stage. return 1. }).
 #+end_src
 
 *** If we get here ... we are done.

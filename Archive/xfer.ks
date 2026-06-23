@@ -9,7 +9,7 @@ until false {
 l:add(o:periapsis).
 if not o:hasnextpatch return l.
 set o to o:nextpatch. }}.
-set mpxfer to { parameter target_name. mpone({
+set mpxfer to { parameter target_name. mpadd({
 local dest is body(target_name).
 HUD("Planning transfer to "+dest:name).
 local mu is body:mu.
@@ -92,7 +92,7 @@ local adj_time to (hr - h2) / peri_per_time.
 set mnv:time to mnv:time + adj_time/10.
 wait 0. }}.
 fix_flyby_using_time().
-return mpinc(). }).
+return mpinc(1/50). }).
 mnwait().
 mnexec().
 mnfini().}.

@@ -90,12 +90,6 @@ finds nothing more specific for this mission.
 
 #+begin_src ks
   mpadd(docount).
-  // mpadd({
-  //   local t is -met().
-  //   local d is round(t).
-  //   if d<=1 mpinc().
-  //   if d<=5 hud(TEE()).
-  //   return t-round(t-1)-1/50.}).
 #+end_src
 
 *** Ignite the engines, damp attitude rate until safe to maneuver
@@ -103,17 +97,6 @@ finds nothing more specific for this mission.
 #+begin_src ks
   mpone({hud(TEE()+" Ignition").}).
   mpadd(dolaunch).
-  // mpone({
-  //   if maxthrust>0 return mpinc().
-  //   if not stage:ready return 1/10.
-  //   lock throttle to 1.
-  //   lock steering to facing.
-  //   hud(TEE()+" Ignition"). stage. t0put(0).}).
-  // mpadd({ if alt:radar>=50 return mpinc().
-  //   lock throttle to 1.
-  //   lock steering to facing.
-  //   bays off.
-  // return 1/10. }).
   mpone({hud(TEE()+" Pitchover").}).
 #+end_src
 
@@ -194,7 +177,8 @@ finds nothing more specific for this mission.
 *** Gather science in Mun Orbit.
 
 #+begin_src ks
-  mppdas(). mpone({bays on}). mphold_bay(). mppdas().
+  mppdas().
+  mphold_brakes().
 #+end_src
 
 *** escape from MUN orbit

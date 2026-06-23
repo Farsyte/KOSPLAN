@@ -38,7 +38,6 @@ finds nothing more specific for this mission.
 *** hold on pad until we have thrust, then launch
 
 #+begin_src ks
-  mpstat("Waiting for Launch").
   mphold_thrust().
   mplaunch().
 #+end_src

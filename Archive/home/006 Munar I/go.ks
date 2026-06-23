@@ -6,27 +6,31 @@ import("xfer").
 import("aeroperi").
 import("mp").
 import("sw").
+import("mnpro").
 import("time").
 set go to {
 fancystager().
 mpstat("Launchpad Science").
-mpone({bays on.}).
 mphold_bay().
 mpstat("Launching Soon").
 mpone({t0put(7-mod(time:seconds,1)).}).
 mpcount().
-mpone({bays off.}).
 mplaunch().
 mpstat("Powered Ascent").
 mpascent(90,80000).
 mpstat("Unpowered Ascent").
 mpcoast().
 mpstat("Circularizing").
-mpcirc().
+mncirc().
+mppdas().
 mpstat("Orbital Science").
-mppdas(). mphold_bay(). mppdas().
+mpone({bays on.}).
+mphold_brakes().
+mpstat("Starting Mun Transfer").
 mpxfer("mun").
-mppdas(). mppdas(). mppdas().
+mppdas().
+mphold_brakes().
+mpstat("Continuing to Mun SOI").
 mpadd({ if not orbit:hasnextpatch return mpinc().
 local dt is eta:transition-60.
 if dt<=0 return mpinc().
@@ -35,7 +39,9 @@ mpadd(swend).
 mpadd({ if not orbit:hasnextpatch return mpinc().
 if body:name <> "Kerbin" return mpinc().
 return 1. }).
-mppdas(). mppdas(). mppdas().
+mppdas().
+mphold_brakes().
+mpstat("Continuing to Mun").
 mpadd({
 if periapsis<20000 {
 lock steering to prograde.
@@ -50,13 +56,15 @@ limit(1/100,1,(10-vang(retrograde:vector,facing:vector))/5).
 return 1/10.
 }
 return mpinc(). }).
-mppdas(). mppdas(). mppdas().
+mppdas().
 mpadd({ if eta:periapsis<60 return mpinc().
 local dt is eta:periapsis-120.
 if dt<=0 return mpinc().
 swadj(dt). return 1/10. }).
 mpadd(swend).
-mppdas(). mppdas(). mppdas().
+mppdas().
+mphold_brakes().
+mpstat("Leaving Mun SOI").
 mpadd({ if not orbit:hasnextpatch return mpinc().
 local dt is eta:transition-60.
 if dt<=0 return mpinc().
@@ -65,8 +73,9 @@ mpadd(swend).
 mpadd({ if not orbit:hasnextpatch return mpinc().
 if body:name = "Kerbin" return mpinc().
 return 1. }).
+mpstat("Returning to Kerbin").
 mpadd(aeroperi).
-mppdas(). mppdas(). mppdas().
+mppdas().
 mpone({
 local t1 is time:seconds + 60.
 local t2 is time:seconds + eta:periapsis.
@@ -80,6 +89,7 @@ add node(t1,0,0,-1).}).
 mnwait().
 mpone({ mnclr(). }).
 mppdas().
+mpstat("Aerocapture").
 mpadd({
 if altitude>80000 return 1.
 if altitude<40000 and apoapsis<60000 return mpinc().

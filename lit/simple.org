@@ -94,7 +94,9 @@ of a mission data display screen.
 
 #+begin_src ks
   set mplaunch to {
-    mpone({radcal(). t0put(0). putstat("Ignition"). }).
+    mpone({radcal().}).
+    mpone({t0put(0).}).
+    mpstat("Ignition").
     mpadd({
       if ra>50 return mpinc().
       lock steering to facing.

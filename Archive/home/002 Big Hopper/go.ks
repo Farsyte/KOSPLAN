@@ -6,7 +6,6 @@ set az to 270.
 set h1 to body:atm:height + 1000.
 set h2 to h1 + 1000.
 set go to {
-mpstat("Waiting for Launch").
 mphold_thrust().
 mplaunch().
 mpstat("Powered Ascent").

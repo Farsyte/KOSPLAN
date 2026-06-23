@@ -17,7 +17,9 @@ if d<=1 mpinc().
 if d<=5 hud(TEE()).
 return t-round(t-1)-1/50.}).} .
 set mplaunch to {
-mpone({radcal(). t0put(0). putstat("Ignition"). }).
+mpone({radcal().}).
+mpone({t0put(0).}).
+mpstat("Ignition").
 mpadd({
 if ra>50 return mpinc().
 lock steering to facing.

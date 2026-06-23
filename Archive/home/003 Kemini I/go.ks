@@ -7,7 +7,6 @@ import("aero").
 set go to {
 brakes off.
 fancystager().
-mpstat("Waiting for Launch").
 mphold_thrust().
 mplaunch().
 mpstat("Powered Ascent").

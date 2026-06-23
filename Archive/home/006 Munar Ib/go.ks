@@ -58,7 +58,8 @@ mpadd(fixperi(12000,14000,16000)).
 mppdas().
 mncirc().
 mpone({hud(TEE()+" MUN Orbit").}).
-mppdas(). mpone({bays on}). mphold_bay(). mppdas().
+mppdas().
+mphold_brakes().
 mpone({hud(TEE()+" Planning MUN Escape").}).
 mpadd(escape). mppdas(). mnwait(). mnexec(). mnfini().
 mpone({hud(TEE()+" Leaving MUN Orbit").}).

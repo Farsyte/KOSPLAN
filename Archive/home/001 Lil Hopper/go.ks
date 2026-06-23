@@ -2,7 +2,6 @@ import("mp").
 import("hold").
 import("simple").
 set go to {
-mpstat("Waiting for Launch").
 mphold_thrust().
 mplaunch().
 mpstat("Ascent").

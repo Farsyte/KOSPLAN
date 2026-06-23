@@ -31,7 +31,7 @@ around the same body.
 * mpxfer(body): plan (and execute) a free-return transfer to the named body.
 
 #+begin_src ks
-    set mpxfer to { parameter target_name. mpone({
+    set mpxfer to { parameter target_name. mpadd({
 #+end_src
 
 ** set configuration information
@@ -367,7 +367,8 @@ useful if things are going wrong.
   // local delta_est_dpro is final_est_dpro - first_est_dpro.
   // print "delta node: adjust by "+ydhms(delta_est_time)+", "+fmt(delta_est_dpro,0,2)+" m/s.".
 
-  return mpinc(). }).
+  // make really sure the node is settled.
+  return mpinc(1/50). }).
 #+end_src
 
 *** also add plan steps to wait, execute, and clean up.
