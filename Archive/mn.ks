@@ -9,18 +9,21 @@ set mnexec to { mpadd({
 if not hasnode return mpinc().
 if warp>0 set warp to 0.
 if not kuniverse:timewarp:issettled return 1/10.
-if ship:liquidfuel <= 0 return mpinc().
+if ship:liquidfuel <= 0 { mnclr(). return mpinc(). }
 local mnv is nextnode.
-if mnv:deltav:mag<1/10 return mpinc().
+local dv is mnv:deltav:mag.
+local dt is bt(dv).
+if dv<1/10 or dt<1/1000 {
+lock throttle to 0.
+lock steering to facing.
+remove mnv.
+return mpinc().
+}
 lock steering to mnv:deltav.
-lock mnl_mt to max(eps, maxthrust).
-lock mnl_dv to mnv:deltav:mag.
-lock mnl_dt to mnl_dv * ship:mass / mnl_mt.
-lock mnl_dtdf to limit(0,1,mnl_dt/0.5).
-lock mnl_ae to vang(mnv:deltav,facing:vector).
-lock mnl_aedf to limit(1/100,1,1-(mnl_ae-1)/4).
-lock throttle to sqrt(mnl_dtdf * mnl_aedf).
-return min(1,mnl_dt).}).}.
+lock throttle to sqrt(
+limit(0,1,2*mnv:deltav:mag*ship:mass/max(eps,availablethrust)) *
+limit(1/100,1,1-(vang(mnv:deltav,facing:vector)-1)/4)).
+return 1.}).}.
 set mnfini to { mpadd({
 lock throttle to 0.
 lock steering to facing.

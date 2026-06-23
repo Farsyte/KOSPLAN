@@ -16,7 +16,7 @@ lock steering to heading(90, 5, 0).
 }).
 mpadd({
 print "Activate engines to launch".
-return choose mpinc() if maxthrust>0 else 2.}).
+return choose mpinc() if availablethrust>0 else 2.}).
 mpadd({ if ship:thrust>availablethrust/4 or groundspeed>2 return mpinc(). return 1/10. }).
 mpone({ BRAKES OFF. }).
 mpadd({ if groundspeed<60 return 1/10.

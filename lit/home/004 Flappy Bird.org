@@ -59,7 +59,7 @@ finds nothing more specific for this mission.
 #+begin_src ks
   mpadd({
     print "Activate engines to launch".
-    return choose mpinc() if maxthrust>0 else 2.}).
+    return choose mpinc() if availablethrust>0 else 2.}).
 #+end_src
 
 *** release the brakes

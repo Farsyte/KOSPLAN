@@ -24,7 +24,7 @@ mpadd({
 if ra>50 return mpinc().
 lock steering to facing.
 lock throttle to 1.
-if maxthrust>0 return 1/100.
+if availablethrust>0 return 1/100.
 if stage:ready stage.
 return 1/100.}).}.
 .
@@ -43,14 +43,12 @@ lock throttle to max(0,min(1,(2-eta:apoapsis/10))) *
 max(1/100,min(1,1-vang(steering:vector,prograde:vector)/5)).
 return 1.}).
 mpone({ lock throttle to 0. lock steering to prograde.}).}.
-set mppdab to { mpadd({
-lock throttle to 0.
+set mppdab to { mpadd({ lock throttle to 0. bays on. lights on.
 lock steering to lookdirup(vcrs(body:position,ship:velocity:orbit),-body:position).
 local fa is vang(facing:forevector,steering:forevector).
 local ua is vang(facing:upvector,steering:upvector).
 if fa<5 and ua<5 mpinc(). return 1. }).}.
-set mppdas to { mpadd({
-lock throttle to 0.
+set mppdas to { mpadd({ lock throttle to 0. bays on. lights on.
 lock steering to lookdirup(vcrs(sun:velocity:orbit,sun:position),-sun:position).
 local fa is vang(facing:forevector,steering:forevector).
 local ua is vang(facing:upvector,steering:upvector).

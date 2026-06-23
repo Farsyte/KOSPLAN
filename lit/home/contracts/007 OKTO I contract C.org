@@ -1,0 +1,33 @@
+#+PROPERTY: header-args :results none
+#+PROPERTY: header-args :tangle ../../../Archive/home/007 OKTO I/C/current_contract.ks
+
+007 OKTO I/C/current_contract.ks - orbital contract for OKTO I/C
+
+For Zaltonic Electronics:
+
+New unmanned satellite around Kerbin
+with antenna and power generation
+fully assembled when launched
+
+From the contract display:
+
+| Apoapsis    | 10381.131 | km |
+| Periapsis   |  9766.959 | km |
+| Inclination |      90.0 | °  |
+| LAN         |      23.9 | °  |
+| AOP         |       n/a | °  |
+
+Mission Plan Budget does not exceed OKTO I capability.
+
+Contracts never specify MEP or TEP.
+
+Exact figures found in the save file.
+
+#+begin_src ks
+  nvput(1,"ccbod", "kerbin").
+  nvput(1,"ccinc", 90).
+  nvput(1,"ccecc", 0.028769435921867502).
+  nvput(1,"ccsma", 10674044.753438804).
+  nvput(1,"cclan", 23.947638843184166).
+  nvput(1,"ccaop", 36.157537249920189).
+#+end_src

@@ -42,11 +42,8 @@ mnexec().
 mnfini().
 mpone({hud(TEE()+" Trans-Munar Trajectory Established").}).
 mppdas().
-mpadd({ if not orbit:hasnextpatch return mpinc().
-local dt is eta:transition-60.
-if dt<=0 return mpinc().
-swadj(dt). return 1/10. }).
-mpadd(swend).
+mpadd({swadj(choose eta:transition-60 if orbit:hasnextpatch else 0).
+return choose mpinc() if wfnow()=1 else 1/10.}).
 mppdas().
 mpadd({
 if not orbit:hasnextpatch return mpinc().
@@ -63,11 +60,9 @@ mphold_brakes().
 mpone({hud(TEE()+" Planning MUN Escape").}).
 mpadd(escape). mppdas(). mnwait(). mnexec(). mnfini().
 mpone({hud(TEE()+" Leaving MUN Orbit").}).
-mpadd({ if not orbit:hasnextpatch return mpinc().
-local dt is eta:transition-60.
-if dt<=0 return mpinc().
-swadj(dt). return 1/10. }).
-mpadd(swend).
+mpadd({swadj(choose eta:transition-60 if orbit:hasnextpatch else 0).
+return choose mpinc() if wfnow()=1 else 1/10.}).
+mppdas().
 mpadd({ if not orbit:hasnextpatch return mpinc().
 if body:name = "Kerbin" return mpinc().
 return 1. }).

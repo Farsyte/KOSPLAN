@@ -101,7 +101,7 @@ of a mission data display screen.
       if ra>50 return mpinc().
       lock steering to facing.
       lock throttle to 1.
-      if maxthrust>0 return 1/100.
+      if availablethrust>0 return 1/100.
       if stage:ready stage.
       return 1/100.}).}.
   .
@@ -158,8 +158,7 @@ NOTE: this uses whatever BODY is current at the time
 that the step runs, not when the step is built.
 
 #+begin_src ks
-  set mppdab to { mpadd({
-    lock throttle to 0.
+  set mppdab to { mpadd({ lock throttle to 0. bays on. lights on.
     lock steering to lookdirup(vcrs(body:position,ship:velocity:orbit),-body:position).
     local fa is vang(facing:forevector,steering:forevector).
     local ua is vang(facing:upvector,steering:upvector).
@@ -172,8 +171,7 @@ Step terminates when the vessel is within
 a few degrees of the desired attitude.
 
 #+begin_src ks
-  set mppdas to { mpadd({
-    lock throttle to 0.
+  set mppdas to { mpadd({ lock throttle to 0. bays on. lights on.
     lock steering to lookdirup(vcrs(sun:velocity:orbit,sun:position),-sun:position).
     local fa is vang(facing:forevector,steering:forevector).
     local ua is vang(facing:upvector,steering:upvector).

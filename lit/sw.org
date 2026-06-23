@@ -58,6 +58,29 @@ planned action.
   set swra to LIST(0, 4, 6, 30, 60, 600, 6000, 60000).
 #+end_src
 
+* wftune() -- compute swra values.
+
+
+#+begin_src ks
+  set wftune to {
+    local rl is kuniverse:timewarp:railsratelist.
+    for wf in range(rl:length) {
+      set warp to wf.
+      wait until kuniverse:timewarp:issettled.
+      wait 1/10.
+
+      set dt to time:seconds.
+      set warp to 0.
+      wait until kuniverse:timewarp:issettled.
+      wait 1/10.
+      set dt to ceiling(time:seconds - dt).
+      print "for wf "+wf+", dt is "+dt+" seconds.".
+    }
+  }.
+
+#+end_src
+
+
 * wfnow() -- current timewarp multiplier.
 
 NOTE: if we use LOCK WFNOW TO kuniverse:timewarp:rate
@@ -76,7 +99,19 @@ the WFNOW symbol is not visible to the calling script.
   set wfcmd to { return kuniverse:timewarp:ratelist[warp]. }.
 #+end_src
 
-* swend(): assure we are not warping.
+* mpsw0() -- add STEP to assure we are not warping.
+
+Specifically, assures that TIMEWARP is 0
+and the TIMEWARP facility has settled
+before moving on to the next step.
+
+#+begin_src ks
+  set mpsw0 to { mpadd({
+    if warp>0 set warp to 0.
+    return choose mpinc() if kuniverse:timewarp:issettled else 1/10.}).}.
+#+end_src
+
+* swend() -- cancel warp (BLOCKS UNTIL SETTLED)
 
 Specifically, assures that TIMEWARP is 0
 and the TIMEWARP facility has settled
@@ -85,11 +120,10 @@ before moving on to the next step.
 #+begin_src ks
   set swend to {
     if warp>0 set warp to 0.
-    if not kuniverse:timewarp:issettled return 1/10.
-  return mpinc(). }.
+    wait until kuniverse:timewarp:issettled.}.
 #+end_src
 
-* swfac(dt): compute safe warp factor for given ΔT
+* swfac(dt) -- compute safe warp factor for given ΔT
 
 Look through SWRA to find the highest index for
 which the "return to zero" time is less than dt.
@@ -102,7 +136,7 @@ which the "return to zero" time is less than dt.
   return i.}.
 #+end_src
 
-* swadj(dt): set WARP to maximum safe warp for given ΔT
+* swadj(dt) -- set WARP to maximum safe warp for given ΔT
 
 Work out the highest TIMEWARP factor consistent with
 being out of warp in DT seconds, and adjust WARP

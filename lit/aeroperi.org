@@ -12,12 +12,20 @@ Our required packages do not fit in 10000 bytes.
 
 #+begin_src ks
   import("math").
+  import("bt").
 #+end_src
 
 * aeroperi: tune kerbin periapsis for aerocapture.
 
 #+begin_src ks
-  set aeroperi to { if maxthrust <= 0 return 1. // try again soon, probably staging.
+  set aeroperi to {
+#+end_src
+
+If we are completely out of fuel
+proceed to the next step.
+
+#+begin_src ks
+  if ship:LiquidFuel<=eps return mpinc().
 #+end_src
 
 Work out r1,r2,r3 for vis-viva.
@@ -42,14 +50,20 @@ to burn to correct it.
   local vd is vv(r1, r2, r3, body:mu).
   local ds is vd - vo.
   local dv is ds * prograde:vector.
-  local ma is maxthrust / mass.
 #+end_src
 
-if the burn is trivial or we have no fuel, we are done.
+if the burn is trivial or we have no fuel, go on to the next step.
 
 #+begin_src ks
-  if abs(ds)*1000<=ma or ship:LiquidFuel<=0 {
+  if tb(ds) or ship:LiquidFuel<=0 {
   lock throttle to 0. lock steering to facing. return mpinc(). }
+#+end_src
+
+If we have no thrust available,
+we are staging. try again soon.
+
+#+begin_src ks
+  if availablethrust=0 return 1.
 #+end_src
 
 steer us in the right direction.

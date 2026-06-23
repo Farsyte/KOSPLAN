@@ -6,7 +6,7 @@ set mpchime to { parameter n. return mpone({getvoice(0):play(n).}).}.
 set mphold_thrust to {
 mpchime(slide_u).
 mpstat("Activate Engines to Continue").
-mpadd({ return choose mpinc() if maxthrust>0 else 1/100. }).
+mpadd({ return choose mpinc() if availablethrust>0 else 1/100. }).
 mpchime(slide_d).
 mpstat("Resuming Mission").}.
 set mphold_brakes to {

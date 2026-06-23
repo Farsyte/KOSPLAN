@@ -28,7 +28,7 @@ if d<=1 mpinc().
 if d<=5 hud("...").
 return t-round(t-1).}).
 mpone({
-if maxthrust>0 return mpinc().
+if availablethrust>0 return mpinc().
 if not stage:ready return 1/10.
 lock throttle to 1.
 lock steering to facing.
@@ -51,11 +51,8 @@ mpone({hud("Trans-Munar Injection").}).
 mpxfer("mun").
 mpone({hud("Trans-Munar Trajectory Established").}).
 mppdas().
-mpadd({ if not orbit:hasnextpatch return mpinc().
-local dt is eta:transition-60.
-if dt<=0 return mpinc().
-swadj(dt). return 1/10. }).
-mpadd(swend).
+mpadd({swadj(choose eta:transition-60 if orbit:hasnextpatch else 0).
+return choose mpinc() if wfnow()=1 else 1/10.}).
 mppdas().
 mpadd({
 if not orbit:hasnextpatch return mpinc().
@@ -81,7 +78,7 @@ mppdas().
 mpone({hud("MUN Orbit").}).
 mpl:clear().
 mpadd({
-if maxthrust>0 return mpinc().
+if availablethrust>0 return mpinc().
 lock throttle to 0.
 hud("Activate Engines to Leave.").
 }).
@@ -97,11 +94,9 @@ mnwait().
 mpone({hud("Leaving MUN Orbit").}).
 mnexec().
 mnfini().
-mpadd({ if not orbit:hasnextpatch return mpinc().
-local dt is eta:transition-60.
-if dt<=0 return mpinc().
-swadj(dt). return 1/10. }).
-mpadd(swend).
+mpadd({swadj(choose eta:transition-60 if orbit:hasnextpatch else 0).
+return choose mpinc() if wfnow()=1 else 1/10.}).
+mppdas().
 mpadd({ if not orbit:hasnextpatch return mpinc().
 if body:name = "Kerbin" return mpinc().
 return 1. }).

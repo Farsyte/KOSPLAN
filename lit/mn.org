@@ -48,17 +48,27 @@ does seem to work just fine.
 ** if we are out of fuel, we are done.
 
 #+begin_src ks
-  if ship:liquidfuel <= 0 return mpinc().
+  if ship:liquidfuel <= 0 { mnclr(). return mpinc(). }
 #+end_src
 
-** if the remaining ΔV is trival, we are done.
+** if the remaining work is trival, we are done.
 
 #+begin_src ks
   local mnv is nextnode.
-  if mnv:deltav:mag<1/10 return mpinc().
+  local dv is mnv:deltav:mag.
+  local dt is bt(dv).
+  if dv<1/10 or dt<1/1000 {
+    lock throttle to 0.
+    lock steering to facing.
+    remove mnv.
+    return mpinc().
+  }
 #+end_src
 
 ** Steer in the direction of the burn.
+
+It is possible for mnv:deltav to become zero, but it is not expected
+that we will ever actually see that happen.
 
 #+begin_src ks
   lock steering to mnv:deltav.
@@ -71,21 +81,29 @@ Throttle is the product of two 0..1 values.
 - A value decreasing from 1 to 0 if we are not pointing the right way
 
 #+begin_src ks
-  lock mnl_mt to max(eps, maxthrust).
-  lock mnl_dv to mnv:deltav:mag.
-  lock mnl_dt to mnl_dv * ship:mass / mnl_mt.
-  lock mnl_dtdf to limit(0,1,mnl_dt/0.5).
-  lock mnl_ae to vang(mnv:deltav,facing:vector).
-  lock mnl_aedf to limit(1/100,1,1-(mnl_ae-1)/4).
-  lock throttle to sqrt(mnl_dtdf * mnl_aedf).
+  // lock mnl_mt to max(eps, availablethrust).
+  // lock mnl_dv to mnv:deltav:mag.
+  // lock mnl_dt to mnl_dv * ship:mass / mnl_mt.
+  // lock mnl_dtdf to limit(0,1,mnl_dt/0.5).
+  // lock mnl_ae to vang(mnv:deltav,facing:vector).
+  // lock mnl_aedf to limit(1/100,1,1-(mnl_ae-1)/4).
+  // lock throttle to sqrt(mnl_dtdf * mnl_aedf).
+
+  // use the quick-and-dirty method for estimating ΔT from the known ΔT
+  // as they converge near the end of the burn.
+
+  lock throttle to sqrt(
+    limit(0,1,2*mnv:deltav:mag*ship:mass/max(eps,availablethrust)) *
+    limit(1/100,1,1-(vang(mnv:deltav,facing:vector)-1)/4)).
 #+end_src
 
 ** When to revisit the computation
 
-Come back and recompute in no longer than a second.
+Come back often enough to promptly detect
+that our job is done.
 
 #+begin_src ks
-  return min(1,mnl_dt).}).}.
+  return 1.}).}.
 #+end_src
 
 * mnfini -- add STEP to clean up after mnexec

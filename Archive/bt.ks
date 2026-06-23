@@ -1,10 +1,12 @@
 import("math").
 import("pre").
+set tb to { parameter dv.
+return (dv<1/10) or (dv*mass*1000<availablethrust).}.
 set bt to { parameter dv.
 local dt is 0.
 local s is stage:number.
 local m is ship:mass.
-local f is maxthrust.
+local f is availablethrust.
 local d is stage:deltav:vacuum.
 until false {
 local d is min(d, dv).

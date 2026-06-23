@@ -3,6 +3,8 @@
 
 007 OKTO I/B/current_contract.ks - orbital contract for OKTO I/B
 
+For the Moving Parts Experts Group:
+
 New unmanned satellite around Kerbin
 with antenna and power generation
 fully assembled when launched
@@ -15,10 +17,7 @@ From the contract display:
 | LAN         |    273.9 | °  |
 | AOP         |    275.1 | °  |
 
-Mission Plan Budget:
-    ΔV 80x80 to 80x14562:                     874 m/s
-    ΔV 80x14562 to 11828x14562:               317 m/s
-    ΔV 80x80 to 11828x14562:                 1191 m/s
+Mission Plan Budget does not exceed OKTO I capability.
 
 Contracts never specify MEP or TEP.
 

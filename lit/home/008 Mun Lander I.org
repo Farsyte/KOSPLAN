@@ -105,7 +105,7 @@ finds nothing more specific for this mission.
 
 #+begin_src ks
   mpone({
-    if maxthrust>0 return mpinc().
+    if availablethrust>0 return mpinc().
     if not stage:ready return 1/10.
     lock throttle to 1.
     lock steering to facing.
@@ -158,11 +158,8 @@ finds nothing more specific for this mission.
 *** SAFEWARP to just before transition to MUN SOI
 
 #+begin_src ks
-  mpadd({ if not orbit:hasnextpatch return mpinc().
-    local dt is eta:transition-60.
-    if dt<=0 return mpinc().
-  swadj(dt). return 1/10. }).
-  mpadd(swend).
+  mpadd({swadj(choose eta:transition-60 if orbit:hasnextpatch else 0).
+    return choose mpinc() if wfnow()=1 else 1/10.}).
   mppdas().
 #+end_src
 
@@ -229,7 +226,7 @@ working from Munar Ib.
 
 #+begin_src ks
   mpadd({
-    if maxthrust>0 return mpinc().
+    if availablethrust>0 return mpinc().
     lock throttle to 0.
     hud("Activate Engines to Leave.").
   }).
@@ -266,11 +263,9 @@ This mission could have any inclination.
 *** SAFEWARP to just before transition out of MUN SOI
 
 #+begin_src ks
-  mpadd({ if not orbit:hasnextpatch return mpinc().
-    local dt is eta:transition-60.
-    if dt<=0 return mpinc().
-  swadj(dt). return 1/10. }).
-  mpadd(swend).
+  mpadd({swadj(choose eta:transition-60 if orbit:hasnextpatch else 0).
+    return choose mpinc() if wfnow()=1 else 1/10.}).
+  mppdas().
 #+end_src
 
 *** wait until out of MUN SOI

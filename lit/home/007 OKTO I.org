@@ -12,7 +12,18 @@ OKTO I/go.ks: Prototype Satellite System
   import("math").
   import("mnpro").
   import("nv").
+  import("simple").
   import("sw").
+#+end_src
+
+#+begin_src ks
+  import("current_contract").
+#+end_src
+
+#+begin_src ks
+  // print "calling wftune".
+  // wftune().
+  // until false { }
 #+end_src
 
 ** What is the typical mission plan?
@@ -20,7 +31,7 @@ OKTO I/go.ks: Prototype Satellite System
 Example: placing a sattelite in a polar orbit.
 
 - launch when we are under the target orbit
-- launch to polar orbit (ie into the plane of the target orbit)
+- launch into the plane of the target orbit
 - start from the 80x80km parking orbit
 - add maneuver to raise apoapsis to apoapsis of the target orbit
 - at apoapsis: add maneuver to raise periapsis to periapsis of the target orbit
@@ -31,19 +42,16 @@ to freeze after printing, or to remove the print.
 
 * Configuration Parameters and Support Functions at Import Time
 
-** Pick a Mission
+** Initialize the log.
 
 #+begin_src ks
+  local okto_log_file is home:combine("okto.log").
+  set okto_log to { parameter m. log TEE()+m to okto_log_file. }.
+#+end_src
 
-  // If we have a connection to the ground,
-  // refresh our contract terms.
+** Determine Target Orbit from Contract Parameters
 
-  if homeconnection:isconnected {
-    print "importing current_contract".
-    import("current_contract").
-    deletepath("1:/current_contract").}
-  else print "no connection: using saved contract".
-
+#+begin_src ks
   set ccinc to nvget(1,"ccinc", 0).
   set ccecc to nvget(1,"ccecc", 0).
   set ccsma to nvget(1,"ccsma", 80000).
@@ -63,9 +71,8 @@ the Delta-V requirements to go from a parking
 orbit to the assigned orbit.
 
 #+begin_src ks
-  import("plan").
-  plan_sat(80000,ccorb:periapsis,ccorb:apoapsis,ccorb:body).
-  // until false { }
+  // import("plan").
+  // plan_sat(80000,ccorb:periapsis,ccorb:apoapsis,ccorb:body).
 #+end_src
 
 ** Initialize Launch Parameters
@@ -85,35 +92,6 @@ just before the actual launch.
 #+begin_src ks
   lock maxt to max(eps, ship:availablethrust).
   lock maxa to maxt/mass.
-#+end_src
-
-** pdas -- Point Down At Sun
-
-Set up an attitude that gives good solar panel
-lighting while we are locked, and if we warp or
-unlock for a long time, stands a good chance of
-having enough light to keep us running.
-
-For this vessel, we want the Sun to be on the
-vessel's equatorial plane and set up so that
-we just slowly roll to maintain its position over
-a fixed spot (equatorial and down). So our nose
-needs to point parallel to our angular momentum
-vector for our motion around the sun.
-
-If timewarp is active, proceed to the next step
-ikmmediately after locking steering; otherwise,
-stay in this step until we are somewhere near
-the commanded attitude.
-
-This step also turns on the lights (which on
-the OKTO I will also extend the antenna).
-
-#+begin_src ks
-  set pdas to { lights on. lock throttle to 0.
-    lock steering to lookdirup(vcrs(sun:velocity:orbit,sun:position),-sun:position).
-    if wfcmd()>1 or 5>vang(facing:upvector,steering:upvector) mpinc().
-    return 1. }.
 #+end_src
 
 * Provide a GO function.
@@ -148,7 +126,7 @@ on in the future.
     when stage:ready and (
       (stage:number=3) or
       (stage:number=2 and altitude>70000) or
-      (stage:number<3 and maxthrust=0)) then {
+      (stage:number<3 and availablethrust=0)) then {
         stage. lock throttle to 0. return stage:number>0.}
 #+end_src
 
@@ -168,6 +146,7 @@ During boot, we fetch the contract satellite orbital
 elements and construct an Orbit object.
 
 #+begin_src ks
+  mpstat("Waiting for Launch Window").
   mpadd({
 #+end_src
 
@@ -228,7 +207,10 @@ into the next quadrant.
 
 #+begin_src ks
   local quad is floor(angle/90).
-  if quad=0 or quad=2 {swadj(body:rotationperiod/8). return wfcmd()/10.}
+  if quad=0 or quad=2 {
+    swadj(body:rotationperiod/8).
+    return wfcmd()/10.
+  }
 #+end_src
 
 Otherwise, use safewarp to manage warping
@@ -254,13 +236,13 @@ launch.
 
   set qeta to qeta - 2*body:rotationperiod/360.
 
-  swadj(qeta-30).
-  if wfnow()>1 return wfcmd()/10.
+  swadj(qeta-30). 
+  if wfnow()>1 return 1/100.
 #+end_src
 
-If we get here, we are close to the end of a launch
-quadrant. This is a good place to add a ton of PRINT
-or LOG lines to monitor the values computed above.
+If we get here, we are out of timewarp and close to the
+end of a launch quadrant. This is a good place to add a
+ton of PRINT or LOG lines to monitor the above.
 
 Monitor numbers closely until 20 seconds before the
 estimated launch window. Continue the process if the
@@ -324,9 +306,13 @@ takes an elapsed time forward from now.
 
 #+begin_src ks
   t0put(qeta-10).
+
   set launch_t0 to nvput(1, "launch_t0", t0).
   set launch_az to nvput(1, "launch_az", dfi(ccinc,hv)).
   set launch_ap to nvput(1, "launch_ap", 80000).
+
+  okto_log(" launch AZ "+fmt(launch_az,0,1)+" AP "+fmt(launch_ap/1000,0,1)).
+
 #+end_src
 
 Notify the flight engineer and move on to the next step.
@@ -336,122 +322,27 @@ Notify the flight engineer and move on to the next step.
   return mpinc(). }).
 #+end_src
 
-*** Provide a brief countdown.
+*** Launch and get a Low Kerbin Orbit.
+
+NOTE: the ascent step actually uses launch_az and
+launch_ap from nonvolatile vessel storage; the mpascent
+function just uses the values provided as the defaults
+if nonvolatile values are not set up.
 
 #+begin_src ks
-  mpadd({
-    local t is -met().
-    if round(t)<=5 HUD(TEE()).
-    if t<=0.5 return mpinc().
-    return mod(t,1).}).
-#+end_src
-
-*** Ignite the engines.
-
-#+begin_src ks
-  mpone({
-    if maxthrust>0 return mpinc().
-    if not stage:ready return 1/10.
-    lock throttle to 1.
-    lock steering to facing.
-    hud(TEE()+": Ignition"). stage. t0put(0).
-    set launch_t0 to nvput(1, "launch_t0", t0).}).
-#+end_src
-
-*** damp attitude rate until safe to maneuver
-
-#+begin_src ks
-  mpadd({ if alt:radar>=50 return mpinc().
-    lock throttle to 1. lock steering to facing. return 1/10. }).
-  mpone({hud(TEE()+": Pitchover").}).
-#+end_src
-
-*** control pitch and heading until apoapsis is high enough
-
-Ascent controller for a desired launch azimuth and altitude.
-
-#+begin_src ks
-  mpadd({
-#+end_src
-
-If we are coming down, end the step (this is bad).
-If we are above the atmosphere and our apoapsis
-is high enough, end the step (this is good).
-
-#+begin_src ks
-  if verticalspeed<0 return mpinc().
-  if altitude>=70000 and apoapsis>=launch_ap return mpinc().
-#+end_src
-
-TODO use an error controller to manage the heading part
-of the steering so that we land on the desired plane.
-- initially steer to the inclination of the orbit
-- at some threshold altitude or velocity, activate.
-- null option:
-  - steer along the indicated azimuth until done
-- option 0:
-  - steer along the indicated azimuth
-  - look for our orbit inclination to be right
-  - switch to steering along our orbit
-- option 1:
-  - compare current orbit inclination with desired inclination,
-    steer to fix the inclination only.
-- option 2:
-  - determine distance from plane
-  - determine velocity toward plane
-  - set plane-normal component of thrust to control toward-plane velocity
-
-The current simple code lands us in a fairly good plane,
-close enough that we can correct it once we get to orbit
-with a fairly small burn.
-
-#+begin_src ks
-  lock af to limit(0,1,altitude/launch_ap).
-  lock cp to limit(0,90,90-120*sqrt(af)).
-  lock steering to heading(launch_az, cp, 0).
-#+end_src
-
-If we are facing too far away from our intended vector,
-reduce the throttle. Currently tuned to start reducing
-throttle at 15 degrees, down to zero at 45 degrees, but
-actually not going below 1% of the desired throttle.
-
-#+begin_src ks
-  lock tf to min(1,sqrt(max(0,(launch_ap+20-apoapsis)/1000))).
-  lock va to vang(FACING:VECTOR, STEERING:VECTOR).
-  lock ef to limit(.01,1,(45-va)/30).
-  lock throttle to ef*tf*min(1,20/maxa).
-#+end_src
-
-re-evaluate the ascent every second.
-
-#+begin_src ks
-  return 1. }).
-#+end_src
-
-#+begin_src ks
-  mpone({lock throttle to 0. hud(TEE()+": MECO").}).
-#+end_src
-
-*** coast until above atmosphere.
-
-#+begin_src ks
-  mpadd({ if altitude>body:atm:height return mpinc().
-    lock steering to prograde. lock throttle to 0. return 1. }).
-  mpone({hud(TEE()+": SPACE!").}).
-#+end_src
-
-*** circularize at apoapsis.
-
-#+begin_src ks
-  mppdas().
-  mpone({hud(TEE()+": "+round(stage:deltav:vacuum,1)+ " m/s ΔV remains").}).
+  mpcount().
+  mpstat("Launching").
+  mplaunch().
+  mpstat("Powered Ascent").
+  mpascent(launch_az,launch_ap).
+  mpstat("Unpowered Ascent").
+  mpcoast().
+  mpstat("Circularization").
   mncirc().
-  mpone({hud(TEE()+": "+round(stage:deltav:vacuum,1)+ " m/s ΔV remains").}).
-  mppdas().
+  mpstat("Parking Orbit").
 #+end_src
 
-*** Schedule when to raise apoapsis
+*** Establish Apoapsis and Argument of Periapsis
 
 #+begin_src ks
   mpadd({
@@ -490,15 +381,17 @@ back into the -180 to +180 range for this to work well.
 Look at two points in the near future.
 
 #+begin_src ks
-    // start in the future, then scan forward
-    // until we see the error increase.
-    local dt is orbit:period/12.
-    local t1 is time:seconds + dt.
-    local c1 is f(t1).
-    // print "[1] t1: "+fmt(t1,8,1)+" √c1: "+fmt(sqrt(c1),16,10).
-    local t2 is t1 + dt.
-    local c2 is f(t2).
+  // start in the future, then scan forward
+  // until we see the error increase.
+  local dt is orbit:period/12.
+  local t1 is time:seconds + dt.
+  local c1 is f(t1).
+  // print "[1] t1: "+fmt(t1,8,1)+" √c1: "+fmt(sqrt(c1),16,10).
+  local t2 is t1 + dt.
+  local c2 is f(t2).
 #+end_src
+
+**** Scan forward past local maximum cost
 
 If we are looking at an increase in cost, push forward
 until we see an interval that is not increasing.
@@ -514,6 +407,8 @@ until we see an interval that is not increasing.
     }
 #+end_src
 
+**** Scan forward past local minimum cost
+
 Now, if we are looking at a decrease in cost, push forward
 until we see an interval that is not decreasing.
 
@@ -527,6 +422,8 @@ until we see an interval that is not decreasing.
       set c2 to f(t2).
     }
 #+end_src
+
+**** Interpolate to find local minimum cost
 
 Use the interval to estimate change in cost per change
 in time, then compute a new time that should zero the
@@ -554,60 +451,42 @@ evaluated a T2 time above as our last probe).
   set c1 to f(t1). return mpinc().}).
 #+end_src
 
+*** Rough Apoapsis, Exact Periapsis, Exact Apoapsis.
+
+Assure parking orientation while waiting.
+
 Executing the node is the usual sequence.
 
 #+begin_src ks
-  mppdas(). mnwait(). mnexec(). mnfini(). mppdas().
-  mpone({hud("Moving from Parking to Assigned Orbit").}).
+  mpstat("Transfer to Assigned Orbit").
+  mppdas(). mnwait(). mnexec(). mnfini(). mppdas(). 
+  mnata(ccorb:periapsis). mppdas().
+  mnatp(ccorb:apoapsis). mppdas().
 #+end_src
 
-When we get to our new apoapsis, raise our periapsis
-to the assigned altitude.
-
-TODO use the generic "at next apo, set peri to ..."
-
-#+begin_src ks
-  mpadd({
-    mnclr().
-    local h1 is apoapsis.
-    local h2 is periapsis.
-    local h3 is ccorb:periapsis.
-    local dv is burndvh(h1,h2,h3,body).
-    add node(time:seconds + eta:apoapsis, 0, 0, dv).
-    return mpinc().
-  }).
-#+end_src
-
-#+begin_src ks
-  mppdas(). mnwait(). mnexec(). mnfini(). mppdas().
-#+end_src
-
-TODO use the generic "at next peri, set apo to ..."
-- because we are likely to need that correction.
-- or just leae it to orbit management.
-
-**** Orbit Management Loop
+*** Orbit Management Loop
 
 TODO extract these steps to a common tool collection
 - to be used by other missions that need orbit-keeping.
 
 This is how we do a loop in the mission plan.
 
+Also, if persisted MPI indicates we are in the middle
+of the loop when we reboot, force it to the top of
+the loop.
+
 #+begin_src ks
   { local mpi_park is mpl:length.
-    local mnv_plan is false.
+    if mpi>=mpi_park {
+      print "rewind MPI from "+mpi+" to "+mpi_park.
+      mpput(mpi_park).
+    }
+
+    mpstat("Maintain Assigned Orbit").
+    mnclr(). mppdas(). mpadd({return mpinc(10).}).
 #+end_src
 
-***** Notify when we at the top.
-
-#+begin_src ks
-  mpadd({
-    hud(TEE()+": Maintaining Assigned Orbit", false).
-    set mnv_plan to false. mnclr().
-    return mpinc(). }).
-#+end_src
-
-***** Fix the orbital plane.
+**** Maybe fix the orbital plane.
 
 TODO: can we build a maneuver node instead?
 - pick the next AN or DN of orbit vs ccorb
@@ -622,22 +501,37 @@ plane. If both LAN and INC are within 0.1° then no
 further computation is needed here.
 
 #+begin_src ks
+  mpstat("Check Assigned Orbit: Plane").
   mpadd({ // fix LAN and Inclination by adjusting velocity normal to the target plane.
+#+end_src
 
-    local ie is orbit:inclination-ccorb:inclination.
-    local le is orbit:lan-ccorb:lan.
+#+begin_src ks
+  local ie is orbit:inclination-ccorb:inclination.
+  local le is orbit:lan-ccorb:lan.
 
-    // if both of the above are good, we are done.
-    if abs(ie)<=1/10 and abs(le)<=1/10 return mpinc().
+  // if both of the above are good, we are done.
+  // make sure all controls are quiescent.
 
-    local ccdir is vcrs(ccorb:position-body:position,ccorb:velocity:orbit):normalized.
-    local ccpos is vdot(ccdir,body:position).
-    local ccvel is vdot(ccdir,velocity:orbit).
+  if abs(ie)<=1/10 and abs(le)<=1/10 {
+    lock throttle to 0.
+    lock steering to facing.
+    set warp to 0.
+    return mpinc().
+  }
 
-    // If we need a plane correction, and we are moving AWAY
-    // from the plane, then safewarp for a while.
+  // okto_log(" plane errors "+ " ie "+round(ie,1)+ " le "+round(le,1)).
 
-    if ccpos*ccvel<=0 {swadj(orbit:period/8). return 1/10.}
+  local ccdir is vcrs(ccorb:position-body:position,ccorb:velocity:orbit):normalized.
+  local ccpos is vdot(ccdir,body:position).
+  local ccvel is vdot(ccdir,velocity:orbit).
+
+  // If we need a plane correction, and we are moving AWAY
+  // from the plane, then safewarp for a while.
+
+  if ccpos*ccvel<=0 {
+    swadj(orbit:period/8).
+    // okto_log(" moving away"+ " ccpos "+round(ccpos,1)+ " ccvel "+round(ccvel,1)).
+    return 1/10.}
 #+end_src
 
 The strategy is to consider our linear distance
@@ -673,91 +567,66 @@ then adjust the code as necessary.
   local swtime is etb/2 - 30.
   swadj(swtime).
 
-  if wfnow()>1 return 1/10.
+  if wfnow()>1 {return 1/10.}
 
   // if we get to here, we are actively maneuvering.
 
   set Cs to -ccpos*mydir.
   set Ct to limit(0,1,1.5-cceta/lt).
+
+  // okto_log(" fixing plane"+ " cceta "+cceta+ " lt "+lt+ " Ct "+Ct).
+
   lock steering to Cs. lock throttle to Ct. return 1/50.}).
 #+end_src
 
-***** Development Code.
-
-****** maybe create a node to fix apoapsis.
+**** TODO fix AOP ...?
 
 #+begin_src ks
-  mpadd({  // adjust apoapsis at next periapsis.
-    local dt is eta:periapsis.
-    if dt<0 return mpinc().              // hyperbolic
-    if dt<300 set dt to dt+orbit:period. // next time around
-    if mnv_plan:typename = "Node" and mnv_plan:eta<dt return mpinc().
-    local mnv is mnpro(time:seconds + dt, ccorb:apoapsis).
-    if abs(mnv:prograde)>1/10 set mnv_plan to mnv.
-    return mpinc().}).
-#+end_src
-
-****** maybe create a node to fix periapsis.
-
-#+begin_src ks
-  mpadd({  // adjust periapsis at next apoapsis.
-    if apoapsis < 0 return mpinc().
-    local dt is eta:apoapsis.
-    if dt<300 set dt to dt+orbit:apood.
-    if mnv_plan:typename = "Node" and mnv_plan:eta<dt return mpinc().
-    local mnv is mnpro(time:seconds + dt, ccorb:periapsis).
-    if abs(mnv:prograde)>1/10 set mnv_plan to mnv.
-    return mpinc().}).
-#+end_src
-
-***** TODO fix AOP ...?
-
-#+begin_src ks
+  mpstat("Check Assigned Orbit: AOP").
   mpadd({
     local err is orbit:argumentofperiapsis-ccorb:argumentofperiapsis.
     if abs(err)<1 return mpinc().
 
-    local l is "aop:  "
-      +fmt(orbit:argumentofperiapsis,12,4)
-      +fmt(ccorb:argumentofperiapsis,12,4)
-      +fmt(err,12,4)
+    local l is "AOP FIX TBD:  "
+      +" orbit "+fmt(orbit:argumentofperiapsis,12,4)
+      +" ccorb "+fmt(ccorb:argumentofperiapsis,12,4)
+      +" error "+fmt(err,12,4)
       +" deg".
 
-    // Adjusting AOP might be hard in general.
-    // If our orbit is approximately circular,
-    // then get the right AOP by correctly scheduling
-    // the burn to change PERI or APO.
-    //
-    // Our initial insertion did this by picking
-    // the time to extend the apoapsis.
-
     until false {
-      break.
-    }
-    print l. log l to okto_log.
+      // Adjusting AOP might be hard in general.
+      // If our orbit is approximately circular,
+      // then get the right AOP by correctly scheduling
+      // the burn to change PERI or APO.
+      //
+      // Our initial insertion did this by picking
+      // the time to extend the apoapsis.
+      break.}
+
+    print l.
+    okto_log(l).
   return mpinc().}).
 #+end_src
 
-***** If we have a maneuver node, execute it.
-
-Note that this safes the throttle and fixes the orientation
-before and after handling the node.
+**** Maybe fix apoapsis and periapsis
 
 #+begin_src ks
-  mpone({if mnv_plan:typename="Node" add mnv_plan.}).
+  mpstat("Check Assigned Orbit: Periapsis").
+  mnata(ccorb:periapsis).
+  mppdas().
+  mpstat("Check Assigned Orbit: Apoapsis").
+  mnatp(ccorb:apoapsis). 
+  mppdas().
 #+end_src
 
-#+begin_src ks
-  mppdas(). mnwait(). mnexec(). mnfini(). mppdas().
-#+end_src
-
-***** branch back to the top of orbit management after a delay.
+**** branch back to the top of orbit management after a delay.
 
 #+begin_src ks
+  mpstat("Check Assigned Orbit: Done").
   mpadd({return mpput(mpi_park, 5*wfcmd()).}).}
 #+end_src
 
-**** The orbit management loop never ends.
+**** Orbit Management continues until ABORT ends MPRUN.
 
 * Run the Mission, then End the Program.
 

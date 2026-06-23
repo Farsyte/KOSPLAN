@@ -31,11 +31,9 @@ mpxfer("mun").
 mppdas().
 mphold_brakes().
 mpstat("Continuing to Mun SOI").
-mpadd({ if not orbit:hasnextpatch return mpinc().
-local dt is eta:transition-60.
-if dt<=0 return mpinc().
-swadj(dt). return 1/10. }).
-mpadd(swend).
+mpadd({swadj(choose eta:transition-60 if orbit:hasnextpatch else 0).
+return choose mpinc() if wfnow()=1 else 1/10.}).
+mppdas().
 mpadd({ if not orbit:hasnextpatch return mpinc().
 if body:name <> "Kerbin" return mpinc().
 return 1. }).
@@ -57,19 +55,14 @@ return 1/10.
 }
 return mpinc(). }).
 mppdas().
-mpadd({ if eta:periapsis<60 return mpinc().
-local dt is eta:periapsis-120.
-if dt<=0 return mpinc().
-swadj(dt). return 1/10. }).
-mpadd(swend).
+mpadd({swadj(eta:periapsis-120).
+return choose mpinc() if wfnow()=1 else 1/10.}).
 mppdas().
 mphold_brakes().
 mpstat("Leaving Mun SOI").
-mpadd({ if not orbit:hasnextpatch return mpinc().
-local dt is eta:transition-60.
-if dt<=0 return mpinc().
-swadj(dt). return 1/10. }).
-mpadd(swend).
+mpadd({swadj(choose eta:transition-60 if orbit:hasnextpatch else 0).
+return choose mpinc() if wfnow()=1 else 1/10.}).
+mppdas().
 mpadd({ if not orbit:hasnextpatch return mpinc().
 if body:name = "Kerbin" return mpinc().
 return 1. }).

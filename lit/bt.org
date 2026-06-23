@@ -10,11 +10,34 @@ sbt - burn time computation
   import("pre").
 #+end_src
 
-* bt(dv) -- convert ΔV to ΔT
+* tb(dv) -- quick detection of trivial burns
+
+- started from "if ΔT<1/1000"
+  where ΔT was the quick estimate of burn time:
+      ΔT = ΔV * mass / availablethrust
+  this is OK because mass and thrust are not going
+  to change significantly for nearly trivial burns.
+- reorganize terms.
+- Also, a burn of less than 1/10 m/s is trivial.
+
+#+begin_src ks
+  set tb to { parameter dv.
+    return (dv<1/10) or (dv*mass*1000<availablethrust).}.
+#+end_src
+
+
+* bt(dv) -- convert ΔV to ΔT, accurately.
 
 Given a desired change in velocity, work out based on
 the CURRENT state of the vessel how long it will take at
 100% throttle to finish that sized burn.
+
+
+FOR REFERNCE: the formula for the TRIVIAL estimate is
+    ΔT = ΔV * mass / availablethrust
+and the usual condition, "if ΔT<1/1000 this is trival" can
+be written to avoid the divide-by-zero:
+    if ΔV*mass*1000 < availablethrust this is trivial.
 
 #+begin_src ks
   set bt to { parameter dv.
@@ -29,7 +52,7 @@ stages.
 #+begin_src ks
   local s is stage:number.
   local m is ship:mass.
-  local f is maxthrust.
+  local f is availablethrust.
   local d is stage:deltav:vacuum.
 #+end_src
 
