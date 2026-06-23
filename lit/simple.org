@@ -137,12 +137,14 @@ For such vessels, please use *mncirc* found
 in the *mnpro* package instead.
 
 #+begin_src ks
-  set mpcirc to {mpadd({
-    if periapsis>apoapsis-100 return mpinc().
-    lock steering to prograde.
-    lock throttle to max(0,min(1,(2-eta:apoapsis/10))) *
-      max(1/100,min(1,1-vang(steering:vector,prograde:vector)/5)).
-    return 1.}).}.
+    set mpcirc to {
+      mpadd({
+        if periapsis>apoapsis-100 return mpinc().
+        lock steering to prograde.
+        lock throttle to max(0,min(1,(2-eta:apoapsis/10))) *
+          max(1/100,min(1,1-vang(steering:vector,prograde:vector)/5)).
+        return 1.}).
+      mpone({ lock throttle to 0. lock steering to prograde.}).}.
 #+end_src
 
 * mppdab - orient vehicle to Point Down At Body

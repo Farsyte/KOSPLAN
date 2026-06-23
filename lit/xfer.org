@@ -10,6 +10,7 @@ around the same body.
 
 #+begin_src ks
   import("mp").
+  import("mn").
   import("math").
   import("hud").
   // import("fmt").
@@ -27,10 +28,10 @@ around the same body.
     set o to o:nextpatch. }}.
 #+end_src
 
-* xfer(body): plan a free-return transfer to the named body.
+* mpxfer(body): plan (and execute) a free-return transfer to the named body.
 
 #+begin_src ks
-  set xfer to { parameter target_name. return {
+    set mpxfer to { parameter target_name. mpone({
 #+end_src
 
 ** set configuration information
@@ -366,5 +367,13 @@ useful if things are going wrong.
   // local delta_est_dpro is final_est_dpro - first_est_dpro.
   // print "delta node: adjust by "+ydhms(delta_est_time)+", "+fmt(delta_est_dpro,0,2)+" m/s.".
 
-  return mpinc(). }.}.
+  return mpinc(). }).
+#+end_src
+
+*** also add plan steps to wait, execute, and clean up.
+
+#+begin_src ks
+  mnwait().
+  mnexec().
+  mnfini().}.
 #+end_src

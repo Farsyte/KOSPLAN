@@ -437,17 +437,18 @@ re-evaluate the ascent every second.
 
 #+begin_src ks
   mpadd({ if altitude>body:atm:height return mpinc().
-  lock steering to prograde. lock throttle to 0. return 1. }).
+    lock steering to prograde. lock throttle to 0. return 1. }).
   mpone({hud(TEE()+": SPACE!").}).
 #+end_src
 
 *** circularize at apoapsis.
 
 #+begin_src ks
+  mppdas().
   mpone({hud(TEE()+": "+round(stage:deltav:vacuum,1)+ " m/s ΔV remains").}).
-  mpadd(mncirc). mpadd(mnwait). mpadd(mnexec).
+  mncirc().
   mpone({hud(TEE()+": "+round(stage:deltav:vacuum,1)+ " m/s ΔV remains").}).
-  mpadd(pdas).
+  mppdas().
 #+end_src
 
 *** Schedule when to raise apoapsis
@@ -556,7 +557,7 @@ evaluated a T2 time above as our last probe).
 Executing the node is the usual sequence.
 
 #+begin_src ks
-  mpadd(pdas). mpadd(mnwait). mpadd(mnexec). mpadd(mnfini). mpadd(pdas).
+  mppdas(). mnwait(). mnexec(). mnfini(). mppdas().
   mpone({hud("Moving from Parking to Assigned Orbit").}).
 #+end_src
 
@@ -578,7 +579,7 @@ TODO use the generic "at next apo, set peri to ..."
 #+end_src
 
 #+begin_src ks
-  mpadd(pdas). mpadd(mnwait). mpadd(mnexec). mpadd(mnfini). mpadd(pdas).
+  mppdas(). mnwait(). mnexec(). mnfini(). mppdas().
 #+end_src
 
 TODO use the generic "at next peri, set apo to ..."
@@ -747,7 +748,7 @@ before and after handling the node.
 #+end_src
 
 #+begin_src ks
-  mpadd(pdas). mpadd(mnwait). mpadd(mnexec). mpadd(mnfini). mpadd(pdas).
+  mppdas(). mnwait(). mnexec(). mnfini(). mppdas().
 #+end_src
 
 ***** branch back to the top of orbit management after a delay.

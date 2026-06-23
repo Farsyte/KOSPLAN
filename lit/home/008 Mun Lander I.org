@@ -134,31 +134,25 @@ finds nothing more specific for this mission.
 
 #+begin_src ks
   mpadd({ if altitude>body:atm:height return mpinc().
-  lock steering to prograde. lock throttle to 0. return 1. }).
+    lock steering to prograde. lock throttle to 0. return 1. }).
   mpone({hud("SPACE!").}).
 #+end_src
 
 *** circularize at apoapsis.
 
 #+begin_src ks
-  mpadd(mncirc).
-  mpadd(mnwait).
-  mpadd(mnexec).
-  mpadd(mnfini).
+  mncirc().
   mpone({hud("ORBIT!").}).
-  mpadd(pdas).
+  mppdas().
 #+end_src
 
 *** trans-munar injection
 
 #+begin_src ks
-  mpadd(xfer("mun")).
-  mpadd(mnwait).
   mpone({hud("Trans-Munar Injection").}).
-  mpadd(mnexec).
-  mpadd(mnfini).
+  mpxfer("mun").
   mpone({hud("Trans-Munar Trajectory Established").}).
-  mpadd(pdas).
+  mppdas().
 #+end_src
 
 *** SAFEWARP to just before transition to MUN SOI
@@ -169,7 +163,7 @@ finds nothing more specific for this mission.
     if dt<=0 return mpinc().
   swadj(dt). return 1/10. }).
   mpadd(swend).
-  mpadd(pdas).
+  mppdas().
 #+end_src
 
 *** wait until inside MUN SOI
@@ -180,7 +174,7 @@ finds nothing more specific for this mission.
     if body:name <> "Kerbin" return mpinc().
     return 1. }).
   mpone({hud("Entering MUN SOI").}).
-  mpadd(pdas).
+  mppdas().
 #+end_src
 
 *** Assure MUN periapsis between 12 and 16 km.
@@ -191,26 +185,21 @@ finds nothing more specific for this mission.
       lock steering to prograde.
       lock throttle to limit(0,1,(14000-periapsis-100)/1000) *
         limit(1/100,1,(10-vang(prograde:vector,facing:vector))/5).
-      return 1/10.
-    }
+      return 1/10.}
     if periapsis>16000 {
       lock steering to retrograde.
       lock throttle to limit(0,1,(periapsis+100-14000)/1000) *
         limit(1/100,1,(10-vang(retrograde:vector,facing:vector))/5).
-      return 1/10.
-    }
+      return 1/10.}
   return mpinc(). }).
-  mpadd(pdas).
+  mppdas().
 #+end_src
 
 *** Schedule circularization at MUN periapsis.
 
 #+begin_src ks
-  mpadd(mncirc).
-  mpadd(pdas).
-  mpadd(mnwait).
-  mpadd(mnexec).
-  mpadd(mnfini).
+  mncirc().
+  mppdas().
   mpone({hud("MUN Orbit").}).
 #+end_src
 
@@ -251,12 +240,9 @@ working from Munar Ib.
   #+begin_src ks
   mpadd(ascent(90,14000)).
   mpone({lock throttle to 0. hud("MECO").}).
-  mpadd(mncirc).
-  mpadd(mnwait).
-  mpadd(mnexec).
-  mpadd(mnfini).
+  mncirc().
   mpone({hud("ORBIT!").}).
-  mpadd(pdas).
+  mppdas().
 #+end_src
 
 *** escape from MUN orbit
@@ -270,11 +256,11 @@ This mission could have any inclination.
 #+begin_src ks
   mpone({hud("Planning MUN Escape").}).
   mpadd(escape).
-  mpadd(pdas).
-  mpadd(mnwait).
+  mppdas().
+  mnwait().
   mpone({hud("Leaving MUN Orbit").}).
-  mpadd(mnexec).
-  mpadd(mnfini).
+  mnexec().
+  mnfini().
 #+end_src
 
 *** SAFEWARP to just before transition out of MUN SOI
@@ -300,7 +286,7 @@ This mission could have any inclination.
 
 #+begin_src ks
   mpadd(aeroperi).
-  mpadd(pdas).
+  mppdas().
 #+end_src
 
 *** SAFEWARP to 120 km over kerbin using mnwait.
@@ -316,10 +302,10 @@ This mission could have any inclination.
     if r3 < rx set t2 to t3. else set t1 to t3. }
     mnclr().
   add node(t1,0,0,-1).}).
-  mpadd(mnwait).
+  mnwait().
   mpone({hud("Ready for AEROBRAKING").}).
   mpone({ mnclr(). }).
-  mpadd(pdas).
+  mppdas().
 #+end_src
 
 *** BURN RETROGRADE until out of fuel (when below 80 km)

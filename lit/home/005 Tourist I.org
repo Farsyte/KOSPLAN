@@ -12,6 +12,8 @@ Verified on *20260621* booted from boot/local
 
 #+begin_src ks
   import("mp").
+  import("mnpro").
+  import("hold").
   import("aero").
   import("fancystager").
   import("ascent").
@@ -60,13 +62,13 @@ finds nothing more specific for this mission.
 
 #+begin_src ks
   mpstat("Circularizing").
-  mpcirc().
+  mpcirc().                    // SIMPLE, not NODE based.
 #+end_src
 
-*** you had a moment in orbit, now come home.
+*** YOINK time to come home.
 
 #+begin_src ks
-  mpone({bays on.}). // adds aero stability
+  mpone({bays on.}).              // adds aero stability
   mpaero().
 #+end_src
 

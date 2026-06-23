@@ -44,51 +44,40 @@ mpone({lock throttle to 0. hud("MECO").}).
 mpadd({ if altitude>body:atm:height return mpinc().
 lock steering to prograde. lock throttle to 0. return 1. }).
 mpone({hud("SPACE!").}).
-mpadd(mncirc).
-mpadd(mnwait).
-mpadd(mnexec).
-mpadd(mnfini).
+mncirc().
 mpone({hud("ORBIT!").}).
-mpadd(pdas).
-mpadd(xfer("mun")).
-mpadd(mnwait).
+mppdas().
 mpone({hud("Trans-Munar Injection").}).
-mpadd(mnexec).
-mpadd(mnfini).
+mpxfer("mun").
 mpone({hud("Trans-Munar Trajectory Established").}).
-mpadd(pdas).
+mppdas().
 mpadd({ if not orbit:hasnextpatch return mpinc().
 local dt is eta:transition-60.
 if dt<=0 return mpinc().
 swadj(dt). return 1/10. }).
 mpadd(swend).
-mpadd(pdas).
+mppdas().
 mpadd({
 if not orbit:hasnextpatch return mpinc().
 if body:name <> "Kerbin" return mpinc().
 return 1. }).
 mpone({hud("Entering MUN SOI").}).
-mpadd(pdas).
+mppdas().
 mpadd({
 if periapsis<12000 {
 lock steering to prograde.
 lock throttle to limit(0,1,(14000-periapsis-100)/1000) *
 limit(1/100,1,(10-vang(prograde:vector,facing:vector))/5).
-return 1/10.
-}
+return 1/10.}
 if periapsis>16000 {
 lock steering to retrograde.
 lock throttle to limit(0,1,(periapsis+100-14000)/1000) *
 limit(1/100,1,(10-vang(retrograde:vector,facing:vector))/5).
-return 1/10.
-}
+return 1/10.}
 return mpinc(). }).
-mpadd(pdas).
-mpadd(mncirc).
-mpadd(pdas).
-mpadd(mnwait).
-mpadd(mnexec).
-mpadd(mnfini).
+mppdas().
+mncirc().
+mppdas().
 mpone({hud("MUN Orbit").}).
 mpl:clear().
 mpadd({
@@ -98,19 +87,16 @@ hud("Activate Engines to Leave.").
 }).
 mpadd(ascent(90,14000)).
 mpone({lock throttle to 0. hud("MECO").}).
-mpadd(mncirc).
-mpadd(mnwait).
-mpadd(mnexec).
-mpadd(mnfini).
+mncirc().
 mpone({hud("ORBIT!").}).
-mpadd(pdas).
+mppdas().
 mpone({hud("Planning MUN Escape").}).
 mpadd(escape).
-mpadd(pdas).
-mpadd(mnwait).
+mppdas().
+mnwait().
 mpone({hud("Leaving MUN Orbit").}).
-mpadd(mnexec).
-mpadd(mnfini).
+mnexec().
+mnfini().
 mpadd({ if not orbit:hasnextpatch return mpinc().
 local dt is eta:transition-60.
 if dt<=0 return mpinc().
@@ -121,7 +107,7 @@ if body:name = "Kerbin" return mpinc().
 return 1. }).
 mpone({hud("Returning to KERBIN").}).
 mpadd(aeroperi).
-mpadd(pdas).
+mppdas().
 mpone({
 local t1 is time:seconds + 60.
 local t2 is time:seconds + eta:periapsis.
@@ -132,10 +118,10 @@ local r3 is posat(t3,ship):mag.
 if r3 < rx set t2 to t3. else set t1 to t3. }
 mnclr().
 add node(t1,0,0,-1).}).
-mpadd(mnwait).
+mnwait().
 mpone({hud("Ready for AEROBRAKING").}).
 mpone({ mnclr(). }).
-mpadd(pdas).
+mppdas().
 mpadd({
 if altitude>80000 return 1.
 if altitude<40000 and apoapsis<60000 return mpinc().

@@ -34,42 +34,34 @@ mpadd(coast).
 mpone({hud(TEE()+" SPACE!").}).
 mpadd(simplecirc).
 mpone({hud(TEE()+" ORBIT!").}).
-mpadd(pdas).
+mppdas().
 mpadd(xfer("mun")).
-mpadd(mnwait).
+mnwait().
 mpone({hud(TEE()+" Trans-Munar Injection").}).
-mpadd(mnexec).
-mpadd(mnfini).
+mnexec().
+mnfini().
 mpone({hud(TEE()+" Trans-Munar Trajectory Established").}).
-mpadd(pdas).
+mppdas().
 mpadd({ if not orbit:hasnextpatch return mpinc().
 local dt is eta:transition-60.
 if dt<=0 return mpinc().
 swadj(dt). return 1/10. }).
 mpadd(swend).
-mpadd(pdas).
+mppdas().
 mpadd({
 if not orbit:hasnextpatch return mpinc().
 if body:name <> "Kerbin" return mpinc().
 return 1. }).
 mpone({hud(TEE()+" Entering MUN SOI").}).
-mpadd(pdas).
+mppdas().
 mpadd(fixperi(12000,14000,16000)).
-mpadd(pdas).
-mpadd(mncirc).
-mpadd(pdas).
-mpadd(mnwait).
-mpadd(mnexec).
-mpadd(mnfini).
+mppdas().
+mncirc().
 mpone({hud(TEE()+" MUN Orbit").}).
-mpadd(pdas). mpadd(hold). mpadd(pdas).
+mppdas(). mpone({bays on}). mphold_bay(). mppdas().
 mpone({hud(TEE()+" Planning MUN Escape").}).
-mpadd(escape).
-mpadd(pdas).
-mpadd(mnwait).
+mpadd(escape). mppdas(). mnwait(). mnexec(). mnfini().
 mpone({hud(TEE()+" Leaving MUN Orbit").}).
-mpadd(mnexec).
-mpadd(mnfini).
 mpadd({ if not orbit:hasnextpatch return mpinc().
 local dt is eta:transition-60.
 if dt<=0 return mpinc().
@@ -80,7 +72,7 @@ if body:name = "Kerbin" return mpinc().
 return 1. }).
 mpone({hud(TEE()+" Returning to KERBIN").}).
 mpadd(aeroperi).
-mpadd(pdas).
+mppdas().
 mpone({
 local t1 is time:seconds + 60.
 local t2 is time:seconds + eta:periapsis.
@@ -91,10 +83,10 @@ local r3 is posat(t3,ship):mag.
 if r3 < rx set t2 to t3. else set t1 to t3. }
 mnclr().
 add node(t1,0,0,-1).}).
-mpadd(mnwait).
+mnwait().
 mpone({hud(TEE()+" Ready for AEROBRAKING").}).
 mpone({ mnclr(). }).
-mpadd(pdas).
+mppdas().
 mpadd({
 if altitude>80000 return 1.
 if altitude<40000 and apoapsis<60000 return mpinc().

@@ -33,12 +33,14 @@ return mpinc().}).}.
 set mpcoast to {mpadd({
 if altitude>=body:atm:height or verticalspeed<0 return mpinc().
 lock throttle to 0. lock steering to prograde. return 1.}).}.
-set mpcirc to {mpadd({
+set mpcirc to {
+mpadd({
 if periapsis>apoapsis-100 return mpinc().
 lock steering to prograde.
 lock throttle to max(0,min(1,(2-eta:apoapsis/10))) *
 max(1/100,min(1,1-vang(steering:vector,prograde:vector)/5)).
-return 1.}).}.
+return 1.}).
+mpone({ lock throttle to 0. lock steering to prograde.}).}.
 set mppdab to { mpadd({
 lock throttle to 0.
 lock steering to lookdirup(vcrs(body:position,ship:velocity:orbit),-body:position).

@@ -93,10 +93,11 @@ mpone({lock throttle to 0. hud(TEE()+": MECO").}).
 mpadd({ if altitude>body:atm:height return mpinc().
 lock steering to prograde. lock throttle to 0. return 1. }).
 mpone({hud(TEE()+": SPACE!").}).
+mppdas().
 mpone({hud(TEE()+": "+round(stage:deltav:vacuum,1)+ " m/s ΔV remains").}).
-mpadd(mncirc). mpadd(mnwait). mpadd(mnexec).
+mncirc().
 mpone({hud(TEE()+": "+round(stage:deltav:vacuum,1)+ " m/s ΔV remains").}).
-mpadd(pdas).
+mppdas().
 mpadd({
 local dv is burndvh(altitude,altitude,ccorb:apoapsis,body).
 mnclr(). add node(time:seconds, 0, 0, dv). wait 0.
@@ -130,7 +131,7 @@ set t2 to t1 + dt/10.
 set c2 to f(t2).
 }
 set c1 to f(t1). return mpinc().}).
-mpadd(pdas). mpadd(mnwait). mpadd(mnexec). mpadd(mnfini). mpadd(pdas).
+mppdas(). mnwait(). mnexec(). mnfini(). mppdas().
 mpone({hud("Moving from Parking to Assigned Orbit").}).
 mpadd({
 mnclr().
@@ -141,7 +142,7 @@ local dv is burndvh(h1,h2,h3,body).
 add node(time:seconds + eta:apoapsis, 0, 0, dv).
 return mpinc().
 }).
-mpadd(pdas). mpadd(mnwait). mpadd(mnexec). mpadd(mnfini). mpadd(pdas).
+mppdas(). mnwait(). mnexec(). mnfini(). mppdas().
 { local mpi_park is mpl:length.
 local mnv_plan is false.
 mpadd({
@@ -197,6 +198,6 @@ break.
 print l. log l to okto_log.
 return mpinc().}).
 mpone({if mnv_plan:typename="Node" add mnv_plan.}).
-mpadd(pdas). mpadd(mnwait). mpadd(mnexec). mpadd(mnfini). mpadd(pdas).
+mppdas(). mnwait(). mnexec(). mnfini(). mppdas().
 mpadd({return mpput(mpi_park, 5*wfcmd()).}).}
 mprun(). print "program terminated".}.

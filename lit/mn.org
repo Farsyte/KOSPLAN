@@ -26,10 +26,10 @@ does seem to work just fine.
   set mnclr to { for n in allnodes remove n. }.
 #+end_src
 
-* mnexec -- STEP: execute the next maneuver node
+* mnexec -- add STEP to execute the next maneuver node
 
 #+begin_src ks
-  set mnexec to {
+  set mnexec to { mpadd({
 #+end_src
 
 ** if no maneuver is scheduled, this step is complete.
@@ -85,10 +85,10 @@ Throttle is the product of two 0..1 values.
 Come back and recompute in no longer than a second.
 
 #+begin_src ks
-  return min(1,mnl_dt). }.
+  return min(1,mnl_dt).}).}.
 #+end_src
 
-* mnfini -- STEP: clean up after mnexec
+* mnfini -- add STEP to clean up after mnexec
 
 The mnexec step leaves the (nearly) exhausted maneuver
 node scheduled and leaves THROTTLE and STEERING locked
@@ -100,15 +100,14 @@ our attitude where it is, and clears the maneuver plan.
 #+begin_src ks
   // All uses of mnexec must be immediately followed by mnfini.
   // Missions should probably also fix the facing.
-  set mnfini to {
+  set mnfini to { mpadd({
     lock throttle to 0.
     lock steering to facing.
     mnclr().
-    return mpinc().
-  }.
+    return mpinc().}).}.
 #+end_src
 
-* mnwait -- STEP: wait until time to start the burn for the maneuver node
+* mnwait -- add STEP to wait until time to start the burn for the maneuver node
 
 It is the responsibility of the mission to assure
 that we are in a good state to wait for the next
@@ -118,7 +117,7 @@ maneuver node.
 - the ship is not currently producing thrust
 
 #+begin_src ks
-  set mnwait to {
+  set mnwait to { mpadd({
 #+end_src
 
 If no maneuver is planned, or if the maneuver is
@@ -164,5 +163,5 @@ But we DO need to call it frequently so it can lower the
 warp factor in time!
 
 #+begin_src ks
-  swadj(dt-30). return 1/10. }.
+  swadj(dt-30). return 1/10. }). }.
 #+end_src

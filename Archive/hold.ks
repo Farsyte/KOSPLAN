@@ -15,6 +15,5 @@ mpadd({
 if not rcs return 1/10.
 rcs off. return mpinc().}).}.
 set mphold_bay to {
-mpadd({
-if bays return 1/10.
-return mpinc().}).}.
+mpone({bays on.}).
+mpadd({if bays return 1. return mpinc().}).}.

@@ -140,19 +140,19 @@ finds nothing more specific for this mission.
 #+begin_src ks
   mpadd(simplecirc).
   mpone({hud(TEE()+" ORBIT!").}).
-  mpadd(pdas).
+  mppdas().
 #+end_src
 
 *** trans-munar injection
 
 #+begin_src ks
   mpadd(xfer("mun")).
-  mpadd(mnwait).
+  mnwait().
   mpone({hud(TEE()+" Trans-Munar Injection").}).
-  mpadd(mnexec).
-  mpadd(mnfini).
+  mnexec().
+  mnfini().
   mpone({hud(TEE()+" Trans-Munar Trajectory Established").}).
-  mpadd(pdas).
+  mppdas().
 #+end_src
 
 *** SAFEWARP to just before transition to MUN SOI
@@ -163,7 +163,7 @@ finds nothing more specific for this mission.
     if dt<=0 return mpinc().
   swadj(dt). return 1/10. }).
   mpadd(swend).
-  mpadd(pdas).
+  mppdas().
 #+end_src
 
 *** wait until inside MUN SOI
@@ -174,55 +174,35 @@ finds nothing more specific for this mission.
     if body:name <> "Kerbin" return mpinc().
     return 1. }).
   mpone({hud(TEE()+" Entering MUN SOI").}).
-  mpadd(pdas).
+  mppdas().
 #+end_src
 
 *** Assure MUN periapsis between 12 and 16 km.
 
 #+begin_src ks
   mpadd(fixperi(12000,14000,16000)).
-  // mpadd({
-  //   if periapsis<12000 {
-  //     lock steering to prograde.
-  //     lock throttle to limit(0,1,(14000-periapsis-100)/1000) *
-  //       limit(1/100,1,(10-vang(prograde:vector,facing:vector))/5).
-  //     return 1/10.}
-  //   if periapsis>16000 {
-  //     lock steering to retrograde.
-  //     lock throttle to limit(0,1,(periapsis+100-14000)/1000) *
-  //       limit(1/100,1,(10-vang(retrograde:vector,facing:vector))/5).
-  //     return 1/10.}
-  // return mpinc(). }).
-  mpadd(pdas).
 #+end_src
 
-*** Schedule circularization at MUN periapsis.
+*** Circularization at MUN periapsis.
 
 #+begin_src ks
-  mpadd(mncirc).
-  mpadd(pdas).
-  mpadd(mnwait).
-  mpadd(mnexec).
-  mpadd(mnfini).
+  mppdas().
+  mncirc().
   mpone({hud(TEE()+" MUN Orbit").}).
 #+end_src
 
-*** HOLD in this step until done gathering science.
+*** Gather science in Mun Orbit.
 
 #+begin_src ks
-  mpadd(pdas). mpadd(hold). mpadd(pdas).
+  mppdas(). mpone({bays on}). mphold_bay(). mppdas().
 #+end_src
 
 *** escape from MUN orbit
 
 #+begin_src ks
   mpone({hud(TEE()+" Planning MUN Escape").}).
-  mpadd(escape).
-  mpadd(pdas).
-  mpadd(mnwait).
+  mpadd(escape). mppdas(). mnwait(). mnexec(). mnfini().
   mpone({hud(TEE()+" Leaving MUN Orbit").}).
-  mpadd(mnexec).
-  mpadd(mnfini).
 #+end_src
 
 *** SAFEWARP to just before transition out of MUN SOI
@@ -248,7 +228,7 @@ finds nothing more specific for this mission.
 
 #+begin_src ks
   mpadd(aeroperi).
-  mpadd(pdas).
+  mppdas().
 #+end_src
 
 *** SAFEWARP to 120 km over kerbin using mnwait.
@@ -264,10 +244,10 @@ finds nothing more specific for this mission.
     if r3 < rx set t2 to t3. else set t1 to t3. }
     mnclr().
   add node(t1,0,0,-1).}).
-  mpadd(mnwait).
+  mnwait().
   mpone({hud(TEE()+" Ready for AEROBRAKING").}).
   mpone({ mnclr(). }).
-  mpadd(pdas).
+  mppdas().
 #+end_src
 
 *** BURN RETROGRADE until out of fuel (when below 80 km)

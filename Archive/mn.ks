@@ -5,7 +5,7 @@ import("bt").
 import("predict").
 import("time").
 set mnclr to { for n in allnodes remove n. }.
-set mnexec to {
+set mnexec to { mpadd({
 if not hasnode return mpinc().
 if warp>0 set warp to 0.
 if not kuniverse:timewarp:issettled return 1/10.
@@ -20,14 +20,13 @@ lock mnl_dtdf to limit(0,1,mnl_dt/0.5).
 lock mnl_ae to vang(mnv:deltav,facing:vector).
 lock mnl_aedf to limit(1/100,1,1-(mnl_ae-1)/4).
 lock throttle to sqrt(mnl_dtdf * mnl_aedf).
-return min(1,mnl_dt). }.
-set mnfini to {
+return min(1,mnl_dt).}).}.
+set mnfini to { mpadd({
 lock throttle to 0.
 lock steering to facing.
 mnclr().
-return mpinc().
-}.
-set mnwait to {
+return mpinc().}).}.
+set mnwait to { mpadd({
 if not hasnode return mpinc().
 local mnv is nextnode.
 if mnv:eta <= 0 return mpinc().
@@ -39,4 +38,4 @@ choose mnv:deltav
 if hasnode and mnv:deltav:mag > 0
 else facing.
 if dt <= 0 return mpinc().
-swadj(dt-30). return 1/10. }.
+swadj(dt-30). return 1/10. }). }.

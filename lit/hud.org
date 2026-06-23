@@ -9,19 +9,17 @@ hud - wrapped HUD display
   import("time").
 #+end_src
 
-* hud(m,p) -- hud message with optional no-echo
+* hud(m,p) -- hud message (p reserved)
 
-Display M on the hud. Echo to the kOS console
-unless FALSE is passed as p.
+Display M on the hud.
 
-If we just pass P along to HUDTEXT, it would
-echo the output to the console but it would
-print a "HUD:" prefix that I do not want.
+The intended future use of P is to allow the caller
+to prevent the message from being sent to the log.
 
 In the future, this might print the message to a log file
 
 #+begin_src ks
   set hud to { parameter m. parameter p is true.
-    if p print m.
+    // if p print m. if p log m to hud_log.
     hudtext(m,5,2,24,WHITE,false). }.
 #+end_src
