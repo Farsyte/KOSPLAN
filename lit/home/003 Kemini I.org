@@ -60,7 +60,7 @@ finds nothing more specific for this mission.
 
 #+begin_src ks
   mpstat("Circularizing").
-  mpcirc().
+  mpsimplecirc().
 #+end_src
 
 *** gather science in orbit.

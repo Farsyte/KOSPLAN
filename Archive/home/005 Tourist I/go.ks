@@ -14,7 +14,7 @@ mpascent(90,80000).
 mpstat("Unpowered Ascent").
 mpcoast().
 mpstat("Circularizing").
-mpcirc().
+mpsimplecirc().
 mpone({bays on.}).
 mpaero().
 mprun(). print "program terminated".}.

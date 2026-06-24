@@ -1,4 +1,5 @@
 import("mn").
+import("mp").
 set escape to {
 local dpro is 10.
 local t1 is time:seconds + 300.
@@ -48,3 +49,5 @@ skip_past_max_ka().
 skip_past_min_ka().
 seek_kerbin_peri(35000).
 return mpinc(). }.
+set mpescape to {
+mpadd(escape). mnwait(). mnexec(). mnfini().}.

@@ -7,8 +7,9 @@ simple.ks - a collection of common simple steps
 
 #+begin_src ks
   import("agl").
-  import("nv").
   import("fmt").
+  import("mp").
+  import("nv").
   import("time").
 #+end_src
 
@@ -26,8 +27,15 @@ of a mission data display screen.
 ** putstat(m) - update mission status string
 
 #+begin_src ks
+  local sq is queue().
+  local sl is home:combine("status.log").
+  if mpi=0 open(sl):clear().
+  local sqck is {
+    if homeconnection:isconnected 
+      until sq:empty
+       log sq:pop() to sl.}.
   set putstat to { parameter m.
-    set mss to nvput(1,"status",m). }.
+    if mss = m return. sq:push(m). set mss to nvput(1,"status",m). }.
 #+end_src
 
 ** mpstat(m) - add step to set Mission Status String
@@ -48,7 +56,6 @@ of a mission data display screen.
 #+end_src
 
 * mplaunch - add "launch to 50 meters" to mission plan.
-
 
 #+begin_src ks
   set mplaunch to {
@@ -81,7 +88,7 @@ of a mission data display screen.
     lock throttle to 0. lock steering to prograde. return 1.}).}.
 #+end_src
 
-* mpcirc - simple circularization
+* mpsimplecirc - simple circularization
 
 This is the simplest circularization technique
 that I have seen: burn as needed to keep the
@@ -96,14 +103,14 @@ For such vessels, please use *mncirc* found
 in the *mnpro* package instead.
 
 #+begin_src ks
-    set mpcirc to {
-      mpadd({
-        if periapsis>apoapsis-100 return mpinc().
-        lock steering to prograde.
-        lock throttle to max(0,min(1,(2-eta:apoapsis/10))) *
-          max(1/100,min(1,1-vang(steering:vector,prograde:vector)/5)).
-        return 1.}).
-      mpone({ lock throttle to 0. lock steering to prograde.}).}.
+  set mpsimplecirc to {
+    mpadd({
+      if periapsis>apoapsis-100 return mpinc().
+      lock steering to prograde.
+      lock throttle to max(0,min(1,(2-eta:apoapsis/10))) *
+        max(1/100,min(1,1-vang(steering:vector,prograde:vector)/5)).
+      return 1.}).
+    mpone({ lock throttle to 0. lock steering to prograde.}).}.
 #+end_src
 
 * mppdab - orient vehicle to Point Down At Body
@@ -138,52 +145,123 @@ a few degrees of the desired attitude.
 * Display Update.
 
 #+begin_src ks
-
   set pr to { parameter u,w.
     if w<1 return "".
     return u:tostring:trim:padright(w):substring(0,w).}.
+#+end_src
+
+#+begin_src ks
   set pl to { parameter u,w.
     if w<1 return "".
     return u:tostring:trim:padleft(w):substring(0,w).}.
+#+end_src
 
+#+begin_src ks
   set openterm to {
     if career():candoactions
       core:part:getmodule("kOSProcessor"):
         doevent("Open Terminal").}.
+#+end_src
 
+#+begin_src ks
   set pagenew to {
     openterm().
     set tw to terminal:width-1.
     clearscreen.
     for i in range(24) print pr(" ",tw-1).
   }.
+#+end_src
 
+#+begin_src ks
   set pageupdate to {
     set tw to terminal:width-1.
+#+end_src
 
-    print pr(time:full,tw-1) at (0,0).
+    > Year # Day ## ##:##:##
+    > T-##:##:##      Vessel Name
+    > STATUS          kosplan status message
+    >                 BODY     PERIxAPO km    INCL°
+    > T-##:##:##      PERIAPSIS/APOAPSIS/TRANSITION/PERIOD
 
-    print pr(TEE(),16) at (0,1).
-    print pr(ship:name,tw-17) at (16,1).
+#+begin_src ks
+  print pr(time:full,tw-1) at (0,0).
+  print pr(TEE(),16)+pr(ship:name,tw-17) at (0,1).
+  print pr(status,16)+pr(mss,tw-17) at (0,2).
+#+end_src
 
-    print pr(status,16) at (0,2).
-    print pr(mss,tw-17) at (16,2).
+#+begin_src ks
+  local ps is fmt(periapsis/1000,0,1).
+  if periapsis<0 or ps:length>7 set ps to "***".
+  local as is fmt(apoapsis/1000,0,1).
+  if apoapsis<0 or as:length>7 set as to "***".
+#+end_src
+
+#+begin_src ks
+  print "  "+pr(body:name,14)+
+    pr(ps+"x"+as+" km",20)+
+    pr(fmt(orbit:inclination,5,1)+"°", tw-45) at (0,3).
+#+end_src
 
-    local ps is fmt(periapsis/1000,0,1).
-    if periapsis<0 or ps:length>7 set ps to "***".
-    local as is fmt(apoapsis/1000,0,1).
-    if apoapsis<0 or as:length>7 set as to "***".
+#+begin_src ks
+  local l4t is -1.
+  local l4s is "".
+#+end_src
 
-    print pr("",16) at (0,3).
-    print pr(body:name,7) at (16,3).
-    print pr(ps+"x"+as+" km",20) at (24,3).
-    print pr(fmt(orbit:inclination,5,1)+"°", tw-45) at (44,3).
+#+begin_src ks
+  if orbit:eccentricity<1 {
+    local eee is round(orbit:period).
+    if (l4t<0 or l4t>eee) {
+      local l4t is eee.
+      local l4s is "Period".}}
+#+end_src
+
+#+begin_src ks
+  if eta:periapsis>0 {
+    local eee is round(eta:periapsis).
+    if (l4t<0 or l4t>eee) {
+      set l4t to eee.
+      set l4s to "Periapsis".}}
+#+end_src
+
+#+begin_src ks
+  if apoapsis>0 {
+    set eee to round(eta:apoapsis).
+    if (l4t<0 or l4t>eee) {
+      set l4t to eee.
+      set l4s to "Apoapsis".}}
+#+end_src
+
+#+begin_src ks
+  if orbit:hasnextpatch {
+    set eee to round(eta:transition).
+    if (l4t<0 or l4t>eee) {
+      set l4t to eee.
+      set l4s to "Transition".}}
+#+end_src
+
+#+begin_src ks
+  if hasnode {
+    set l4t to round(nextnode:eta).
+    set l4s to "Maneuver".}
+#+end_src
+
+#+begin_src ks
+  set l4s to (choose "since " if l4t<0 else "to ") + l4s.
+#+end_src
+
+#+begin_src ks
+  print "  "+pr(ydhms(abs(l4t)),14)+ pr(l4s,tw-17) at (0,4).
+#+end_src
+
+#+begin_src ks
   }.
+#+end_src
 
+#+begin_src ks
   pagenew().
   set pagetime to round(time:seconds).
   when pagetime<=time:seconds then {
     set pagetime to round(time:seconds + 1)+1/50.
-    pageupdate(). return not abort. }
+  sqck(). pageupdate(). return not abort. }
 #+end_src
 

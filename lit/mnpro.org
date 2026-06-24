@@ -35,16 +35,16 @@ component will dominate the burn.
 This function attempts to avoid creating trivial nodes.
 
 #+begin_src ks
-  set mnpro to { parameter t,h. 
-    local mu is body:mu.
-    local r0 is body:radius.
-    local r1 is posat(t,ship).
-    local v1 is velat(t,ship).
-    local vr is vdot(v1,r1:normalized).
-    local dp is burndv(r1:mag,r0*2+apoapsis+periapsis-r1:mag,r0+h,mu).
-    if availablethrust=0 return 1. // staging, can't estimate BT. 
-    if tb(dp) return mpinc().
-    add node(t,-vr,0,dp). return mpinc(1/50). }.
+    set mnpro to { parameter t,h. 
+      local mu is body:mu.
+      local r0 is body:radius.
+      local r1 is posat(t,ship).
+      local v1 is velat(t,ship).
+      local vr is vdot(v1,r1:normalized).
+      local dp is burndv(r1:mag,r0*2+apoapsis+periapsis-r1:mag,r0+h,mu).
+      if availablethrust=0 return 1.
+      if tb(sqrt(dp^2+vr^2)) return mpinc().
+      add node(t,-vr,0,dp). return mpinc(1/50). }.
 #+end_src
 
 * mnatp(h) -- (STEPS) at periapis, set other altitude to h.
@@ -137,7 +137,7 @@ burn before the scheduled time.
     mnwait(). mnexec(). mnfini().}.
 #+end_src
 
-* mncirc -- STEP: plan maneuver to circularize at next periapsis or apoapsis
+* mpcirc -- add STEP to circularize at next periapsis or apoapsis
 
 It is the responsibility of the mission to assure
 that we are in a good state to plan and execute
@@ -179,11 +179,15 @@ expressions with the same condition.
 
 
 #+begin_src ks
-  set mncirc to {
-    mpadd({ mnclr().
-      local dt is eta:periapsis. if dt<0 return mpinc().
-      local ta is eta:apoapsis. local h1 is apoapsis.
+  set mpcirc to {
+    mpadd({mnclr().
+      local dt is eta:periapsis.
+      if dt<0 return mpinc(). 
+      local ta is eta:apoapsis.
+      local h1 is apoapsis.
       if ta>0 and ta<dt set dt to ta. else set h1 to periapsis.
       return mnpro(time:seconds+dt, h1).}).
-    mnwait(). mnexec(). mnfini().}.
+    mnwait().
+    mnexec().
+    mnfini().}.
 #+end_src

@@ -36,7 +36,7 @@ finds nothing more specific for this mission.
     set h to vcrs(body:position,ship:velocity:orbit).
     lock steering to lookdirup(h,-sun:position).
     return choose mpinc() if vang(steering:vector,facing:vector)<1 else 1.}).
-  mncirc().
+  mnsimplecirc().
 #+end_src
 
 ** this test thing always starts at the top of the plan when rebooting.

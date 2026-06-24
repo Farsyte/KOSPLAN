@@ -14,7 +14,7 @@ mpascent(355,72000).
 mpstat("Unpowered Ascent").
 mpcoast().
 mpstat("Circularizing").
-mpcirc().
+mpsimplecirc().
 mpstat("Science Orbit").
 mppdab().
 mphold_brakes().

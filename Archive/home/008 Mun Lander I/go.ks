@@ -44,7 +44,7 @@ mpone({lock throttle to 0. hud("MECO").}).
 mpadd({ if altitude>body:atm:height return mpinc().
 lock steering to prograde. lock throttle to 0. return 1. }).
 mpone({hud("SPACE!").}).
-mncirc().
+mpcirc().
 mpone({hud("ORBIT!").}).
 mppdas().
 mpone({hud("Trans-Munar Injection").}).
@@ -73,7 +73,7 @@ limit(1/100,1,(10-vang(retrograde:vector,facing:vector))/5).
 return 1/10.}
 return mpinc(). }).
 mppdas().
-mncirc().
+mpcirc().
 mppdas().
 mpone({hud("MUN Orbit").}).
 mpl:clear().
@@ -84,7 +84,7 @@ hud("Activate Engines to Leave.").
 }).
 mpadd(ascent(90,14000)).
 mpone({lock throttle to 0. hud("MECO").}).
-mncirc().
+mpcirc().
 mpone({hud("ORBIT!").}).
 mppdas().
 mpone({hud("Planning MUN Escape").}).

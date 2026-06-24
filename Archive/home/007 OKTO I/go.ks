@@ -69,7 +69,7 @@ mpascent(launch_az,launch_ap).
 mpstat("Unpowered Ascent").
 mpcoast().
 mpstat("Circularization").
-mncirc().
+mpcirc().
 mpstat("Parking Orbit").
 mpadd({
 local dv is burndvh(altitude,altitude,ccorb:apoapsis,body).

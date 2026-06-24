@@ -31,7 +31,7 @@ mpascent(90,80000).
 mpstat("Unpowered Ascent").
 mpcoast().
 mpstat("Circularizing").
-mncirc().
+mpcirc().
 mppdas().
 mphold_brakes("Get Orbital Science, Release Brakes").
 mpstat("Starting Mun Transfer").

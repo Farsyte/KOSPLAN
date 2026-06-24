@@ -62,7 +62,7 @@ finds nothing more specific for this mission.
 
 #+begin_src ks
   mpstat("Circularizing").
-  mpcirc().                    // SIMPLE, not NODE based.
+  mpsimplecirc().                    // SIMPLE, not NODE based.
 #+end_src
 
 *** YOINK time to come home.

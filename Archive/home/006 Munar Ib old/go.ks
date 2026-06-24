@@ -53,7 +53,7 @@ mpone({hud(TEE()+" Entering MUN SOI").}).
 mppdas().
 mpadd(fixperi(12000,14000,16000)).
 mppdas().
-mncirc().
+mpcirc().
 mpone({hud(TEE()+" MUN Orbit").}).
 mppdas().
 mphold_brakes().

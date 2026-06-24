@@ -1,19 +1,13 @@
 #+PROPERTY: header-args :results none
-#+PROPERTY: header-args :tangle ../../Archive/home/006 Munar I/go.ks
+#+PROPERTY: header-args :tangle ../../Archive/home/006 Munar Ib/go.ks
 
-go.ks -- GO script for Munar I, the first MUN Fly-By.
+go.ks -- GO script for Munar Ib, the first MUN orbiter
 
-This script manages the flight of the 006 Munar I, which
+This script manages the flight of the 006 Munar Ib, which
 is starting to get more complicated.
 
-This flight is unique in that it pauses at many steps to
-wait for science to be collected.
-
-Verified on *20260621* booted from boot/local
-
--- did not reboot while we were LOS on the farside of mun,
-   but boot/local should hold when starting imports
-   until we recover signal.
+This flight is unique in that it establishes and holds a MUN orbit
+at 14 km for scientific observations.
 
 * Import Required Packages
 
@@ -21,6 +15,7 @@ Verified on *20260621* booted from boot/local
   import("aeroperi").
   import("agl").
   import("ascent").
+  import("escape").
   import("fancystager").
   import("hold").
   import("mnpro").
@@ -72,20 +67,15 @@ NOTE: eta:transition is HUGE if there is no transition.
 
 ** Define Mission Phases
 
-*** Collect Science on Launchpad
-
-#+begin_src ks
-  mphold_bay("Get Launchpad Science, Close Bays").
-#+end_src
-
 *** Schedule the launch.
 
 #+begin_src ks
   mpstat("Launching Soon").
   mpone({t0put(7-mod(time:seconds,1)).}).
+  mpone({bays off.}).    
 #+end_src
 
-*** Get to Orbit and collect science.
+*** Get to initial Low Kerbin Orbit.
 
 #+begin_src ks
   mpcount().
@@ -97,7 +87,6 @@ NOTE: eta:transition is HUGE if there is no transition.
   mpstat("Circularizing").
   mpcirc().
   mppdas().
-  mphold_brakes("Get Orbital Science, Release Brakes").
 #+end_src
 
 *** Trans-Munar injection
@@ -108,16 +97,10 @@ NOTE: eta:transition is HUGE if there is no transition.
   mppdas().
 #+end_src
 
-*** Collect Science on the outbound transfer
-
-#+begin_src ks
-  mphold_brakes("Collect Outbound Science, Release Brakes").
-  mpstat("Continuing to Mun SOI").
-#+end_src
-
 *** SAFEWARP to just before transition to MUN SOI
 
 #+begin_src ks
+  mpstat("Transfer Orbit to MUN SOI").
   mptwt(60).
 #+end_src
 
@@ -127,29 +110,25 @@ NOTE: eta:transition is HUGE if there is no transition.
   mpadd({ if not orbit:hasnextpatch return mpinc().
     if body:name <> "Kerbin" return mpinc().
   return 1. }).
-#+end_src
-
-*** Collect Science inbound to Mun
-
-#+begin_src ks
   mppdas().
-  mphold_brakes("Collect Mun SOI Science, Release Brakes").
-  mpstat("Continuing to Mun").
 #+end_src
 
-*** assure mun periapsis between 20 and 50 km
+*** assure mun periapsis between 13 and 15 km
+
+The vessel should start with a 40 km periapsis.
 
 #+begin_src ks
+  mpstat("Refining MUN Approach").
   mpadd({
-    if periapsis<20000 {
+    if periapsis<13000 {
       lock steering to prograde.
-      lock throttle to limit(0,1,(periapsis+100-40000)/1000) *
+      lock throttle to limit(0,1,(periapsis+100-14000)/1000) *
         limit(1/100,1,(10-vang(prograde:vector,facing:vector))/5).
       return 1/10.
     }
-    if periapsis>50000 {
+    if periapsis>15000 {
       lock steering to retrograde.
-      lock throttle to limit(0,1,(periapsis+100-40000)/1000) *
+      lock throttle to limit(0,1,(periapsis+100-14000)/1000) *
         limit(1/100,1,(10-vang(retrograde:vector,facing:vector))/5).
       return 1/10.
     }
@@ -157,16 +136,26 @@ NOTE: eta:transition is HUGE if there is no transition.
   mppdas().
 #+end_src
 
-*** SAFEWARP to 120 seconds before periapsis
+*** Circularize at periapsis.
 
 #+begin_src ks
-  mptwp(120).
+  mpstat("Entering MUN Orbit").
+  mpcirc().
+  mppdas().
 #+end_src
 
-*** Collect Science near Mun Periapsis.
+*** Collect Science in MUN Orbit
 
 #+begin_src ks
-  mphold_brakes("Collect Near-Mun Science, Release Brakes").
+  mphold_brakes("Collect Mun Orbital Science, Release Brakes").
+  mppdas().
+#+end_src
+
+*** escape from MUN orbit
+
+#+begin_src ks
+  mpstat("Leaving MUN Orbit").
+  mpescape().
 #+end_src
 
 *** SAFEWARP to 60 seconds before transition out of MUN SOI

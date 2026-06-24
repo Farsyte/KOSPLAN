@@ -141,7 +141,7 @@ finds nothing more specific for this mission.
 *** circularize at apoapsis.
 
 #+begin_src ks
-  mncirc().
+  mpcirc().
   mpone({hud("ORBIT!").}).
   mppdas().
 #+end_src
@@ -195,7 +195,7 @@ finds nothing more specific for this mission.
 *** Schedule circularization at MUN periapsis.
 
 #+begin_src ks
-  mncirc().
+  mpcirc().
   mppdas().
   mpone({hud("MUN Orbit").}).
 #+end_src
@@ -237,7 +237,7 @@ working from Munar Ib.
   #+begin_src ks
   mpadd(ascent(90,14000)).
   mpone({lock throttle to 0. hud("MECO").}).
-  mncirc().
+  mpcirc().
   mpone({hud("ORBIT!").}).
   mppdas().
 #+end_src

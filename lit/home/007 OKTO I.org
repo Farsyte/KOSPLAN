@@ -338,7 +338,7 @@ if nonvolatile values are not set up.
   mpstat("Unpowered Ascent").
   mpcoast().
   mpstat("Circularization").
-  mncirc().
+  mpcirc().
   mpstat("Parking Orbit").
 #+end_src
 

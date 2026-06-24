@@ -11,6 +11,7 @@ around the planet.
 
 #+begin_src ks
   import("mn").
+  import("mp").
 #+end_src
 
 * escape -- plan an escape maneuver.
@@ -147,4 +148,11 @@ aerobraking.
     skip_past_min_ka().
     seek_kerbin_peri(35000).
     return mpinc(). }.
+#+end_src
+
+* mpescape -- add plan steps to plan and execute an escape maneuver.
+
+#+begin_src ks
+  set mpescape to {
+    mpadd(escape). mnwait(). mnexec(). mnfini().}.
 #+end_src
