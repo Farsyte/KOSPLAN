@@ -1,11 +1,7 @@
+import("agl").
 import("nv").
 import("fmt").
 import("time").
-set radalt0 to nvget(1,"radalt0",alt:radar).
-lock ra to alt:radar-radalt0.
-set radcal to { parameter h0 is alt:radar.
-set radalt0 to nvput(1,"radalt0",h0).}.
-set mpradcal to { parameter h0. return mpone({radcal(h0).}).}.
 set mss to nvget(1,"status","KOSPLAN Initializing").
 set putstat to { parameter m.
 set mss to nvput(1,"status",m). }.
@@ -17,11 +13,10 @@ if d<=1 mpinc().
 if d<=5 hud(TEE()).
 return t-round(t-1)-1/50.}).} .
 set mplaunch to {
-mpone({radcal().}).
 mpone({t0put(0).}).
 mpstat("Ignition").
 mpadd({
-if ra>50 return mpinc().
+if agl()>50 return mpinc().
 lock steering to facing.
 lock throttle to 1.
 if availablethrust>0 return 1/100.

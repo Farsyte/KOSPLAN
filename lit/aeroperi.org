@@ -13,6 +13,7 @@ Our required packages do not fit in 10000 bytes.
 #+begin_src ks
   import("math").
   import("bt").
+  import("mp").
 #+end_src
 
 * aeroperi: tune kerbin periapsis for aerocapture.
@@ -83,4 +84,11 @@ than 1% of desired, and no roll off for small errors.
   lock throttle to th.
 
   return 1/1000. }.
+#+end_src
+
+* mpaero -- add plan steps to plan and execute an aeroperi maneuver.
+
+#+begin_src ks
+  set mpaero to {
+    mpadd(aeroperi). mnwait(). mnexec(). mnfini().}.
 #+end_src

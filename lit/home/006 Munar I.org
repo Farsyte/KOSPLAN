@@ -3,7 +3,7 @@
 
 go.ks -- GO script for Munar I, the first MUN Fly-By.
 
-This script manages the flight of the 006 Munar One A, which
+This script manages the flight of the 006 Munar I, which
 is starting to get more complicated.
 
 This flight is unique in that it pauses at many steps to
@@ -18,16 +18,17 @@ Verified on *20260621* booted from boot/local
 * Import Required Packages
 
 #+begin_src ks
-  import("hold").
-  import("fancystager").
-  import("simple").
-  import("ascent").
-  import("xfer").
   import("aeroperi").
-  import("mp").
-  import("sw").
+  import("agl").
+  import("ascent").
+  import("fancystager").
+  import("hold").
   import("mnpro").
+  import("mp").
+  import("simple").
+  import("sw").
   import("time").
+  import("xfer").
 #+end_src
 
 * Provide a GO function.
@@ -37,6 +38,30 @@ finds nothing more specific for this mission.
 
 #+begin_src ks
   set go to {
+#+end_src
+
+** Helper Functions
+
+*** mptwp(S): add step to timewarp to S seconds before periapsis.
+
+#+begin_src ks
+  local mptwp is { parameter s.
+    mppdas(). mpadd({
+      local dt is eta:periapsis-s.
+      return choose swadj(dt) if dt>0 else mpinc(). }).
+    mpsw0(). mppdas(). }.
+#+end_src
+
+*** mptwt(): add step to timewarp to S seconds before transition.
+
+NOTE: eta:transition is HUGE if there is no transition.
+
+#+begin_src ks
+  local mptwt is { parameter s.
+    mppdas(). mpadd({
+      local dt is choose eta:transition-s if orbit:hasnextpatch else 0.
+      return choose swadj(dt) if dt>0 else mpinc(). }).
+    mpsw0(). mppdas(). }.
 #+end_src
 
 ** Start an autostager in the background
@@ -50,8 +75,7 @@ finds nothing more specific for this mission.
 *** Collect Science on Launchpad
 
 #+begin_src ks
-  mpstat("Launchpad Science").
-  mphold_bay().
+  mphold_bay("Get Launchpad Science, Close Bays").
 #+end_src
 
 *** Schedule the launch.
@@ -73,9 +97,7 @@ finds nothing more specific for this mission.
   mpstat("Circularizing").
   mncirc().
   mppdas().
-  mpstat("Orbital Science").
-  mpone({bays on.}).
-  mphold_brakes().
+  mphold_brakes("Get Orbital Science, Release Brakes").
 #+end_src
 
 *** Trans-Munar injection
@@ -89,16 +111,14 @@ finds nothing more specific for this mission.
 *** Collect Science on the outbound transfer
 
 #+begin_src ks
-  mphold_brakes().
+  mphold_brakes("Collect Outbound Science, Release Brakes").
   mpstat("Continuing to Mun SOI").
 #+end_src
 
 *** SAFEWARP to just before transition to MUN SOI
 
 #+begin_src ks
-  mpadd({swadj(choose eta:transition-60 if orbit:hasnextpatch else 0).
-    return choose mpinc() if wfnow()=1 else 1/10.}).
-  mppdas().
+  mptwt(60).
 #+end_src
 
 *** wait until inside MUN SOI
@@ -113,7 +133,7 @@ finds nothing more specific for this mission.
 
 #+begin_src ks
   mppdas().
-  mphold_brakes().
+  mphold_brakes("Collect Mun SOI Science, Release Brakes").
   mpstat("Continuing to Mun").
 #+end_src
 
@@ -137,27 +157,23 @@ finds nothing more specific for this mission.
   mppdas().
 #+end_src
 
-*** SAFEWARP to a bit before periapsis
+*** SAFEWARP to 120 seconds before periapsis
 
 #+begin_src ks
-  mpadd({swadj(eta:periapsis-120).
-    return choose mpinc() if wfnow()=1 else 1/10.}).
-  mppdas().
+  mptwp(120).
 #+end_src
 
 *** Collect Science near Mun Periapsis.
 
 #+begin_src ks
-  mphold_brakes().
-  mpstat("Leaving Mun SOI").
+  mphold_brakes("Collect Near-Mun Science, Release Brakes").
 #+end_src
 
-*** SAFEWARP to just before transition out of MUN SOI
+*** SAFEWARP to 60 seconds before transition out of MUN SOI
 
 #+begin_src ks
-  mpadd({swadj(choose eta:transition-60 if orbit:hasnextpatch else 0).
-    return choose mpinc() if wfnow()=1 else 1/10.}).
-  mppdas().
+  mpstat("Leaving Mun SOI").
+  mptwt(60).
 #+end_src
 
 *** wait until out of MUN SOI
@@ -172,13 +188,15 @@ finds nothing more specific for this mission.
 *** tune aerobraking target altitude.
 
 #+begin_src ks
-  mpadd(aeroperi).
+  mpaero().
   mppdas().
 #+end_src
 
 *** SAFEWARP to 120 km over kerbin using mnwait.
 
-For now, using a maneuver node.
+For now, using a maneuver node to mark when we want to
+stop warping, rather than having to recompute it each
+time through or persist it for a very few steps.
 
 #+begin_src ks
   mpone({
@@ -192,6 +210,7 @@ For now, using a maneuver node.
     mnclr().
     add node(t1,0,0,-1).}).
 
+  mppdas().
   mnwait().
   mpone({ mnclr(). }).
   mppdas().
@@ -202,7 +221,14 @@ For now, using a maneuver node.
 
 It is *EXPECTED* that the auto-stager will stage away
 the flamed-out engine, empty fuel tank, science cluster,
-probe core, battery, solar panel, and autopilot computer.
+probe core, battery, solar panel, and autopilot computer
+before the vessel dips below 40 km, or the apoapsis is
+reduced to less than 60 km.
+
+There is the chance that there is sufficient fuel to
+really mess up the landing if the burn continues, so
+once we are below 40 km or our apoapsis is below 60,
+move on to the next step.
 
 #+begin_src ks
   mpadd({
@@ -219,6 +245,11 @@ It is *EXPECTED* that the staging to stage 0 will stage away
 the flamed-out engine, empty fuel tank, science cluster,
 probe core, battery, solar panel, and autopilot computer.
 
+However, as long as the staged-away autopilot computer
+is fairly close to the vessel, it will continue to run
+the program, updating the display with information about
+whatever chunk of debries it inhabits.
+
 #+begin_src ks
   mpadd({ lock throttle to 0. lock steering to srfretrograde.
     if stage:number=0 mpinc().
@@ -227,8 +258,8 @@ probe core, battery, solar panel, and autopilot computer.
 
 *** If we get here ... we are done.
 
-Congratulations. Your autopilot was adding mass to the
-part of the vehicle that floated down on the parachute.
+The autopilot computer could in theory survive to this
+step while remaining in close formation with the vessel.
 
 #+begin_src ks
   mpadd({ unlock throttle. unlock steering. return mpinc(). }).

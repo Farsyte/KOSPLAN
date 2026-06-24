@@ -86,7 +86,11 @@ down to 1% of the desired amount if the error
 is dangerously high, and up to 100% if the error
 is at all tolerable.
 
+Also limit acceleration to 20 m/s²
+
 #+begin_src ks
+  // lock maxt to max(eps, ship:availablethrust).
+  // lock maxa to maxt/mass.
   // lock tf to sqrt(limit(0,1,(ap+1-apoapsis)/1000)).
   // lock va to vang(FACING:VECTOR, STEERING:VECTOR).
   // lock ef to limit(.01,1,(45-va)/30).
@@ -95,7 +99,7 @@ is at all tolerable.
   lock throttle to 
     limit(.01,1,(45-vang(FACING:VECTOR, STEERING:VECTOR))/30) *
     sqrt(limit(0,1,(ap+1-apoapsis)/1000)) *
-    min(1,20/maxa).
+    min(1,20*ship:availablethrust/mass).
 #+end_src
 
 ** Re-evaluate

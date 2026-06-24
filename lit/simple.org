@@ -6,52 +6,10 @@ simple.ks - a collection of common simple steps
 * Import Required Packages
 
 #+begin_src ks
+  import("agl").
   import("nv").
   import("fmt").
   import("time").
-#+end_src
-
-* Radar Altimeter Calibration
-
-** radalt0 - value of alt:radar taken when in contact with surface.
-
-#+begin_src ks
-  set radalt0 to nvget(1,"radalt0",alt:radar).
-#+end_src
-
-** ra - LOCK evaluating to radar altitude (for this file only)
-
-#+begin_src ks
-  lock ra to alt:radar-radalt0.
-#+end_src
-
-** radcal(h) - calibrate the radar altimeter.
-
-Construct a LOCK called RA that reads zero when the
-radar altimeter ALT:RADAR reads H, which defaults to the
-current ALT:RADAR value.
-
-Call this with no parameters when resting on the ground.
-
-Call this with a number determined when designing the
-vessel when a lander is approaching a landing; the value
-must be determined by deploying just the lander stage
-and examining the ALT:RADAR value.
-
-#+begin_src ks
-  set radcal to { parameter h0 is alt:radar.
-    set radalt0 to nvput(1,"radalt0",h0).}.
-#+end_src
-
-** mpradcal(h0) -- add mission plan step to calibrate LANDER radar.
-
-The appropriate value of H0 is specific to the stage of
-the vessel, and the value used in this call must be
-determined when designing the vessel by capturing ALT:RADAR
-with the lander sitting on a surface.
-
-#+begin_src ks
-  set mpradcal to { parameter h0. return mpone({radcal(h0).}).}.
 #+end_src
 
 * Mission Status String
@@ -94,11 +52,10 @@ of a mission data display screen.
 
 #+begin_src ks
   set mplaunch to {
-    mpone({radcal().}).
     mpone({t0put(0).}).
     mpstat("Ignition").
     mpadd({
-      if ra>50 return mpinc().
+      if agl()>50 return mpinc().
       lock steering to facing.
       lock throttle to 1.
       if availablethrust>0 return 1/100.

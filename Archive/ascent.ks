@@ -10,6 +10,6 @@ limit(0,1,altitude/ap))),0).
 lock throttle to
 limit(.01,1,(45-vang(FACING:VECTOR, STEERING:VECTOR))/30) *
 sqrt(limit(0,1,(ap+1-apoapsis)/1000)) *
-min(1,20/maxa).
+min(1,20*ship:availablethrust/mass).
 return 1.}).
 mpone({ lock throttle to 0. lock steering to facing.}).}.

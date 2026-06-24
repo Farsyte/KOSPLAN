@@ -27,9 +27,9 @@ local i is swra:length - 1.
 until i=0 or dt>swra[i]
 set i to i - 1.
 return i.}.
-set swadj to { parameter dt.
+set swadj to { parameter dt. parameter u is 1/10.
 set o to warp.
 set n to swfac(dt).
 if o = n return.
 if o = 0 set kuniverse:timewarp:mode to "RAILS".
-set warp to n.}.
+set warp to n. return u.}.

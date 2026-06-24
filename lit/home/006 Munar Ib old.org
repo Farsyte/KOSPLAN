@@ -1,16 +1,14 @@
 #+PROPERTY: header-args :results none
-#+PROPERTY: header-args :tangle ../../Archive/home/006 Munar Ib/go.ks
+#+PROPERTY: header-args :tangle ../../Archive/home/006 Munar Ib old/go.ks
 
-go.ks -- GO script for Munar Ib, the first MUN ORBIT
+go.ks -- GO script for Munar Ib old, the first MUN ORBIT (old version)
 
-This script manages the flight of the 006 Munar Ib, which
+This script manages the flight of the 006 Munar Ib old, which
 is a pretty significiant mission.
 
 This flight pauses to collect science when in orbit around MUN.
 
 * Import Required Packages
-
-Our required packages do not fit in 10000 bytes.
 
 #+begin_src ks
   import("aeroperi").

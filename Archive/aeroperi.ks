@@ -1,5 +1,6 @@
 import("math").
 import("bt").
+import("mp").
 set aeroperi to {
 if ship:LiquidFuel<=eps return mpinc().
 local r0 is ship:body:radius.
@@ -19,3 +20,5 @@ local ka is limit(1/100,1,(5-ae)*1.2/5).
 local th is limit(0,1,ka*5*dv:mag/ma).
 lock throttle to th.
 return 1/1000. }.
+set mpaero to {
+mpadd(aeroperi). mnwait(). mnexec(). mnfini().}.

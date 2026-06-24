@@ -80,7 +80,6 @@ planned action.
 
 #+end_src
 
-
 * wfnow() -- current timewarp multiplier.
 
 NOTE: if we use LOCK WFNOW TO kuniverse:timewarp:rate
@@ -136,7 +135,7 @@ which the "return to zero" time is less than dt.
   return i.}.
 #+end_src
 
-* swadj(dt) -- set WARP to maximum safe warp for given ΔT
+* swadj(dt,u) -- set WARP to maximum safe warp for given ΔT, return u.
 
 Work out the highest TIMEWARP factor consistent with
 being out of warp in DT seconds, and adjust WARP
@@ -153,11 +152,11 @@ vessel might remain in TIMEWARP too long and not
 be able to get out of warp in time.
 
 #+begin_src ks
-  set swadj to { parameter dt.
+  set swadj to { parameter dt. parameter u is 1/10.
     set o to warp.
     set n to swfac(dt).
     if o = n return.
     if o = 0 set kuniverse:timewarp:mode to "RAILS".
     // hud("TIMEWARP "+n).
-    set warp to n.}.
+    set warp to n. return u.}.
 #+end_src
