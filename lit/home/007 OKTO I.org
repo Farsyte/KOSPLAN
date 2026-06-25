@@ -11,6 +11,7 @@ OKTO I/go.ks: Prototype Satellite System
   import("hud").
   import("math").
   import("mnpro").
+  import("nextdir").
   import("nv").
   import("simple").
   import("sw").
@@ -51,6 +52,22 @@ to freeze after printing, or to remove the print.
 
 ** Determine Target Orbit from Contract Parameters
 
+- ccinc: contract orbit inclination
+- ccinc: contract orbit inclination
+- ccecc: contract orbit eccentricity
+- ccsma: contract orbit semi-major axis length
+- cclan: contract orbit longitude of ascending node
+- ccaop: contract orbit argument of periapsis
+- ccmep: contract orbit mean anomaly at epoch
+- cctep: contract orbit epoch
+- ccbod: contract orbit body
+
+- ccorb: contract orbit as an ORBIT object
+
+- ccdan: contract orbit direction from body to ascending node
+- ccdam: contract orbit direction of orbitl angular momentum
+- ccdpe: contract orbit direction from body to periapsis
+
 #+begin_src ks
   set ccinc to nvget(1,"ccinc", 0).
   set ccecc to nvget(1,"ccecc", 0).
@@ -62,6 +79,20 @@ to freeze after printing, or to remove the print.
   set ccbod to nvget(1,"ccbod", "kerbin").
 
   set ccorb to CREATEORBIT(ccinc, ccecc, ccsma, cclan, ccaop, ccmep, cctep, ccbod).
+
+  set ccdan to angleaxis(-cclan, V(0,1,0)) * solarprimevector.
+  set ccdam to angleaxis(-ccinc,ccdan) * V(0,1,0).
+  set ccdpe to angleaxis(-ccaop,ccdam) * ccdan.
+
+  clearvecdraws().
+  // until false {
+  //   local startpos is body:position.
+  //   local veclen is body:radius + periapsis.
+  //   set ana to vecdraw(startpos, ccdan*veclen, blue,"Contract AN",1,true).
+  //   set nva to vecdraw(startpos, ccdam*veclen, green,"Contract AM",1,true).
+  //   set pvc to vecdraw(startpos, ccdpe*veclen, cyan,"Contract PE",1,true).
+  //   wait 1.
+  // }
 #+end_src
 
 ** Estimate ΔV for OMS for this mission.
@@ -348,6 +379,8 @@ if nonvolatile values are not set up.
   mpadd({
 #+end_src
 
+**** TODO: rework to use cc*** and nextdir()
+
 **** Initial Node
 
 TODO turn this code into generic support code for other missions.
@@ -477,7 +510,7 @@ the loop.
 
 #+begin_src ks
   { local mpi_park is mpl:length.
-    if mpi>=mpi_park {
+    if mpi>mpi_park {
       print "rewind MPI from "+mpi+" to "+mpi_park.
       mpput(mpi_park).
     }
@@ -486,7 +519,12 @@ the loop.
     mnclr(). mppdas().
 #+end_src
 
-**** Maybe fix the orbital plane.
+**** TODO rework orbital plane
+- to use cc*** variables
+- to use nextdir() method
+- to use a maneuver node
+
+**** Orbital Plane
 
 TODO: can we build a maneuver node instead?
 - pick the next AN or DN of orbit vs ccorb
@@ -579,110 +617,74 @@ then adjust the code as necessary.
   lock steering to Cs. lock throttle to Ct. return 1/50.}).
 #+end_src
 
-**** TODO fix AOP ...?
+**** Argument of Periapsis
 
-PROBLEM: Find a burn with radial and prograde components
-that achieves the desired AOP while minimizing the
-magnitude of the burn.
+current tuning: AOP within 1° is OK.
 
-Other solution:
-- circularize at apoapsis
-- at the proper time, re-establish periapsis. 
+If the AOP is not acceptable,
+circularize at the apoapsis,
+allowing "fix periapsis" to give
+the correct AOP.
 
-It would help if the "fix apoapsis" and "fix periapsis"
-methods always did their work at AOP and AOP+180.
+Method:
+- circularize at current apoapsis
+- fix periapsis at the correct time
 
-Having on hand vectors for the major and minor axis
-directions might make all of this easier.
+Do nothing if:
+- a maneuver is planned
+- AOP is already good enough
+- orbit is already circular
+- the circularization burn is trivial
 
 #+begin_src ks
-  mpstat("Check Assigned Orbit: AOP").
   mpadd({
-    local aop_curr is orbit:argumentofperiapsis.
-    local aop_want is ccorb:argumentofperiapsis.
-    local adj is aop_want-aop_curr.
-    if abs(adj)<1 return mpinc().
-
-    // NEW PLAN.
-    // Do this in the code that fixes periapsis:
-    //
-    // If AOP is wrong, the code that fixes
-    // the periapsis should circularize at apoapsis,
-    // then fix the periapsis from the appropriate
-    // point in the orbit.
-    //
-    // The code below shows how to find the vector
-    // pointing at the desired periapsis, for the
-    // current orbit with the AOP adjusted.
-    //
-    // newpe is the vector to the new periapsis point,
-    // vdap is a vector we can use to find the apoapsis
-    // point:
-    //   vdot(vdap,body:position) is zero,
-    //   vdot(vdap,velocity:orbit) gives speed approaching it.
-    //
-    // THIS IS WHERE I STOPPED THIS EVENING.
-
-    local ang_burn is ua(aop_curr + ua(adj)/2).
-    local adir is angleaxis(-orbit:lan, V(0,1,0)) * solarprimevector.
-    local hdir is angleaxis(-orbit:inclination,adir) * V(0,1,0).
-    local newpe is angleaxis(-aop_want,hdir) * adir.
-
-    local vdap is vcrs(hdir,newpe):normalized.
-
-    {
-      local startpos is body:position.
-      local veclen is body:radius + periapsis.
-      clearvecdraws().
-      local ana is vecdraw(startpos, adir*veclen, blue,"Ascending Node",1,true).
-      local nva is vecdraw(startpos, hdir*veclen, green,"Normal",1,true).
-      // local pva is vecdraw(startpos, oldpe*veclen, blue,"Old PE",1,true).
-      // local pvb is vecdraw(startpos, newpe*veclen, green,"New PE",1,true).
-      local pvc is vecdraw(startpos, newpe*veclen, cyan,"New PE",1,true).
-      local pvd is vecdraw(startpos-newpe*(body:radius+apoapsis), vdap*veclen, red,"vdap",1,true).
-    }
-
-
-
-  return mpinc().}).
+    if hasnode return mpinc().
+    if abs(orbit:argumentofperiapsis-ccorb:argumentofperiapsis)<1
+      return mpinc().
+    putstat("Fixing AOP by Circularizing").
+    return mnpro(time:seconds+eta:apoapsis, apoapsis).}).
 #+end_src
 
-**** Maybe fix periapsis
+**** Periapsis
+
+If the periapsis is not acceptable,
+perform a burn to fix it, to take place
+when we oppose the Argument of Periapsis.
 
 #+begin_src ks
-  mpstat("Check Assigned Orbit: Periapsis").
-
-  // NEW PLAN. Fix the AOP in this set of steps.
-  //
-  // If AOP is wrong, circularize at apoapsis,
-  // then fix the periapsis from the appropriate
-  // point in the orbit.
-  //
-  // The MNATA method is probably not best for this
-  // as it assumes we are keeping current AOP.
-  //
-  // THIS IS WHERE I STOPPED THIS EVENING.
-
-  mnata(ccorb:periapsis).
-  mppdas().
+  mpadd({
+    if hasnode return mpinc().
+    if abs(orbit:periapsis-ccorb:periapsis)<100
+      return mpinc().
+    putstat("Fixing Periapsis").
+    return mnpro(nextdir(-ccdpe), ccorb:periapsis).}).
 #+end_src
 
-**** Maybe fix apoapsis
+**** Apoapsis
+
+If the appoapsis is not acceptable,
+perform a burn to fix it, to take place
+when we are at the Argument of Periapsis.
 
 #+begin_src ks
-  mpstat("Check Assigned Orbit: Apoapsis").
-  // TODO: replace this with code that
-  // performs the adjustment when at
-  // the Angle of Periapsis.
-  mnatp(ccorb:apoapsis). 
-  mppdas().
+  mpadd({
+    if hasnode return mpinc().
+    if abs(orbit:apoapsis-ccorb:apoapsis)<100
+      return mpinc().
+    putstat("Fixing Apoapsis").
+    return mnpro(nextdir(ccdpe), ccorb:apoapsis).}).
 #+end_src
 
-**** branch back to the top of orbit management after a delay.
+**** Execute the maneuver, if there is one.
 
 #+begin_src ks
-  mpstat("Check Assigned Orbit: Done").
-  mpadd({return mpput(mpi_park, 10).}).}
+  mppdas(). mnwait(). mnexec(). mnfini(). mppdas().
+#+end_src
+
+**** branch back to the top of orbit management.
+
+#+begin_src ks
+  mpadd({return mpput(mpi_park, 1).}).}
 #+end_src
 
 **** Orbit Management continues until ABORT ends MPRUN.
@@ -690,5 +692,8 @@ directions might make all of this easier.
 * Run the Mission, then End the Program.
 
 #+begin_src ks
-  mprun(). print "program terminated".}.
+  mprun(). 
+  print "program terminated".
+  print "rebooting in 3 seconds".
+  abort off. wait 3. reboot. }.
 #+end_src

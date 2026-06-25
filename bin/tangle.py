@@ -10,12 +10,14 @@ def tangleto(rd, wrname):
     wr = wrf[wrname]
     while True:
         line = rd.readline()
+        if not line: break
+        line = line.strip()
         if line.startswith("#+end_src"): return lc
         if "//" in line:
             csa = line.find("//")
             if csa < 1: continue
             line = line[0:csa]
-        line = line.strip()
+            line = line.strip()
         if line:
             print(f"{line}", file=wr)
             lc += 1
@@ -26,6 +28,7 @@ def tangle(rdname):
     ppfx = "#+PROPERTY: header-args :tangle "
     with open(rdname, 'r') as rd:
         for line in rd:
+            if not line: break
             line = line.strip()
             if line.startswith(ppfx):
                 wrname = line[len(ppfx):]

@@ -3,6 +3,7 @@ import("fmt").
 import("hud").
 import("math").
 import("mnpro").
+import("nextdir").
 import("nv").
 import("simple").
 import("sw").
@@ -18,6 +19,10 @@ set ccmep to nvget(1,"ccmep", 0).
 set cctep to nvget(1,"cctep", 0).
 set ccbod to nvget(1,"ccbod", "kerbin").
 set ccorb to CREATEORBIT(ccinc, ccecc, ccsma, cclan, ccaop, ccmep, cctep, ccbod).
+set ccdan to angleaxis(-cclan, V(0,1,0)) * solarprimevector.
+set ccdam to angleaxis(-ccinc,ccdan) * V(0,1,0).
+set ccdpe to angleaxis(-ccaop,ccdam) * ccdan.
+clearvecdraws().
 set launch_t0 to nvget(1, "launch_t0", t0).
 set launch_az to nvget(1, "launch_az", 90).
 set launch_ap to nvget(1, "launch_ap", 80000).
@@ -109,7 +114,7 @@ mppdas(). mnwait(). mnexec(). mnfini(). mppdas().
 mnata(ccorb:periapsis). mppdas().
 mnatp(ccorb:apoapsis). mppdas().
 { local mpi_park is mpl:length.
-if mpi>=mpi_park {
+if mpi>mpi_park {
 print "rewind MPI from "+mpi+" to "+mpi_park.
 mpput(mpi_park).
 }
@@ -142,33 +147,27 @@ if wfnow()>1 {return 1/10.}
 set Cs to -ccpos*mydir.
 set Ct to limit(0,1,1.5-cceta/lt).
 lock steering to Cs. lock throttle to Ct. return 1/50.}).
-mpstat("Check Assigned Orbit: AOP").
 mpadd({
-local aop_curr is orbit:argumentofperiapsis.
-local aop_want is ccorb:argumentofperiapsis.
-local adj is aop_want-aop_curr.
-if abs(adj)<1 return mpinc().
-local ang_burn is ua(aop_curr + ua(adj)/2).
-local adir is angleaxis(-orbit:lan, V(0,1,0)) * solarprimevector.
-local hdir is angleaxis(-orbit:inclination,adir) * V(0,1,0).
-local newpe is angleaxis(-aop_want,hdir) * adir.
-local vdap is vcrs(hdir,newpe):normalized.
-{
-local startpos is body:position.
-local veclen is body:radius + periapsis.
-clearvecdraws().
-local ana is vecdraw(startpos, adir*veclen, blue,"Ascending Node",1,true).
-local nva is vecdraw(startpos, hdir*veclen, green,"Normal",1,true).
-local pvc is vecdraw(startpos, newpe*veclen, cyan,"New PE",1,true).
-local pvd is vecdraw(startpos-newpe*(body:radius+apoapsis), vdap*veclen, red,"vdap",1,true).
-}
-return mpinc().}).
-mpstat("Check Assigned Orbit: Periapsis").
-mnata(ccorb:periapsis).
-mppdas().
-mpstat("Check Assigned Orbit: Apoapsis").
-mnatp(ccorb:apoapsis).
-mppdas().
-mpstat("Check Assigned Orbit: Done").
-mpadd({return mpput(mpi_park, 10).}).}
-mprun(). print "program terminated".}.
+if hasnode return mpinc().
+if abs(orbit:argumentofperiapsis-ccorb:argumentofperiapsis)<1
+return mpinc().
+putstat("Fixing AOP by Circularizing").
+return mnpro(time:seconds+eta:apoapsis, apoapsis).}).
+mpadd({
+if hasnode return mpinc().
+if abs(orbit:periapsis-ccorb:periapsis)<100
+return mpinc().
+putstat("Fixing Periapsis").
+return mnpro(nextdir(-ccdpe), ccorb:periapsis).}).
+mpadd({
+if hasnode return mpinc().
+if abs(orbit:apoapsis-ccorb:apoapsis)<100
+return mpinc().
+putstat("Fixing Apoapsis").
+return mnpro(nextdir(ccdpe), ccorb:apoapsis).}).
+mppdas(). mnwait(). mnexec(). mnfini(). mppdas().
+mpadd({return mpput(mpi_park, 1).}).}
+mprun().
+print "program terminated".
+print "rebooting in 3 seconds".
+abort off. wait 3. reboot. }.
