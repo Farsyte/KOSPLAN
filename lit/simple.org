@@ -29,7 +29,7 @@ of a mission data display screen.
 #+begin_src ks
   local sq is queue().
   local sl is home:combine("status.log").
-  if mpi=0 open(sl):clear().
+  if mpi=0 and exists(sl) open(sl):clear().
   local sqck is {
     if homeconnection:isconnected 
       until sq:empty
@@ -195,7 +195,7 @@ a few degrees of the desired attitude.
   local as is fmt(apoapsis/1000,0,1).
   if apoapsis<0 or as:length>7 set as to "***".
 #+end_src
-
+
 #+begin_src ks
   print "  "+pr(body:name,14)+
     pr(ps+"x"+as+" km",20)+
@@ -250,7 +250,10 @@ a few degrees of the desired attitude.
 #+end_src
 
 #+begin_src ks
-  print "  "+pr(ydhms(abs(l4t)),14)+ pr(l4s,tw-17) at (0,4).
+  if status="SPLASHED" or status="LANDED"
+    print pr(" ",tw-1) at (0,4).
+  else
+    print "  "+pr(ydhms(abs(l4t)),14)+ pr(l4s,tw-17) at (0,4).
 #+end_src
 
 #+begin_src ks

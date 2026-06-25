@@ -6,7 +6,7 @@ import("time").
 set mss to nvget(1,"status","KOSPLAN Initializing").
 local sq is queue().
 local sl is home:combine("status.log").
-if mpi=0 open(sl):clear().
+if mpi=0 and exists(sl) open(sl):clear().
 local sqck is {
 if homeconnection:isconnected
 until sq:empty
@@ -110,6 +110,9 @@ if hasnode {
 set l4t to round(nextnode:eta).
 set l4s to "Maneuver".}
 set l4s to (choose "since " if l4t<0 else "to ") + l4s.
+if status="SPLASHED" or status="LANDED"
+print pr(" ",tw-1) at (0,4).
+else
 print "  "+pr(ydhms(abs(l4t)),14)+ pr(l4s,tw-17) at (0,4).
 }.
 pagenew().
