@@ -114,7 +114,7 @@ print "rewind MPI from "+mpi+" to "+mpi_park.
 mpput(mpi_park).
 }
 mpstat("Maintain Assigned Orbit").
-mnclr(). mppdas(). mpadd({return mpinc(10).}).
+mnclr(). mppdas().
 mpstat("Check Assigned Orbit: Plane").
 mpadd({
 local ie is orbit:inclination-ccorb:inclination.
@@ -144,17 +144,24 @@ set Ct to limit(0,1,1.5-cceta/lt).
 lock steering to Cs. lock throttle to Ct. return 1/50.}).
 mpstat("Check Assigned Orbit: AOP").
 mpadd({
-local err is orbit:argumentofperiapsis-ccorb:argumentofperiapsis.
-if abs(err)<1 return mpinc().
-local l is "AOP FIX TBD:  "
-+" orbit "+fmt(orbit:argumentofperiapsis,12,4)
-+" ccorb "+fmt(ccorb:argumentofperiapsis,12,4)
-+" error "+fmt(err,12,4)
-+" deg".
-until false {
-break.}
-print l.
-okto_log(l).
+local aop_curr is orbit:argumentofperiapsis.
+local aop_want is ccorb:argumentofperiapsis.
+local adj is aop_want-aop_curr.
+if abs(adj)<1 return mpinc().
+local ang_burn is ua(aop_curr + ua(adj)/2).
+local adir is angleaxis(-orbit:lan, V(0,1,0)) * solarprimevector.
+local hdir is angleaxis(-orbit:inclination,adir) * V(0,1,0).
+local newpe is angleaxis(-aop_want,hdir) * adir.
+local vdap is vcrs(hdir,newpe):normalized.
+{
+local startpos is body:position.
+local veclen is body:radius + periapsis.
+clearvecdraws().
+local ana is vecdraw(startpos, adir*veclen, blue,"Ascending Node",1,true).
+local nva is vecdraw(startpos, hdir*veclen, green,"Normal",1,true).
+local pvc is vecdraw(startpos, newpe*veclen, cyan,"New PE",1,true).
+local pvd is vecdraw(startpos-newpe*(body:radius+apoapsis), vdap*veclen, red,"vdap",1,true).
+}
 return mpinc().}).
 mpstat("Check Assigned Orbit: Periapsis").
 mnata(ccorb:periapsis).
@@ -163,5 +170,5 @@ mpstat("Check Assigned Orbit: Apoapsis").
 mnatp(ccorb:apoapsis).
 mppdas().
 mpstat("Check Assigned Orbit: Done").
-mpadd({return mpput(mpi_park, 5*wfcmd()).}).}
+mpadd({return mpput(mpi_park, 10).}).}
 mprun(). print "program terminated".}.

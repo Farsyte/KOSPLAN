@@ -483,7 +483,7 @@ the loop.
     }
 
     mpstat("Maintain Assigned Orbit").
-    mnclr(). mppdas(). mpadd({return mpinc(10).}).
+    mnclr(). mppdas().
 #+end_src
 
 **** Maybe fix the orbital plane.
@@ -581,40 +581,99 @@ then adjust the code as necessary.
 
 **** TODO fix AOP ...?
 
+PROBLEM: Find a burn with radial and prograde components
+that achieves the desired AOP while minimizing the
+magnitude of the burn.
+
+Other solution:
+- circularize at apoapsis
+- at the proper time, re-establish periapsis. 
+
+It would help if the "fix apoapsis" and "fix periapsis"
+methods always did their work at AOP and AOP+180.
+
+Having on hand vectors for the major and minor axis
+directions might make all of this easier.
+
 #+begin_src ks
   mpstat("Check Assigned Orbit: AOP").
   mpadd({
-    local err is orbit:argumentofperiapsis-ccorb:argumentofperiapsis.
-    if abs(err)<1 return mpinc().
+    local aop_curr is orbit:argumentofperiapsis.
+    local aop_want is ccorb:argumentofperiapsis.
+    local adj is aop_want-aop_curr.
+    if abs(adj)<1 return mpinc().
 
-    local l is "AOP FIX TBD:  "
-      +" orbit "+fmt(orbit:argumentofperiapsis,12,4)
-      +" ccorb "+fmt(ccorb:argumentofperiapsis,12,4)
-      +" error "+fmt(err,12,4)
-      +" deg".
+    // NEW PLAN.
+    // Do this in the code that fixes periapsis:
+    //
+    // If AOP is wrong, the code that fixes
+    // the periapsis should circularize at apoapsis,
+    // then fix the periapsis from the appropriate
+    // point in the orbit.
+    //
+    // The code below shows how to find the vector
+    // pointing at the desired periapsis, for the
+    // current orbit with the AOP adjusted.
+    //
+    // newpe is the vector to the new periapsis point,
+    // vdap is a vector we can use to find the apoapsis
+    // point:
+    //   vdot(vdap,body:position) is zero,
+    //   vdot(vdap,velocity:orbit) gives speed approaching it.
+    //
+    // THIS IS WHERE I STOPPED THIS EVENING.
 
-    until false {
-      // Adjusting AOP might be hard in general.
-      // If our orbit is approximately circular,
-      // then get the right AOP by correctly scheduling
-      // the burn to change PERI or APO.
-      //
-      // Our initial insertion did this by picking
-      // the time to extend the apoapsis.
-      break.}
+    local ang_burn is ua(aop_curr + ua(adj)/2).
+    local adir is angleaxis(-orbit:lan, V(0,1,0)) * solarprimevector.
+    local hdir is angleaxis(-orbit:inclination,adir) * V(0,1,0).
+    local newpe is angleaxis(-aop_want,hdir) * adir.
 
-    print l.
-    okto_log(l).
+    local vdap is vcrs(hdir,newpe):normalized.
+
+    {
+      local startpos is body:position.
+      local veclen is body:radius + periapsis.
+      clearvecdraws().
+      local ana is vecdraw(startpos, adir*veclen, blue,"Ascending Node",1,true).
+      local nva is vecdraw(startpos, hdir*veclen, green,"Normal",1,true).
+      // local pva is vecdraw(startpos, oldpe*veclen, blue,"Old PE",1,true).
+      // local pvb is vecdraw(startpos, newpe*veclen, green,"New PE",1,true).
+      local pvc is vecdraw(startpos, newpe*veclen, cyan,"New PE",1,true).
+      local pvd is vecdraw(startpos-newpe*(body:radius+apoapsis), vdap*veclen, red,"vdap",1,true).
+    }
+
+
+
   return mpinc().}).
 #+end_src
 
-**** Maybe fix apoapsis and periapsis
+**** Maybe fix periapsis
 
 #+begin_src ks
   mpstat("Check Assigned Orbit: Periapsis").
+
+  // NEW PLAN. Fix the AOP in this set of steps.
+  //
+  // If AOP is wrong, circularize at apoapsis,
+  // then fix the periapsis from the appropriate
+  // point in the orbit.
+  //
+  // The MNATA method is probably not best for this
+  // as it assumes we are keeping current AOP.
+  //
+  // THIS IS WHERE I STOPPED THIS EVENING.
+
   mnata(ccorb:periapsis).
   mppdas().
+#+end_src
+
+**** Maybe fix apoapsis
+
+#+begin_src ks
   mpstat("Check Assigned Orbit: Apoapsis").
+  // TODO: replace this with code that
+  // performs the adjustment when at
+  // the Angle of Periapsis.
   mnatp(ccorb:apoapsis). 
   mppdas().
 #+end_src
@@ -623,7 +682,7 @@ then adjust the code as necessary.
 
 #+begin_src ks
   mpstat("Check Assigned Orbit: Done").
-  mpadd({return mpput(mpi_park, 5*wfcmd()).}).}
+  mpadd({return mpput(mpi_park, 10).}).}
 #+end_src
 
 **** Orbit Management continues until ABORT ends MPRUN.

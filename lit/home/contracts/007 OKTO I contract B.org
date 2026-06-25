@@ -9,6 +9,8 @@ New unmanned satellite around Kerbin
 with antenna and power generation
 fully assembled when launched
 
+* Original Assignment
+
 From the contract display:
 
 | Apoapsis    | 7810.059 | km |
@@ -24,10 +26,35 @@ Contracts never specify MEP or TEP.
 Exact figures found in the save file.
 
 #+begin_src ks
+  // nvput(1,"ccbod", "kerbin").
+  // nvput(1,"ccinc", 90).
+  // nvput(1,"ccecc", 0.092514581651981939).
+  // nvput(1,"ccsma", 7697891.7333093686).
+  // nvput(1,"cclan", 273.92417669013355).
+  // nvput(1,"ccaop", 275.14100456384057).
+#+end_src
+
+* Adjusted Orbit 1:
+
+From the contract display:
+
+| Apoapsis    | 7808.643 | km |
+| Periapsis   | 6387.679 | km |
+| Inclination |     90.0 | °  |
+| LAN         |    273.9 | °  |
+| AOP         |    311.9 | °  |
+
+Mission Plan Budget does not exceed OKTO I capability.
+
+Contracts never specify MEP or TEP.
+
+Exact figures found in the save file.
+
+#+begin_src ks
   nvput(1,"ccbod", "kerbin").
-  nvput(1,"ccinc", 90).
-  nvput(1,"ccecc", 0.092514581651981939).
-  nvput(1,"ccsma", 7697891.7333093686).
-  nvput(1,"cclan", 273.92417669013355).
-  nvput(1,"ccaop", 275.14100456384057).
+  nvput(1,"ccinc", 89.979140395888848).
+  nvput(1,"ccecc", 0.092292435108767834).
+  nvput(1,"ccsma", 7698161.3755027791).
+  nvput(1,"cclan", 273.85671123765496).
+  nvput(1,"ccaop", 311.90032607321456).
 #+end_src
