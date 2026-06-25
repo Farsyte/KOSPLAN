@@ -1,0 +1,59 @@
+#+PROPERTY: header-args :results none
+#+PROPERTY: header-args :tangle ../Archive/nextdir.ks
+
+* import dependencies
+
+#+begin_src ks
+  import("math").
+  import("predict").
+#+end_src
+
+* nextdir - when are we next in this direction?
+
+Given a direction from the body, find the next time
+when it is most parallel to our radius vector, starting
+at time + dt where dt defaults to 300 seconds.
+
+#+begin_src ks
+  set nextdir to {
+    parameter dir.
+    parameter dt is 300.
+
+    local dam is vcrs(velocity:orbit,body:position):normalized.
+    local dir is vxcl(dam,dir):normalized.
+    local dfw is vcrs(dam,dir):normalized.
+
+    local t1 is time:seconds + dt.
+    local p1 is posat(t1).
+    local a1 is arctan2(vdot(dfw,p1),vdot(dir,p1)).
+
+    set dt to orbit:period/4.
+
+    until false {
+      set dt to dt/2.
+      until false {
+        local t2 is t1 + dt.
+        local p2 is posat(t2).
+        local a2 is arctan2(vdot(dfw,p2),vdot(dir,p2)).
+        if a1<0 and a2>=0 break.
+        set t1 to t2.
+        set p1 to p2.
+        set a1 to a2.
+      }
+      if abs(a1)<=1/10 return t1.
+      if dt<=1/10 return t1.
+    }
+
+    local vl is body:radius + ccorb:apoapsis.
+
+    local a_dir is vecdraw(body:position, dir*vl,blue,"dir",1,true).
+    local a_dam is vecdraw(body:position, dam*vl,green,"dam",1,true).
+    local a_dfw is vecdraw(body:position+dir*vl, dfw*vl,cyan,"dfw",1,true).
+
+    local a_p1 is vecdraw(body:position, p1,red,"p1",1,true).
+
+    abort off. wait until abort. abort off.
+    clearvecdraws().
+    reboot.
+  }.
+#+end_src

@@ -1,0 +1,29 @@
+#!/bin/bash -
+
+# set -xeuo pipefail
+
+sscr="$0"
+self=$(basename "$sscr" .sh)
+sdir=$(cd "$(dirname "$sscr")"; env PWD= /bin/pwd)
+cd "$sdir"/..
+
+rm -f .link* Craft/*/.link Saves
+
+# Kerbal Space Program is linux-native.
+
+ln -s "${HOME}/.steam/debian-installation/steamapps/"           .link-steamapps
+ln -s ".link-steamapps/common/Kerbal Space Program/"            .link-ksp
+ln -s ".link-ksp/saves/"                                        .link-saves
+
+ln -s ".link-saves/20260621"                                    Saves
+
+(cd Craft/SPH; ln -s ../../Saves/Ships/SPH/ .link)
+(cd Craft/VAB; ln -s ../../Saves/Ships/VAB/ .link)
+
+find . -print |
+    while read l
+    do
+        [ -h "$l" ] || continue
+        t=$(readlink "$l")
+        printf "%s -> %s\n" "$l" "$t"
+    done

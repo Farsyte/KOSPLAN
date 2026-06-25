@@ -1,0 +1,699 @@
+#+PROPERTY: header-args :results none
+#+PROPERTY: header-args :tangle ../../Archive/home/007 OKTO I/go.ks
+
+OKTO I/go.ks: Prototype Satellite System
+
+* Import Required Packages
+
+#+begin_src ks
+  import("ascent").
+  import("fmt").
+  import("hud").
+  import("math").
+  import("mnpro").
+  import("nextdir").
+  import("nv").
+  import("simple").
+  import("sw").
+#+end_src
+
+#+begin_src ks
+  import("current_contract").
+#+end_src
+
+#+begin_src ks
+  // print "calling wftune".
+  // wftune().
+  // until false { }
+#+end_src
+
+** What is the typical mission plan?
+
+Example: placing a sattelite in a polar orbit.
+
+- launch when we are under the target orbit
+- launch into the plane of the target orbit
+- start from the 80x80km parking orbit
+- add maneuver to raise apoapsis to apoapsis of the target orbit
+- at apoapsis: add maneuver to raise periapsis to periapsis of the target orbit
+
+This code is configured to print the estimated Delta-V
+to get into the orbit. Optionally, it can be modified
+to freeze after printing, or to remove the print.
+
+* Configuration Parameters and Support Functions at Import Time
+
+** Initialize the log.
+
+#+begin_src ks
+  local okto_log_file is home:combine("okto.log").
+  set okto_log to { parameter m. log TEE()+m to okto_log_file. }.
+#+end_src
+
+** Determine Target Orbit from Contract Parameters
+
+- ccinc: contract orbit inclination
+- ccinc: contract orbit inclination
+- ccecc: contract orbit eccentricity
+- ccsma: contract orbit semi-major axis length
+- cclan: contract orbit longitude of ascending node
+- ccaop: contract orbit argument of periapsis
+- ccmep: contract orbit mean anomaly at epoch
+- cctep: contract orbit epoch
+- ccbod: contract orbit body
+
+- ccorb: contract orbit as an ORBIT object
+
+- ccdan: contract orbit direction from body to ascending node
+- ccdam: contract orbit direction of orbitl angular momentum
+- ccdpe: contract orbit direction from body to periapsis
+
+#+begin_src ks
+  set ccinc to nvget(1,"ccinc", 0).
+  set ccecc to nvget(1,"ccecc", 0).
+  set ccsma to nvget(1,"ccsma", 80000).
+  set cclan to nvget(1,"cclan", 0).
+  set ccaop to nvget(1,"ccaop", 0).
+  set ccmep to nvget(1,"ccmep", 0).
+  set cctep to nvget(1,"cctep", 0).
+  set ccbod to nvget(1,"ccbod", "kerbin").
+
+  set ccorb to CREATEORBIT(ccinc, ccecc, ccsma, cclan, ccaop, ccmep, cctep, ccbod).
+
+  set ccdan to angleaxis(-cclan, V(0,1,0)) * solarprimevector.
+  set ccdam to angleaxis(-ccinc,ccdan) * V(0,1,0).
+  set ccdpe to angleaxis(-ccaop,ccdam) * ccdan.
+
+  clearvecdraws().
+  // until false {
+  //   local startpos is body:position.
+  //   local veclen is body:radius + periapsis.
+  //   set ana to vecdraw(startpos, ccdan*veclen, blue,"Contract AN",1,true).
+  //   set nva to vecdraw(startpos, ccdam*veclen, green,"Contract AM",1,true).
+  //   set pvc to vecdraw(startpos, ccdpe*veclen, cyan,"Contract PE",1,true).
+  //   wait 1.
+  // }
+#+end_src
+
+** Estimate ΔV for OMS for this mission.
+
+Uncomment when designing the vessel to obtain
+the Delta-V requirements to go from a parking
+orbit to the assigned orbit.
+
+#+begin_src ks
+  // import("plan").
+  // plan_sat(80000,ccorb:periapsis,ccorb:apoapsis,ccorb:body).
+#+end_src
+
+** Initialize Launch Parameters
+
+These default to simple eastbound parking but
+will be explicitly upated in a mission step
+just before the actual launch.
+
+#+begin_src ks
+  set launch_t0 to nvget(1, "launch_t0", t0).
+  set launch_az to nvget(1, "launch_az", 90).
+  set launch_ap to nvget(1, "launch_ap", 80000).
+#+end_src
+
+** Locked Helpers (maxt, maxa)
+
+#+begin_src ks
+  lock maxt to max(eps, ship:availablethrust).
+  lock maxa to maxt/mass.
+#+end_src
+
+* Provide a GO function.
+
+This function is executed by IMPORT when it
+finds nothing more specific for this mission.
+
+#+begin_src ks
+  set go to {
+#+end_src
+
+** Configuration Parameters and Support Functions at GO time
+
+*** Set up staging logic UNIQUE TO THIS VESSEL.
+
+| S | Vessel Condition                        | stage ...              |
+|---+-----------------------------------------+------------------------|
+| 4 | on the launchpad ready to go            | activates engine       |
+| 3 | engines active but still held by clamps | releases launch clamps |
+| 2 | most of the ascent with faring          | jettisons faring       |
+| 1 | most of the ascent without faring       | jettisons main engine  |
+| 0 | satellite and orbital maneuvering       | does nothing           |
+
+NOTE: If we stage from stage 2 to stage 1 to stage 0 with
+the throttle set to maximum, the craft may tumble. To combat
+this I am taking the trivial approach of cutting the throttle
+as we stage, and depending on the ascent code to turn it back
+on in the future.
+
+#+begin_src ks
+  if stage:number>0
+    when stage:ready and (
+      (stage:number=3) or
+      (stage:number=2 and altitude>70000) or
+      (stage:number<3 and availablethrust=0)) then {
+        stage. lock throttle to 0. return stage:number>0.}
+#+end_src
+
+The WHEN..THEN condition above can be simplified if we
+have a separate condition for each stage, where we
+activate each one as we enter the stage to which it
+applies. This trades additional program size for
+execution efficiency.
+
+** Define Mission Phases
+
+*** Wait until the next launch window
+
+TODO turn this into support code for other missions
+
+During boot, we fetch the contract satellite orbital
+elements and construct an Orbit object.
+
+#+begin_src ks
+  mpstat("Waiting for Launch Window").
+  mpadd({
+#+end_src
+
+The coordinate frame is weird when we are landed.
+almost like the orientation is always relative to
+a point fixed on the surface of the body, but
+velocities ignore that it is rotating.
+
+- th: angular momentum direction for target orbit [CHANGES]
+- sp: direction from body center to ship center [CONSTANT]
+- sv: ship velocity relative to body center to ship center [CONSTANT, NONZERO]
+
+- hp: cosine of angle between th and sp
+- hv: cosine of angle between th and sv
+- angle: goes from 360 down to 000
+
+I want to launch when we are 2° before the end of the quadrant.
+- Before angle is 000, launch NORTHish.
+- Before angle is 180, launch SOUTHish.
+
+#+begin_src ks
+  local th is vcrs(ccorb:position-body:position,ccorb:velocity:orbit):normalized.
+  local sp is -body:position:normalized.
+  local sv is ship:velocity:orbit:normalized.
+#+end_src
+
+Treat the vectors sp and sv as the basis vectors
+for a 2D coordinate system, compute the projection
+of the th vector onto that plane, then pick out
+an angle within that plane.
+
+#+begin_src ks
+  local hp is vdot(th, sp).
+  local hv is vdot(th, sv).
+#+end_src
+
+#+begin_src ks
+  local angle is arctan2(hv, hp)+180.
+#+end_src
+
+Use SAFEWARP to get us close to the launch window.
+When we are close to the window:
+- double check that WARP is 0 and SETTLED
+- lock down the launch time T0
+- pass control to the COUNTDOWN step
+
+Pick behavior based on quadrant.
+angle is increasing over time.
+
+- Quad 3: approaching NORTH departure
+- Quad 2: after NORTH before SOUTH
+- Quad 1: approaching SOUTH departure
+- Quad 0: after SOUTH before NORTH
+
+If we are in Quadrant 0 or 2,
+use safewarp to manage warping
+into the next quadrant.
+
+#+begin_src ks
+  local quad is floor(angle/90).
+  if quad=0 or quad=2 {
+    swadj(body:rotationperiod/8).
+    return wfcmd()/10.
+  }
+#+end_src
+
+Otherwise, use safewarp to manage warping
+to a comfortable margin before the
+end of the current quadrant.
+
+We actually need to launch shortly before
+arriving in the target plane. To estimate, I
+did several launches at the plane, and they
+consistently ended up with the plane rotated
+by about two degrees.
+
+So, apply a bias to QETA making us launch when
+we are two degrees away from the plane.
+
+We can now use SAFEWARP to skip forward to
+about thirty seconds before when we want to
+launch.
+
+#+begin_src ks
+  local aeoq is angle-90*quad.
+  local qeta is aeoq * body:rotationperiod/360.
+
+  set qeta to qeta - 2*body:rotationperiod/360.
+
+  swadj(qeta-30). 
+  if wfnow()>1 return 1/100.
+#+end_src
+
+If we get here, we are out of timewarp and close to the
+end of a launch quadrant. This is a good place to add a
+ton of PRINT or LOG lines to monitor the above.
+
+Monitor numbers closely until 20 seconds before the
+estimated launch window. Continue the process if the
+rounded qeta is 20 seconds or less.
+
+Tune the bias added to qeta here so that we observe qeta
+values that are an integer plus a SMALL fraction, try
+for under one phys tick but settle for under two if that
+is what we get. NOTE: This tuning depends on MPRUN not
+adjusting dt before calling the wait. That change was
+made to MPRUN during OKTO I development. previously it
+applied a bias to try to counteract the fact that WAIT
+actually waits for one phys-tick longer.
+
+#+begin_src ks
+  if qeta>20 return mod(qeta+9.9,1).
+#+end_src
+
+We are now close enough that we can commit to the launch
+parameters (t0, az, ap) and move along to the next step
+in the plan. Note that it is not really all that safe to
+commit these values until we are looking at a time to
+launch that is very small.
+
+The launch azimuth is along the direction of the
+inclined orbit, plus a correction of up to four degrees
+toward the west for polar orbits and less for less
+inclined orbits. This was originally moved into a
+function to ease development and debug (lots of prints
+and several returns for several cases), and there is
+really no reason to turn the function back into inline
+code.
+
+This is ugly. Basically, the sign of HV indicates
+whether we are launching northish or southish, we
+use 90-incl because incl is from the north while pitch
+is from horizontal, we use 450 so we can mod(...,360)
+to get heading from 0 to 360.
+
+AFH as angle from horizontal, and it is important that
+if inclination is 135° the AFH is just the 45° from
+westward up to north-and-west. This allows the addition
+of a bias that ramps from zero at 000 and 180 inclination,
+up to 4 at 090 and 270 inclination.
+
+No idea if the bias being linear with respect to the
+angle from horizontal is right, but it is close enough
+that I saw good results on an orbit at ... 36° I think.
+
+#+begin_src ks
+  local dfi is { parameter incl, hv.
+    local az is choose 450-incl if hv>0 else 450+incl.
+    local afh to abs(90-incl)-90.
+    if hv<0 set afh to -afh.
+    return mod(az+afh*4/90, 360).}.
+#+end_src
+
+Values are in hand (or the dfi function), so we record
+them to onboard nonvolatile storage. Remember, T0PUT now
+takes an elapsed time forward from now.
+
+#+begin_src ks
+  t0put(qeta-10).
+
+  set launch_t0 to nvput(1, "launch_t0", t0).
+  set launch_az to nvput(1, "launch_az", dfi(ccinc,hv)).
+  set launch_ap to nvput(1, "launch_ap", 80000).
+
+  okto_log(" launch AZ "+fmt(launch_az,0,1)+" AP "+fmt(launch_ap/1000,0,1)).
+
+#+end_src
+
+Notify the flight engineer and move on to the next step.
+
+#+begin_src ks
+  HUD("Will launch in "+round(t0-time:seconds,1)+" seconds.").
+  return mpinc(). }).
+#+end_src
+
+*** Launch and get a Low Kerbin Orbit.
+
+NOTE: the ascent step actually uses launch_az and
+launch_ap from nonvolatile vessel storage; the mpascent
+function just uses the values provided as the defaults
+if nonvolatile values are not set up.
+
+#+begin_src ks
+  mpcount().
+  mpstat("Launching").
+  mplaunch().
+  mpstat("Powered Ascent").
+  mpascent(launch_az,launch_ap).
+  mpstat("Unpowered Ascent").
+  mpcoast().
+  mpstat("Circularization").
+  mpcirc().
+  mpstat("Parking Orbit").
+#+end_src
+
+*** Establish Apoapsis and Argument of Periapsis
+
+#+begin_src ks
+  mpadd({
+#+end_src
+
+**** TODO: rework to use cc*** and nextdir()
+
+**** Initial Node
+
+TODO turn this code into generic support code for other missions.
+
+Set the DV to the value computed based on
+our current orbit being exactly circular.
+
+Since it is not, our results might be a bit rough, but
+the important thing now is the Argument of Periapsis.
+
+In practice, our orbit is close enough that the results
+can be corrected by our orbit maintenance loop.
+
+#+begin_src ks
+  local dv is burndvh(altitude,altitude,ccorb:apoapsis,body).
+  mnclr(). add node(time:seconds, 0, 0, dv). wait 0.
+#+end_src
+
+Use "square of error in angle of periapsis" as a
+cost function for an iterative cost minimizer.
+
+NOTE: the difference between the angles needs to be folded
+back into the -180 to +180 range for this to work well.
+
+#+begin_src ks
+  local aop_ref is ccorb:argumentofperiapsis.
+  local f is {parameter t. set nextnode:time to t. wait 0.
+    return sa(nextnode:orbit:argumentofperiapsis-aop_ref)^2.}.
+#+end_src
+
+Look at two points in the near future.
+
+#+begin_src ks
+  // start in the future, then scan forward
+  // until we see the error increase.
+  local dt is orbit:period/12.
+  local t1 is time:seconds + dt.
+  local c1 is f(t1).
+  // print "[1] t1: "+fmt(t1,8,1)+" √c1: "+fmt(sqrt(c1),16,10).
+  local t2 is t1 + dt.
+  local c2 is f(t2).
+#+end_src
+
+**** Scan forward past local maximum cost
+
+If we are looking at an increase in cost, push forward
+until we see an interval that is not increasing.
+
+#+begin_src ks
+    // while the error is increasing, step forward.
+    until c2<=c1 {
+      set t1 to t2.
+      set c1 to c2.
+      // print "[2] t1: "+fmt(t1,8,1)+" √c1: "+fmt(sqrt(c1),16,10).
+      set t2 to t1 + dt.
+      set c2 to f(t2).
+    }
+#+end_src
+
+**** Scan forward past local minimum cost
+
+Now, if we are looking at a decrease in cost, push forward
+until we see an interval that is not decreasing.
+
+#+begin_src ks
+    // while the error is decreasing, step forward.
+    until c2>=c1 {
+      set t1 to t2.
+      set c1 to c2.
+      // print "[3] t1: "+fmt(t1,8,1)+" √c1: "+fmt(sqrt(c1),16,10).
+      set t2 to t1 + dt.
+      set c2 to f(t2).
+    }
+#+end_src
+
+**** Interpolate to find local minimum cost
+
+Use the interval to estimate change in cost per change
+in time, then compute a new time that should zero the
+error, assuming that the error in cost is proportional
+to the square of the error in time.
+
+#+begin_src ks
+  until c1<=1e-8 {
+    set dcdt to (c2-c1) / (t2-t1).
+    set dt to c1/dcdt.
+    if abs(dt) < 1/100 break.
+    set t1 to t1 - 2*dt.
+    set c1 to f(t1).
+    // print "[4] t1: "+fmt(t1,8,1)+" √c1: "+fmt(sqrt(c1),16,10).
+    set t2 to t1 + dt/10.
+    set c2 to f(t2).
+    // print "[4] t2: "+fmt(t2,8,1)+" √c2: "+fmt(sqrt(c2),16,10).
+  }
+#+end_src
+
+Assure we leave the maneuver node at the T1 time (we may have
+evaluated a T2 time above as our last probe).
+
+#+begin_src ks
+  set c1 to f(t1). return mpinc().}).
+#+end_src
+
+*** Rough Apoapsis, Exact Periapsis, Exact Apoapsis.
+
+Assure parking orientation while waiting.
+
+Executing the node is the usual sequence.
+
+#+begin_src ks
+  mpstat("Transfer to Assigned Orbit").
+  mppdas(). mnwait(). mnexec(). mnfini(). mppdas(). 
+  mnata(ccorb:periapsis). mppdas().
+  mnatp(ccorb:apoapsis). mppdas().
+#+end_src
+
+*** Orbit Management Loop
+
+TODO extract these steps to a common tool collection
+- to be used by other missions that need orbit-keeping.
+
+This is how we do a loop in the mission plan.
+
+Also, if persisted MPI indicates we are in the middle
+of the loop when we reboot, force it to the top of
+the loop.
+
+#+begin_src ks
+  { local mpi_park is mpl:length.
+    if mpi>mpi_park {
+      print "rewind MPI from "+mpi+" to "+mpi_park.
+      mpput(mpi_park).
+    }
+
+    mpstat("Maintain Assigned Orbit").
+    mnclr(). mppdas().
+#+end_src
+
+**** TODO rework orbital plane
+- to use cc*** variables
+- to use nextdir() method
+- to use a maneuver node
+
+**** Orbital Plane
+
+TODO: can we build a maneuver node instead?
+- pick the next AN or DN of orbit vs ccorb
+- predict our velocity at that location
+- compute ΔV using our velocity and the normal vector
+  need to assure we are ROTATING around the nodal line,
+  not just cnceling our speed through the plane.
+
+This fixes both LAN and Inclination, as they are just
+two different measurements of an error in the orbital
+plane. If both LAN and INC are within 0.1° then no
+further computation is needed here.
+
+#+begin_src ks
+  mpstat("Check Assigned Orbit: Plane").
+  mpadd({ // fix LAN and Inclination by adjusting velocity normal to the target plane.
+#+end_src
+
+#+begin_src ks
+  local ie is orbit:inclination-ccorb:inclination.
+  local le is orbit:lan-ccorb:lan.
+
+  // if both of the above are good, we are done.
+  // make sure all controls are quiescent.
+
+  if abs(ie)<=1/10 and abs(le)<=1/10 {
+    lock throttle to 0.
+    lock steering to facing.
+    set warp to 0.
+    return mpinc().
+  }
+
+  // okto_log(" plane errors "+ " ie "+round(ie,1)+ " le "+round(le,1)).
+
+  local ccdir is vcrs(ccorb:position-body:position,ccorb:velocity:orbit):normalized.
+  local ccpos is vdot(ccdir,body:position).
+  local ccvel is vdot(ccdir,velocity:orbit).
+
+  // If we need a plane correction, and we are moving AWAY
+  // from the plane, then safewarp for a while.
+
+  if ccpos*ccvel<=0 {
+    swadj(orbit:period/8).
+    // okto_log(" moving away"+ " ccpos "+round(ccpos,1)+ " ccvel "+round(ccvel,1)).
+    return 1/10.}
+#+end_src
+
+The strategy is to consider our linear distance
+from and velocity toward the target orbital plane,
+and decelerate smoothly as we approach.
+
+To minimize perturbations to periapsis, apoapsis, and
+argument of periapsis, burn parallel to our own orbit's
+normal vector.
+
+TODO see what happens for LARGE inclination changes,
+then adjust the code as necessary.
+
+#+begin_src ks
+  local mydir is vcrs(-body:position,velocity:orbit):normalized.
+
+  local cceta is ccpos / ccvel.
+  local lt is abs(ccvel)*2/maxa.
+
+  // etb is time until the lt point.
+  local etb is cceta - lt.
+
+  // How far we travel when
+  // accelerating at maxa/2
+  // for lt seconds.
+  // local ld is (1/2) * (maxa/2) * lt^2.
+
+  local ld is ccvel^2/maxa.
+
+  // break out of this to print
+  // plane-sync data.
+
+  local swtime is etb/2 - 30.
+  swadj(swtime).
+
+  if wfnow()>1 {return 1/10.}
+
+  // if we get to here, we are actively maneuvering.
+
+  set Cs to -ccpos*mydir.
+  set Ct to limit(0,1,1.5-cceta/lt).
+
+  // okto_log(" fixing plane"+ " cceta "+cceta+ " lt "+lt+ " Ct "+Ct).
+
+  lock steering to Cs. lock throttle to Ct. return 1/50.}).
+#+end_src
+
+**** Argument of Periapsis
+
+current tuning: AOP within 1° is OK.
+
+If the AOP is not acceptable,
+circularize at the apoapsis,
+allowing "fix periapsis" to give
+the correct AOP.
+
+Method:
+- circularize at current apoapsis
+- fix periapsis at the correct time
+
+Do nothing if:
+- a maneuver is planned
+- AOP is already good enough
+- orbit is already circular
+- the circularization burn is trivial
+
+#+begin_src ks
+  mpadd({
+    if hasnode return mpinc().
+    if abs(orbit:argumentofperiapsis-ccorb:argumentofperiapsis)<1
+      return mpinc().
+    putstat("Fixing AOP by Circularizing").
+    return mnpro(time:seconds+eta:apoapsis, apoapsis).}).
+#+end_src
+
+**** Periapsis
+
+If the periapsis is not acceptable,
+perform a burn to fix it, to take place
+when we oppose the Argument of Periapsis.
+
+#+begin_src ks
+  mpadd({
+    if hasnode return mpinc().
+    if abs(orbit:periapsis-ccorb:periapsis)<100
+      return mpinc().
+    putstat("Fixing Periapsis").
+    return mnpro(nextdir(-ccdpe), ccorb:periapsis).}).
+#+end_src
+
+**** Apoapsis
+
+If the appoapsis is not acceptable,
+perform a burn to fix it, to take place
+when we are at the Argument of Periapsis.
+
+#+begin_src ks
+  mpadd({
+    if hasnode return mpinc().
+    if abs(orbit:apoapsis-ccorb:apoapsis)<100
+      return mpinc().
+    putstat("Fixing Apoapsis").
+    return mnpro(nextdir(ccdpe), ccorb:apoapsis).}).
+#+end_src
+
+**** Execute the maneuver, if there is one.
+
+#+begin_src ks
+  mppdas(). mnwait(). mnexec(). mnfini(). mppdas().
+#+end_src
+
+**** branch back to the top of orbit management.
+
+#+begin_src ks
+  mpadd({return mpput(mpi_park, 1).}).}
+#+end_src
+
+**** Orbit Management continues until ABORT ends MPRUN.
+
+* Run the Mission, then End the Program.
+
+#+begin_src ks
+  mprun(). 
+  print "program terminated".
+  print "rebooting in 3 seconds".
+  abort off. wait 3. reboot. }.
+#+end_src

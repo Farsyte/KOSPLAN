@@ -1,0 +1,57 @@
+#+PROPERTY: header-args :results none
+#+PROPERTY: header-args :tangle ../../../Archive/home/007 OKTO I/A/current_contract.ks
+
+007 OKTO I/A/current_contract.ks - orbital contract for OKTO I/A
+
+New unmanned satellite around Kerbin
+with antenna and power generation
+fully assembled when launched
+
+have a thermometer on the satellite
+
+* Original Assignment
+
+From the contract display:
+
+| Apoapsis    | 15607.449 | km |
+| Periapsis   | 12562.103 | km |
+| Inclination |      90.0 | °  |
+| LAN         |     267.9 | °  |
+| AOP         |     345.1 | °  |
+
+Mission Plan Budget:
+    ΔV 80x80 to 80x14562:                     874 m/s
+    ΔV 80x14562 to 11828x14562:               317 m/s
+    ΔV 80x80 to 11828x14562:                 1191 m/s
+
+Contracts never specify MEP or TEP.
+
+Exact figures found in the save file.
+
+#+begin_src ks
+  // nvput(1,"ccbod", "kerbin").
+  // nvput(1,"ccsma", 14684776.213241206).
+  // nvput(1,"ccecc", 0.10369059705984643).
+  // nvput(1,"ccinc", 90).
+  // nvput(1,"cclan", 267.91899334076766).
+  // nvput(1,"ccaop", 345.06443341498488).
+#+end_src
+
+* Adjusted Orbit 1:
+
+From the contract display:
+
+| Apoapsis    | 15611.406 | km |
+| Periapsis   | 12560.601 | km |
+| Inclination |      90.0 | °  |
+| LAN         |     267.8 | °  |
+| AOP         |      25.7 | °  |
+
+#+begin_src ks
+  nvput(1,"ccbod", "kerbin").
+  nvput(1,"ccinc", 89.982443190276697).
+  nvput(1,"ccecc", 0.10386777047868478).
+  nvput(1,"ccsma", 14686003.473592894).
+  nvput(1,"cclan", 267.82505503019365).
+  nvput(1,"ccaop", 25.737342590128378).
+#+end_src

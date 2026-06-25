@@ -1,3 +1,6 @@
+#+PROPERTY: header-args :results none
+#+PROPERTY: header-args :tangle ../Archive/mp.ks
+
 mp.ks - Mission Plan Manager
 
 The mission plan is a simple sequential list
@@ -15,7 +18,7 @@ is time to move on to the next step.
 
 * imports: mp needs the nv package.
 
-#+begin_src ks :results none :tangle ../Archive/mp.ks
+#+begin_src ks
   import("nv").
   import("math").
 #+end_src
@@ -25,7 +28,7 @@ is time to move on to the next step.
 This list starts empty at every reboot; the mission GO
 function is responsible for adding steps.
 
-#+begin_src ks :results none :tangle ../Archive/mp.ks
+#+begin_src ks
   set mpl to list().
 #+end_src
 
@@ -39,7 +42,7 @@ Note that when the MP package is activated, this value
 will be out of range, until the GO function has added
 the mission steps to the list.
 
-#+begin_src ks :results none :tangle ../Archive/mp.ks
+#+begin_src ks
   set mpi to nvget(1,"mpi",0).
 #+end_src
 
@@ -54,7 +57,7 @@ The function must handle being called before
 it expects to be called, or being called well
 after it expects to be called.
 
-#+begin_src ks :results none :tangle ../Archive/mp.ks
+#+begin_src ks
   set mpadd to { parameter d. mpl:add(d). }.
 #+end_src
 
@@ -64,7 +67,7 @@ This adds a mission step with some boilerplate
 around it so it is done once, and we continue
 on to the next mission step immediately.
 
-#+begin_src ks :results none :tangle ../Archive/mp.ks
+#+begin_src ks
   set mpone to { parameter d. mpl:add({ d(). return mpinc(). }). }.
 #+end_src
 
@@ -74,7 +77,7 @@ This adds a mission step with some boilerplate
 around it so it is done once, and we continue
 on to the next mission step immediately.
 
-#+begin_src ks :results none :tangle ../Archive/mp.ks
+#+begin_src ks
   set mpsay to { parameter s. mpl:add({ print s. return mpinc(). }). }.
 #+end_src
 
@@ -83,7 +86,7 @@ on to the next mission step immediately.
 This function notifies the mission plan manager that the next step
 call should use the given value as the step number for next step.
 
-#+begin_src ks :results none :tangle ../Archive/mp.ks
+#+begin_src ks
   set mpput to {
     parameter i.
     parameter t is 0.
@@ -97,7 +100,7 @@ This function notifies the mission plan manager
 that the next step call should start over at
 the top of the mission plan.
 
-#+begin_src ks :results none :tangle ../Archive/mp.ks
+#+begin_src ks
   set mpclr to { parameter t is 0.
   return mpput(0, t). }.
 #+end_src
@@ -108,7 +111,7 @@ This function notifies the mission plan manager
 that the next step call should use the next
 step on the step list.
 
-#+begin_src ks :results none :tangle ../Archive/mp.ks
+#+begin_src ks
   set mpinc to { parameter t is 0.
   return mpput(mpi+1, t). }.
 #+end_src
@@ -128,7 +131,7 @@ the requested value, and always at least one tick.
 If dt is zero or negative, we do not wait. A step that wants a wait of
 precisely one phys tick should return a tiny positive value.
 
-#+begin_src ks :results none :tangle ../Archive/mp.ks
+#+begin_src ks
   set mprun to {until abort or mpi>=mpl:length {
   local dt is mpl[mpi](). if dt>0 wait dt. }}.
 #+end_src

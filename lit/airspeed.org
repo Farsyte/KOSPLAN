@@ -1,3 +1,6 @@
+#+PROPERTY: header-args :results none
+#+PROPERTY: header-args :tangle ../Archive/airspeed.ks
+
 airspeed.ks - airspeed controller
 
 This airspeed controller attempts to manage the
@@ -12,7 +15,7 @@ For now, I'm just using a kOS "PIDLOOP" object,
 but I would really prefer to explore building up
 this controller as a set of nested error controllers.
 
-#+begin_src ks :results none :tangle ../Archive/airspeed.ks
+#+begin_src ks
   set asp to false.
 #+end_src
 
@@ -22,7 +25,7 @@ pkg:start(Kp,Ki,Kd) - create a new PIDLOOP.
 
 The tuning parameters MUST be tuned for each airframe.
 
-#+begin_src ks :results none :tangle ../Archive/airspeed.ks
+#+begin_src ks
   set asn to { parameter Kp, Ki, Kd.
 #+end_src
 
@@ -45,19 +48,19 @@ nuggreat:
 
 ** Create the PIDLOOP
 
-#+begin_src ks :results none :tangle ../Archive/airspeed.ks
+#+begin_src ks
   set asp to PIDLOOP(Kp, Ki, Kd, 0, 1).
 #+end_src
 
 ** Set the initial setpoint to current airspeed
 
-#+begin_src ks :results none :tangle ../Archive/airspeed.ks
+#+begin_src ks
   set asp:setpoint to airspeed.
 #+end_src
 
 ** Lock the throttle to the PID controller update.
 
-#+begin_src ks :results none :tangle ../Archive/airspeed.ks
+#+begin_src ks
   lock C_throttle to asp:update(time:seconds, airspeed).
   lock THROTTLE to C_throttle. }.
 #+end_src
@@ -69,7 +72,7 @@ The call is ignored if there is no PID.
 The call will have no results if LOCK THROTTLE
 has been used since the PID was started.
 
-#+begin_src ks :results none :tangle ../Archive/airspeed.ks
+#+begin_src ks
   set asv to { parameter value.
 #+end_src
 
@@ -78,25 +81,25 @@ has been used since the PID was started.
 Protect us from users that call asv(speed) when there
 has been no asn(...) call.
 
-#+begin_src ks :results none :tangle ../Archive/airspeed.ks
+#+begin_src ks
   if asp:typename <> "PIDLoop" return.
 #+end_src
 
-#+begin_src ks :results none :tangle ../Archive/airspeed.ks
+#+begin_src ks
   print "asv: seeking airspeed "+round(value,1)+" m/s.".
 #+end_src
 
-#+begin_src ks :results none :tangle ../Archive/airspeed.ks
+#+begin_src ks
   set asp:setpoint to value.
 #+end_src
 
-#+begin_src ks :results none :tangle ../Archive/airspeed.ks
+#+begin_src ks
   }.
 #+end_src
 
 * astest: short throttle test
 
-#+begin_src ks :results none :tangle ../Archive/airspeed.ks
+#+begin_src ks
   set astest to {
 #+end_src
 
@@ -105,24 +108,24 @@ has been no asn(...) call.
 It is likely we start out in level flight
 at full throttle.
 
-#+begin_src ks :results none :tangle ../Archive/airspeed.ks
+#+begin_src ks
   for cmd in list(airspeed-20,140,120,140,160,200) {
 #+end_src
 
 *** Command the speed.
 
-#+begin_src ks :results none :tangle ../Archive/airspeed.ks
+#+begin_src ks
   asv(cmd).
 #+end_src
 
 *** Loop until stable at that speed for a few seconds.
 
-#+begin_src ks :results none :tangle ../Archive/airspeed.ks
+#+begin_src ks
   local matchcount is 0.
   until matchcount > 4 { wait 1.
   set matchcount to choose matchcount + 1 if abs(airspeed-cmd)<2 else 0.}
 #+end_src
 
-#+begin_src ks :results none :tangle ../Archive/airspeed.ks
+#+begin_src ks
   }}.
 #+end_src

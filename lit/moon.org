@@ -1,0 +1,33 @@
+#+PROPERTY: header-args :results none
+#+PROPERTY: header-args :tangle ../Archive/moon.ks
+
+moon.ks - code relating to moon missions
+
+developed during Mun mission series.
+
+* fixperi(h): fix hyperbolic periapsis
+
+This function returns a STEP that burns prograde or
+retrograde to bring the PERIAPSIS to the given altitude.
+
+This step repeats every physical tick until the periapsis
+is within the specified range.
+
+#+begin_src ks
+  set fixperi to {
+    parameter lo,md,hi. return {
+
+      if periapsis<lo {
+        lock steering to prograde.
+        lock throttle to limit(0,1,(md-periapsis)/1000) *
+          limit(1/100,1,(10-vang(prograde:vector,facing:vector))/5).
+        return 1/100.}
+
+      if periapsis>hi {
+        lock steering to retrograde.
+        lock throttle to limit(0,1,(periapsis-md)/1000) *
+          limit(1/100,1,(10-vang(retrograde:vector,facing:vector))/5).
+        return 1/100.}
+
+      return mpinc().}.}.
+#+end_src

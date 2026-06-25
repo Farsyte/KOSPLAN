@@ -2,7 +2,7 @@ ship = 007 OKTO I
 version = 1.12.5
 description = 
 type = VAB
-size = 2.39546514,9.97328186,2.26107788
+size = 1.68423986,9.97328186,1.68423986
 steamPublishedFileId = 0
 persistentId = 2806064692
 rot = 0,0,0,0
@@ -971,7 +971,7 @@ PART
 	{
 		name = kOSProcessor
 		isEnabled = True
-		bootFile = /boot/import.ks
+		bootFile = /boot/local.ks
 		diskSpace = 655360
 		baseDiskSpace = 655360
 		baseModuleMass = 0

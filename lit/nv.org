@@ -1,3 +1,6 @@
+#+PROPERTY: header-args :results none
+#+PROPERTY: header-args :tangle ../Archive/nv.ks
+
 nv.ks - Non-Volatile Storage.
 
 CUSTOMARY INTERFACE:
@@ -35,43 +38,43 @@ Functions in this lex take a single parameter of the
 appropriate type, and return a string that encodes
 the type of the value and the value.
 
-#+begin_src ks :results none :tangle ../Archive/nv.ks
+#+begin_src ks
   set nve to lex().
 #+end_src
 
 ** nve:Scalar -- encode a scalar.
 
-#+begin_src ks :results none :tangle ../Archive/nv.ks
+#+begin_src ks
   set nve:Scalar to { parameter u. return u:tostring. }.
 #+end_src
 
 ** nve:String -- encode a string.
 
-#+begin_src ks :results none :tangle ../Archive/nv.ks
+#+begin_src ks
   set nve:String to { parameter u. return """"+u. }.
 #+end_src
- 
+
 * nvd[D]: PATH to storage on each volume D.
 
-#+begin_src ks :results none :tangle ../Archive/nv.ks
+#+begin_src ks
   set nvd to list(home, path("1:")).
 #+end_src
 
 * nvf(D,N): return filename on D to store item called N.
 
-#+begin_src ks :results none :tangle ../Archive/nv.ks
+#+begin_src ks
   set nvf to { parameter d, n. return nvd[d]:combine("nv.d", n). }.
 #+end_src
 
 * nvl[N]: lexicon of named values
 
-#+begin_src ks :results none :tangle ../Archive/nv.ks
+#+begin_src ks
   set nvl to lex().
 #+end_src
 
 * nvp(f,n,u): encode a value into a file
 
-#+begin_src ks :results none :tangle ../Archive/nv.ks
+#+begin_src ks
   set nvp to { parameter f,n,u.
     set nvl[n] to u. set eu to nve[u:typename](u).
     if not exists(f) create(f). set f to open(f). f:clear. f:write(eu).
@@ -80,14 +83,14 @@ the type of the value and the value.
 
 * nvhas(d,n): return TRUE if D has a value called N.
 
-#+begin_src ks :results none :tangle ../Archive/nv.ks
+#+begin_src ks
   set nvhas to { parameter d,n.
     return nvl:haskey(n) or exists(nvf(d,n)). }.
 #+end_src
 
 * nvput(d,n,u): get value stored on D of N (or U if not set).
 
-#+begin_src ks :results none :tangle ../Archive/nv.ks
+#+begin_src ks
   set nvput to { parameter d,n,u.
     if nvl:haskey(n) and nvl[n] = u return u.
   return nvp(nvf(d,n),n,u). }.
@@ -95,26 +98,26 @@ the type of the value and the value.
 
 * nvget(d,n,u): get value stored on D of N (or U if not set).
 
-#+begin_src ks :results none :tangle ../Archive/nv.ks
+#+begin_src ks
   set nvget to { parameter d,n,u.
 #+end_src
 
 ** If we know the value, return it.
 
-#+begin_src ks :results none :tangle ../Archive/nv.ks
+#+begin_src ks
   if nvl:haskey(n) return nvl[n].
 #+end_src
 
 ** If the file does not exist, use the default.
 
-#+begin_src ks :results none :tangle ../Archive/nv.ks
+#+begin_src ks
   set f to nvf(d,n).
   if not exists(f) return nvp(f,n,u).
 #+end_src
 
 ** Read the file. If empty, use the default.
 
-#+begin_src ks :results none :tangle ../Archive/nv.ks
+#+begin_src ks
   set c to open(f):readall().
   if c:empty return nvp(f,n,u).
   set c to c:string.
@@ -122,12 +125,12 @@ the type of the value and the value.
 
 ** Leading double-quote means the content is a string.
 
-#+begin_src ks :results none :tangle ../Archive/nv.ks
+#+begin_src ks
   if c:startswith("""") return c:remove(0,1).
 #+end_src
-    
+
 ** Assume anything else is a Scalar.
 
-#+begin_src ks :results none :tangle ../Archive/nv.ks
+#+begin_src ks
   return c:toscalar(0).}.
 #+end_src

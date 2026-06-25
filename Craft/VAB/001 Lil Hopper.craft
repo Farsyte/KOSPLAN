@@ -1082,7 +1082,7 @@ PART
 	{
 		name = kOSProcessor
 		isEnabled = True
-		bootFile = /boot/import.ks
+		bootFile = /boot/local.ks
 		diskSpace = 5000
 		baseDiskSpace = 5000
 		baseModuleMass = 0

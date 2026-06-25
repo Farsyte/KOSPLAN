@@ -1,21 +1,126 @@
+#+PROPERTY: header-args :results none
+#+PROPERTY: header-args :tangle ../Archive/ascent.ks
+
 ascent.ks - ascent path control
 
 * Import Required Packages
 
-#+begin_src ks :results none :tangle ../Archive/ascent.ks
+#+begin_src ks
   import("mp").
 #+end_src
 
-* Set up the ascent delegate
+* mpascent(d,h): add mission steps for ascent.
 
-Assume that THROTTLE and STEERING are in
-some undetermiend state when this phase ends.
+The D and H parameters provide default values for the
+Direction and Height wanted, for cases where the mission
+does not set "launch_az" and "launch_ap" before reaching
+this step.
 
-#+begin_src ks :results none :tangle ../Archive/ascent.ks
-  set ascent to { parameter d, h. return {
-    if verticalspeed<0 or apoapsis>=h return mpinc().
-    lock steering to heading(d, max(0,90-120*sqrt(altitude/h)), 0).
-    lock throttle to sqrt(max(0,(h+20-apoapsis)/1000)).
-    return 1.}.}.
+Note that the actual launch direction and height might
+not be known until just before the mission actually
+reaches this step.
+
+#+begin_src ks
+  set mpascent to { parameter d, h. mpadd({
+#+end_src
+
+** Get Azimuth and Apoapsis for the curve.
+
+Uses nonvolatile vessel "launch_az" for the azimuth of
+the commanded steering; if it is not set, then it will
+be set to the "d" parameter.
+
+Uses nonvolatile vessel "launch_ap" for the apoapsis
+when generating the gravity turn; if it is not set, then
+it will be set to the "h" parameter.
+
+#+begin_src ks
+  local az is nvget(1,"launch_az",d).
+  local ap is nvget(1,"launch_ap",h).
+#+end_src
+
+** Termination Condition
+
+This step maintains control over the throttle until
+the apoapsis is higher than the goal, and there is
+no atmosphere to drag it down.
+
+But it also releases control if we are descending.
+
+#+begin_src ks
+  if verticalspeed<0 return mpinc().
+  if (apoapsis>=ap and altitude>=body:atm:height) return mpinc().
+#+end_src
+
+** Steering: which way, how high?
+
+Pitch command goes from nearly 90 when
+near the ground, to zero (horizontal)
+at the end of the burn.
+
+Taking the square root of the altitude
+fraction gives a very nice smooth curve.
+
+#+begin_src ks
+  // lock af to limit(0,1,altitude/ap).
+  // lock cp to limit(0,90,90-120*sqrt(af)).
+  // lock steering to heading(az, cp, 0).
+
+  lock steering to heading(az,
+    limit(0,90,90-120*sqrt(
+      limit(0,1,altitude/ap))),0).
+#+end_src
+
+** Thrust: how much?
+
+Mostly full throttle nearly all the way.
+
+Reduce throttle as our apoapsis approaches
+the target altitude, but set up to come to
+zero thrust at just over so we do not spend
+forever trying to get that last millimeter.
+
+Also reduce throttle if the vessel is not
+pointed close to the direction we want to go,
+down to 1% of the desired amount if the error
+is dangerously high, and up to 100% if the error
+is at all tolerable.
+
+Also limit acceleration to 20 m/s²
+
+#+begin_src ks
+  // lock maxt to max(eps, ship:availablethrust).
+  // lock maxa to maxt/mass.
+  // lock tf to sqrt(limit(0,1,(ap+1-apoapsis)/1000)).
+  // lock va to vang(FACING:VECTOR, STEERING:VECTOR).
+  // lock ef to limit(.01,1,(45-va)/30).
+  // lock throttle to ef*tf*min(1,20/maxa).
+
+  lock throttle to 
+    limit(.01,1,(45-vang(FACING:VECTOR, STEERING:VECTOR))/30) *
+    sqrt(limit(0,1,(ap+1-apoapsis)/1000)) *
+    min(1,20*ship:availablethrust/mass).
+#+end_src
+
+** Re-evaluate
+
+Steering and Throttle will be recomputed
+every physical tick.
+
+The factor determining how often to run
+this function is how often to check that
+our termination condition is done.
+
+Checking for "falling, or high enough" once
+per second seems to be reasonable.
+
+#+begin_src ks
+  return 1.}).
+#+end_src
+
+** When done, cut throttle and stabilize attitude.
+
+#+begin_src ks
+    mpone({ lock throttle to 0. lock steering to facing.}).}.
 #+end_src
 

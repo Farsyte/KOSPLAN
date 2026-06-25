@@ -1,3 +1,6 @@
+#+PROPERTY: header-args :results none
+#+PROPERTY: header-args :tangle ../Archive/aeroperi.ks
+
 aeroperi -- tune periapsis for aero capture.
 
 This mission step is executed early in the transit
@@ -7,14 +10,23 @@ from MUN back to KERBIN.
 
 Our required packages do not fit in 10000 bytes.
 
-#+begin_src ks :results none :tangle ../Archive/aeroperi.ks
+#+begin_src ks
   import("math").
+  import("bt").
+  import("mp").
 #+end_src
 
 * aeroperi: tune kerbin periapsis for aerocapture.
 
-#+begin_src ks :results none :tangle ../Archive/aeroperi.ks
-  set aeroperi to { if maxthrust <= 0 return 1. // try again soon, probably staging.
+#+begin_src ks
+  set aeroperi to {
+#+end_src
+
+If we are completely out of fuel
+proceed to the next step.
+
+#+begin_src ks
+  if ship:LiquidFuel<=eps return mpinc().
 #+end_src
 
 Work out r1,r2,r3 for vis-viva.
@@ -23,7 +35,7 @@ Originally I wrote this with LOCK for every formula
 that changed over time. It is probably just easier
 to ask mp to run this every phys tick.
 
-#+begin_src ks :results none :tangle ../Archive/aeroperi.ks
+#+begin_src ks
   local r0 is ship:body:radius.
   local r1 is r0 + altitude.
   local r2 is r0 + 35000.
@@ -34,31 +46,37 @@ Use vis-viva to get the velocity that WOULD have
 our periapsis at the right altitude, and set up
 to burn to correct it.
 
-#+begin_src ks :results none :tangle ../Archive/aeroperi.ks
+#+begin_src ks
   local vo is velocity:orbit:mag.
   local vd is vv(r1, r2, r3, body:mu).
   local ds is vd - vo.
   local dv is ds * prograde:vector.
-  local ma is maxthrust / mass.
 #+end_src
 
-if the burn is trivial or we have no fuel, we are done.
+if the burn is trivial or we have no fuel, go on to the next step.
 
-#+begin_src ks :results none :tangle ../Archive/aeroperi.ks
-  if abs(ds)*1000<=ma or ship:LiquidFuel<=0 {
+#+begin_src ks
+  if tb(ds) or ship:LiquidFuel<=0 {
   lock throttle to 0. lock steering to facing. return mpinc(). }
+#+end_src
+
+If we have no thrust available,
+we are staging. try again soon.
+
+#+begin_src ks
+  if availablethrust=0 return 1.
 #+end_src
 
 steer us in the right direction.
 
-#+begin_src ks :results none :tangle ../Archive/aeroperi.ks
+#+begin_src ks
   lock steering to lookdirup(dv,facing:topvector).
 #+end_src
 
 cut throttle back as our facing error increases, but never to less
 than 1% of desired, and no roll off for small errors.
 
-#+begin_src ks :results none :tangle ../Archive/aeroperi.ks
+#+begin_src ks
   local ae is vang(facing:vector,dv).
   local ka is limit(1/100,1,(5-ae)*1.2/5).
   local th is limit(0,1,ka*5*dv:mag/ma).
@@ -66,4 +84,11 @@ than 1% of desired, and no roll off for small errors.
   lock throttle to th.
 
   return 1/1000. }.
+#+end_src
+
+* mpaero -- add plan steps to plan and execute an aeroperi maneuver.
+
+#+begin_src ks
+  set mpaero to {
+    mpadd(aeroperi). mnwait(). mnexec(). mnfini().}.
 #+end_src

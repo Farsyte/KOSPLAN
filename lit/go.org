@@ -1,3 +1,6 @@
+#+PROPERTY: header-args :results none
+#+PROPERTY: header-args :tangle ../Archive/go.ks
+
 go.ks -- GO script for missions that do not yet have a GO script.
 
 This script will be run when IMPORT is unable to find a GO script in
@@ -12,7 +15,7 @@ a copy of the "GONEW" package.
 This function is executed by IMPORT when it
 finds nothing more specific for this mission.
 
-#+begin_src ks :results none :tangle ../Archive/go.ks
+#+begin_src ks
   function go {
 #+end_src
 
@@ -24,14 +27,14 @@ Note that "gonew" packages can be provided for entire groups of ships:
 if they are created without go scripts, and if there is no GO script
 in "0:home/Orbiter/go.ks".
 
-#+begin_src ks :results none :tangle ../Archive/go.ks
+#+begin_src ks
   local p is home:combine("go.ks").
   copypath(find("gonew"), p).
 #+end_src
 
 Inform the flight engineer that it has done so.
 
-#+begin_src ks :results none :tangle ../Archive/go.ks
+#+begin_src ks
   print "New GO script created:".
   print "  "+p.
 #+end_src
@@ -39,7 +42,7 @@ Inform the flight engineer that it has done so.
 Automatically reboot, which will now pull in
 the new GO script template.
 
-#+begin_src ks :results none :tangle ../Archive/go.ks
+#+begin_src ks
   print "rebooting into new GO script in 3 seconds.".
   wait 3.
   reboot. }
