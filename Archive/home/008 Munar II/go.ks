@@ -45,30 +45,35 @@ return 1. }).
 mppdas().
 mpstat("Refining MUN Approach").
 mpadd({
-if periapsis<13000 {
+if periapsis<(10000-200) {
 lock steering to prograde.
-lock throttle to limit(0,1,(periapsis+100-14000)/1000) *
+lock throttle to limit(0,1,(10000-periapsis)/1000) *
 limit(1/100,1,(10-vang(prograde:vector,facing:vector))/5).
-return 1/10.
+return eps.
 }
-if periapsis>15000 {
+if periapsis>(10000+200) {
 lock steering to retrograde.
-lock throttle to limit(0,1,(periapsis+100-14000)/1000) *
+lock throttle to limit(0,1,(periapsis-10000)/1000) *
 limit(1/100,1,(10-vang(retrograde:vector,facing:vector))/5).
-return 1/10.
+return eps.
 }
-return mpinc(). }).
+lock throttle to 0. return mpinc(). }).
 mppdas().
 mpstat("Entering MUN Orbit").
 mpcirc().
 mppdas().
-mphold_brakes("Release Brakes to Leave MUN").
-mpl:clear().
-mpclr().
-mpstat("KOSPLAN: REPL MODE START").
 mpsw0().
-mpone({lock throttle to 0. lock steering to facing.}).
-mphold_thrust().
+mppdas().
+mphold_brakes("Release Brakes to Test").
+local land_log_file is home:combine("landing.log").
+if exists(land_log_file) open(land_log_file):clear().
+function land_log { parameter m. log TEE()+m to land_log_file.}
+land_log(" Rebooted into landing test").
+mpadd({
+}).
+mpadd({
+}).
+mphold_brakes("Release Brakes to Leave MUN").
 mpstat("Leaving Mun").
 mpadd({lock steering to heading(270,90,0). lock throttle to 1.
 if agl()<50 return 1/10.

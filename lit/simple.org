@@ -250,7 +250,7 @@ a few degrees of the desired attitude.
 #+end_src
 
 #+begin_src ks
-  if status="SPLASHED" or status="LANDED"
+  if status="SPLASHED" or status="LANDED" or status="PRELAUNCH"
     print pr(" ",tw-1) at (0,4).
   else
     print "  "+pr(ydhms(abs(l4t)),14)+ pr(l4s,tw-17) at (0,4).

@@ -110,7 +110,7 @@ if hasnode {
 set l4t to round(nextnode:eta).
 set l4s to "Maneuver".}
 set l4s to (choose "since " if l4t<0 else "to ") + l4s.
-if status="SPLASHED" or status="LANDED"
+if status="SPLASHED" or status="LANDED" or status="PRELAUNCH"
 print pr(" ",tw-1) at (0,4).
 else
 print "  "+pr(ydhms(abs(l4t)),14)+ pr(l4s,tw-17) at (0,4).

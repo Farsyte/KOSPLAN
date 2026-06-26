@@ -9,6 +9,71 @@ is amazingly cool.
 This flight is unique in that it lands on Mun, then returns
 to safe aerobraking on Kerbin.
 
+This script uses "local.ks" to save onboard storage. Rebooting
+when there is no connection causes the boot loader to pause,
+which is OK when we are in Mun orbit awaiting landing, or on
+Mun awaiting launch.
+
+Budget for Lander: 1210 m/s
+Available in 008 Munar II lander: 1391 m/s
+reserve the excess for return corrections
+
+|  ΔV | Leg                     |
+|-----+-------------------------|
+|   0 | Aerocapture             |
+| 280 | 14x14 to Mun Escape     |
+| 730 | Mun Surface to 14x14    |
+| 200 | Lander share of Landing |
+
+Budget for Orbiter: 2810 m/s
+Budget for Orbiter+Lander: 4020 m/s
+Available in 008 Munar II orbiter excluding lander: 1391 m/s
+reserve the excess for return corrections
+
+|   ΔV | Leg                     |
+|------+-------------------------|
+| -200 | Lander share of landing |
+|  870 | land on mun             |
+|  280 | enter 14x14 orbit       |
+|  860 | intercept mun           |
+| 1000 | Orbiter share of LKO    |
+
+Booster: needs to suipply 2800 m/s
+for the 3800 m/s launch-to-LKO,
+Mission Budget: 6820 m/s
+
+TEST FLIGHTS:
+
+- lander itself is able to launch
+  from mun and return to kerbin,
+  with sufficient margin to cover
+  200 m/s of the landing plus more
+  than enough for aero.
+
+- full configuration, Vacuum ΔV:
+
+  6947 m/s available in VAB
+  3729 m/s available at Kerbin 80x80
+  2858 m/s available during Transfer to Mun
+  2514 m/s available at Mun 14x14
+
+  Suggestion: schedule a 670 m/s retrograde
+  burn from mun orbit. when complete,
+  jettison stage 3 to free stage 2 for
+  use for landing and return.
+
+Landing Dev Configuration:
+
+- discard everything below stage 3
+
+- requires that we jettison stage 3
+  well before the final landing.
+
+- AltF12 menu claims 15.25 km is the
+  minimum safe orbit around Mun.
+
+- budget says that on orbit we need 1880 m/s
+
 * Import Required Packages
 
 #+begin_src ks
@@ -115,24 +180,31 @@ NOTE: eta:transition is HUGE if there is no transition.
 
 *** assure mun periapsis between 13 and 15 km
 
-The vessel should start with a 40 km periapsis.
+Mission behavior so far is expected to result
+in a free return trajectory ending in a safe
+aerobraking maneuver at Kerbin. On the way it
+is planned to pass about 40 km from Mun.
+
+Do a correction burn here to move the periapsis
+down to 10 km. Assure it behaves properly when
+the periapsis happens to already be too low.
 
 #+begin_src ks
   mpstat("Refining MUN Approach").
   mpadd({
-    if periapsis<13000 {
+    if periapsis<(10000-200) {
       lock steering to prograde.
-      lock throttle to limit(0,1,(periapsis+100-14000)/1000) *
+      lock throttle to limit(0,1,(10000-periapsis)/1000) *
         limit(1/100,1,(10-vang(prograde:vector,facing:vector))/5).
-      return 1/10.
+      return eps.
     }
-    if periapsis>15000 {
+    if periapsis>(10000+200) {
       lock steering to retrograde.
-      lock throttle to limit(0,1,(periapsis+100-14000)/1000) *
+      lock throttle to limit(0,1,(periapsis-10000)/1000) *
         limit(1/100,1,(10-vang(retrograde:vector,facing:vector))/5).
-      return 1/10.
+      return eps.
     }
-  return mpinc(). }).
+    lock throttle to 0. return mpinc(). }).
   mppdas().
 #+end_src
 
@@ -144,7 +216,49 @@ The vessel should start with a 40 km periapsis.
   mppdas().
 #+end_src
 
+*** DEVELOPMENT CHECKPOINT
+
+Delta V available on 008 Munar II:
+
+Note that Stage 3 has 1123 m/s available,
+but 870 gets us to landing, and we do NOT
+want to land on the poodle, do we?
+
+Perhaps, plan a 670 m/s retrograde burn,
+then stage away the poodle so we can land
+using the lander.
+
+#+begin_src ks
+  mpsw0().
+  mppdas().
+  mphold_brakes("Release Brakes to Test").
+#+end_src
+
 *** TODO deorbit toward mun
+
+Burn retrograde at the top.
+
+Cancel horizontal velocity over landing site.
+
+Descend at planned acceleration to zero.
+- given height and speed, compute exact
+  acceleration necessary to stop at zero.
+- start burning when it exceeds 90% throttle
+- once stated, keep burning until done.
+- throttle up and down as needed
+
+#+begin_src ks
+  local land_log_file is home:combine("landing.log").
+  if exists(land_log_file) open(land_log_file):clear().
+  function land_log { parameter m. log TEE()+m to land_log_file.}
+  land_log(" Rebooted into landing test").
+
+  mpadd({
+  }).
+
+  mpadd({
+  }).
+#+end_src
 
 *** TODO mun descent 
 
@@ -154,17 +268,6 @@ The vessel should start with a 40 km periapsis.
 
 #+begin_src ks
   mphold_brakes("Release Brakes to Leave MUN").
-#+end_src
-
-*** DEVELOPMENT HACK: START THE CODE FROM HERE.
-
-#+begin_src ks
-  mpl:clear().
-  mpclr().
-  mpstat("KOSPLAN: REPL MODE START").
-  mpsw0().
-  mpone({lock throttle to 0. lock steering to facing.}).
-  mphold_thrust().
 #+end_src
 
 *** Leave Mun

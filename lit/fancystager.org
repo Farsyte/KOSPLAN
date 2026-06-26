@@ -3,6 +3,11 @@
 
 fancystager.ks - fancy auto-stager
 
+Special Features:
+- [X] Onion Staging
+- [ ] Launch Clamps
+- [ ] Farings
+
 * Import Required Packages
 
 #+begin_src ks
@@ -92,6 +97,10 @@ DECOUPLED when we move to stage N.
     if not en:flameout
     return true.
 #+end_src
+
+*** TODO do not stage FARINGS until high altitude
+
+*** TODO do stage launch clamps
 
 *** All resources must be effectively exhausted
 
