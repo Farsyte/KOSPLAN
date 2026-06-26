@@ -1,0 +1,7 @@
+#!/bin/bash -
+
+# start emacs, possibly with command line options.
+
+igio emacs \
+     -geometry 180x66+847+0 \
+     "$@"

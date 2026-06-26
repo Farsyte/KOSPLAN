@@ -1,0 +1,13 @@
+#!/bin/bash -
+
+set -x
+
+sscr="$0"
+self=$(basename "$sscr" .sh)
+sdir=$(cd "$(dirname "$sscr")"; env PWD= /bin/pwd)
+cd "$sdir"/..
+
+igio bin/xt -geometry 96x51+0+0
+igio bin/xt -geometry 96x24+0-0
+igio bin/ee
+igio bin/ff

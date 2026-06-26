@@ -1,0 +1,61 @@
+#!/bin/bash -
+
+# start xterm (really uxterm now),
+# with added command line arguments.
+
+# XTerm options inserted here:
+#
+#   -fn "font-name-here"
+#	Select the display font
+#
+#   -j
+#	turn on jump scrolling
+#
+#   -lc
+#	interpret text per locale in enironment
+#
+#   -s
+#	allow asynchronous scrolling
+#
+#   -sb
+#	enable vertical scrollbar
+#
+#   -sl 5000
+#	save 5000 lines of text for scrollback
+#
+#   +sm
+#	do not set up session manager callbacks
+#
+#   -ut
+#	do not write a "utmp" entry.
+#
+#   -wf
+#	wait for the window to be mapped to the display
+#	before starting the subprocess.
+#
+#   -xrm 'xterm*allowWindowOps: true'
+#	allow me to query the window position
+#	and to set it (kOS telnet may use this?)
+#
+# Additional XTerm options that are useful:
+#
+#   -ls
+#	start a "login shell" inside the terminal.
+#
+#   -mesg
+#	Disallow messaging to this terminal
+#
+#   -t
+#	Start the terminal in Tektronix mode.
+#
+#   -title "window title string"
+#	Set the window title string
+#
+#   -e program [arg [arg [arg ...]]]
+#	run the given program with the given arguments.
+#	also sets the window title and icon name if unset.
+#	MUST BE THE LAST OPTION ON THE LINE.
+
+uxterm -j -lc -s -sb -sl 5000 +sm -ut -wf \
+    -xrm 'xterm*allowWindowOps: true' \
+    "$@"
