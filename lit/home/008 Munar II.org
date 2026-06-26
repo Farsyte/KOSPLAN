@@ -124,6 +124,32 @@ NOTE: eta:transition is HUGE if there is no transition.
     mpsw0(). mppdas(). }.
 #+end_src
 
+** Set a condition to jettison the faring shell.
+
+Munar II has "deploy farings" attached to Lights.
+
+If the body is Kerbin and the atmospheric pressure is
+above 10% of a kerbin atmosphere, turn on the lights
+when Q is below 1% after it rises above 10%.
+
+This should deploy the faring at about 40 km.
+
+It refrains from setting up a WHEN..THEN unless we
+are rebooting "in the soup" -- this could happen if
+we reboot in the last stages of reentry, which seems
+acceptable to me.
+
+Making "deploy farings" independent of the staging
+mechanism keeps the code as generic as possible.
+
+#+begin_src ks
+  if body:name="Kerbin" and
+    body:atm:altitudepressure(altitude)>0.1
+      when ship:q>0.1 then
+        when ship:q<0.01 then
+         lights on.
+#+end_src
+
 ** Start an autostager in the background
 
 #+begin_src ks

@@ -21,6 +21,11 @@ mppdas(). mpadd({
 local dt is choose eta:transition-s if orbit:hasnextpatch else 0.
 return choose swadj(dt) if dt>0 else mpinc(). }).
 mpsw0(). mppdas(). }.
+if body:name="Kerbin" and
+body:atm:altitudepressure(altitude)>0.1
+when ship:q>0.1 then
+when ship:q<0.01 then
+lights on.
 fancystager().
 mpstat("Launching Soon").
 mpone({t0put(7-mod(time:seconds,1)).}).
