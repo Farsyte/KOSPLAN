@@ -3,7 +3,7 @@ from pathlib import Path
 wrf = {}
 
 def tangleto(rd, wrname):
-    lc = 0
+    cc = 0
     if wrname not in wrf:
         Path(wrname).parents[0].mkdir(parents=True, exist_ok=True)
         wrf[wrname] = open(wrname, 'w')
@@ -12,7 +12,7 @@ def tangleto(rd, wrname):
         line = rd.readline()
         if not line: break
         line = line.strip()
-        if line.startswith("#+end_src"): return lc
+        if line.startswith("#+end_src"): return cc
         if "//" in line:
             csa = line.find("//")
             if csa < 1: continue
@@ -20,7 +20,7 @@ def tangleto(rd, wrname):
             line = line.strip()
         if line:
             print(f"{line}", file=wr)
-            lc += 1
+            cc += len(line)+1
 
 def tangle(rdname):
     wrname = ""
