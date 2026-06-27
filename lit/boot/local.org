@@ -3,8 +3,8 @@
 
 local.ks -- bootstrap the KOSPLAN system for LOCAL missions
 
-BOOT VARIANT: activate packages directly from the archive.
-TODO: unify sources for boot/local and boot/remote.
+BOOT VARIANT: run packages directly from the archive.
+TODO: unify sources for boot/local and boot/local.
 
 This code is FROZEN when the vessel rolls out.
 
@@ -27,13 +27,6 @@ Responsibilities:
 
 #+begin_src ks
   wait until ship:unpacked.
-#+end_src
-
-* warn if no connection to archive at boot.
-
-#+begin_src ks
-  if not homeconnection:isconnected
-    print "WARNING: no connection to archive".
 #+end_src
 
 * home: where per-vessel files are stored
@@ -67,6 +60,23 @@ REQUIRES: a connection to the archive.
     set d to d:parent.}}.
 #+end_src
 
+* imported: uniqueset of imported package names
+
+Keep track of packages that have been imported, or are
+in the process of being imported. The first part assures
+that we do not do a lot of extra work when a package is
+imported by many other packages; the second part gives
+us automatic handling of circular dependencies.
+
+Note that if you actually have circular dependencies,
+you do not want any package to actually use stuff from
+other packages in the circle until after all importing
+is complete.
+
+#+begin_src ks
+  set ius to uniqueset("import").
+#+end_src
+
 * import(p): Update and Activate package (once per boot).
 
 Define the API for package import: just a function
@@ -86,29 +96,67 @@ you might not have a good flight.
   set import to { parameter p.
 #+end_src
 
-** wait until we have a connection
+** return immediately if package already ius.
 
-While this package is intended to be used on vessels
-that expect to have a live connection to the archive
-when they reboot, it is possible we will reboot when
-out of range. If so, we have to either wait here
-until we get our connection back, or terminate the
-kOS program until the next reboot.
+Once a given package has been imported, any subsequent
+imports of that same package will do absolutely nothing,
+preventing us from repeatedly searching for, copying,
+and loading a package.
 
-#+begin_src ks
-  wait until homeconnection:isconnected.
-#+end_src
-
-** activate the package by running it (but only once).
-
-The vessel now has a connection to the archive. Locate
-the package and run it.
+Adding the package to the list immediately extends the
+facility to also catch circular dependencies. Packages
+that have circular dependencies are cautioned to not
+actually use facilities from the other packages in the
+dependency ring while they are being loaded.
 
 #+begin_src ks
-  runoncepath(find(p)).}.
+  if ius:contains(p) return.
+  ius:add(p).
 #+end_src
 
-* Chain control to the "go" package for this mission.
+** if no connection to archive, wait until we have one.
+
+Checking for the presence of the connection is important
+for missions that may not always have a connection to
+the archive, whether due to being behind another body,
+or just by being way out in space beyond our network.
+
+For now, just stall inside import until the archive
+connection is reestablished.
+
+#+begin_src ks
+  if not homeconnection:isconnected {
+    print "ARCHIVE: no connection. waiting ...".
+    wait until homeconnection:isconnected.
+    set warp to 0.
+    print "ARCHIVE: no connection. waiting ... done".}
+#+end_src
+
+** run from archive
+
+Use FIND to locate the soruce file, then run it.
+
+ERROR HANDLING: Since we are tightly constrained for
+storage space, the most source-code-size way to catch
+and report an error (such as a typo in the pacakge name)
+is to just let RUNPATHONCE report a FILE NOT FOUND
+error, which will halt the kOS processor.
+
+The flight engineer is expected to notice the situation,
+examine the text on the console, repair the code, and
+reboot the processor (possibly as part of a REVERT).
+
+#+begin_src ks
+  runoncepath(find(p)).
+#+end_src
+
+** end of IMPORT function delegate initialization.
+
+#+begin_src ks
+  }.
+#+end_src
+
+* Pass control to the "go" function for this mission.
 
 Once the IMPORT facility is available, it can be used to
 import the appropriate GO package, and run the GO
