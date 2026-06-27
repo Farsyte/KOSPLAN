@@ -29,6 +29,8 @@ RESTRICTIONS:
   only in case; and always use the same case
   when getting data as when you put the data.
 
+- TODO handling of D=0 with no connection
+
 NOTE: it is a bit awkward that we can not have
 variables called V and R ...
 
@@ -86,6 +88,15 @@ the type of the value and the value.
 #+begin_src ks
   set nvhas to { parameter d,n.
     return nvl:haskey(n) or exists(nvf(d,n)). }.
+#+end_src
+
+* nvclr(d,n): forget value stored on D of N.
+
+#+begin_src ks
+  set nvclr to { parameter d,n.
+    if nvl:haskey(n) nvl:remove(n).
+    local f is nvf(d,n).
+    if exists(f) deletepath(f). }.
 #+end_src
 
 * nvput(d,n,u): get value stored on D of N (or U if not set).

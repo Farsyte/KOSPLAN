@@ -1,7 +1,7 @@
 import("math").
 import("pre").
 set tb to { parameter dv.
-return (dv<1/10) or (dv*mass*1000<availablethrust).}.
+return (abs(dv)<1/10) or (abs(dv)*mass*1000<availablethrust).}.
 set bt to { parameter dv.
 local dt is 0.
 local s is stage:number.

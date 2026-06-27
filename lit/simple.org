@@ -10,7 +10,14 @@ simple.ks - a collection of common simple steps
   import("fmt").
   import("mp").
   import("nv").
+  import("logger").
   import("time").
+#+end_src
+
+* Status Log File
+
+#+begin_src ks
+  local sl is mklogger("status").
 #+end_src
 
 * Mission Status String
@@ -27,15 +34,8 @@ of a mission data display screen.
 ** putstat(m) - update mission status string
 
 #+begin_src ks
-  local sq is queue().
-  local sl is home:combine("status.log").
-  if mpi=0 and exists(sl) open(sl):clear().
-  local sqck is {
-    if homeconnection:isconnected 
-      until sq:empty
-       log sq:pop() to sl.}.
   set putstat to { parameter m.
-    if mss = m return. sq:push(m). set mss to nvput(1,"status",m). }.
+    if mss = m return. sl(m). set mss to nvput(1,"status",m). }.
 #+end_src
 
 ** mpstat(m) - add step to set Mission Status String
@@ -257,6 +257,12 @@ a few degrees of the desired attitude.
 #+end_src
 
 #+begin_src ks
+  set lls to "lat: "+fmt(latitude,8,3)+"  lon: "+fmt(longitude,8,3).
+  if altitude > 100000 set lls to "".
+  print pr(lls,tw-1) at (0,5).
+#+end_src
+
+#+begin_src ks
   }.
 #+end_src
 
@@ -265,6 +271,6 @@ a few degrees of the desired attitude.
   set pagetime to round(time:seconds).
   when pagetime<=time:seconds then {
     set pagetime to round(time:seconds + 1)+1/50.
-  sqck(). pageupdate(). return not abort. }
+    pageupdate(). return not abort. }
 #+end_src
 

@@ -2,7 +2,6 @@
 #+PROPERTY: header-args :tangle ../Archive/fancystager.ks
 
 fancystager.ks - fancy auto-stager
-
 * Supports ONION staging.
 
 * Launch Clamps just work.
@@ -19,22 +18,7 @@ on where it is best to deploy the shell.
 
 #+begin_src ks
   import("mp").
-  import("agl").
   import("time").
-#+end_src
-
-** Manage stager log
-
-#+begin_src ks
-  local slf is home:combine("stager.log").
-  local lls is "".
-  local sl is { parameter m.
-    if m=lls return.
-    set lls to m.
-    log TEE()+": "+m to slf.
-  }.
-  if met()<0 and exists(slf) open(slf):clear().
-  sl("package loaded").
 #+end_src
 
 ** Initialize parts lists
@@ -85,17 +69,6 @@ with stage N that have LaunchClamp modules.
       lof[p:stage]:add(p).
 #+end_src
 
-*** log summary of per-stage information
-
-#+begin_src ks
-  for s in range(stage:number+1) {
-    sl("Stage "+s+" summary:").
-    for en in loe[s] sl("- drop "+en:title).
-    for ft in lot[s] sl("- drop "+ft[0]:title).
-    for lc in lof[s] sl("- activate "+lc:title).
-  }
-#+end_src
-
 * Set up the fancystager delegate
 
 The "fancy" stager looks at a lists of
@@ -120,8 +93,7 @@ fuel remains in any of the tanks.
 *** Stop the periodic job on ABORT or STAGE ZERO.
 
 #+begin_src ks
-  if abort {sl("abort"). return false.}
-  if stage:number<1 { sl("stage is 0"). return false. }
+  if abort or stage:number<1 return false.
 #+end_src
 
 *** Pick the next scheduled time.
@@ -133,16 +105,14 @@ fuel remains in any of the tanks.
 *** Early return: too early, or before launch.
 
 #+begin_src ks
-  if not stage:ready { sl("not ready"). return true. }
-  if met()<=0 { sl("not launched"). return true. }
+  if not stage:ready or met()<=0 return true.
 #+end_src
 
 *** All engines must be flamed out
 
 #+begin_src ks
   for en in loe[stage:number-1]
-    if not en:flameout {
-      sl("engine "+en:title+" active"). return true.}
+    if not en:flameout return true.
 #+end_src
 
 *** All resources must be effectively exhausted
@@ -156,12 +126,11 @@ NOTE: Rockomax X200-8 have 0.0119 when empty.
 
 #+begin_src ks
   for pr in lot[stage:number-1]
-    if pr[1]:amount>0.02 {
-      sl("tank "+pr[0]:name+" not empty"). return true.}
+    if pr[1]:amount>0.02 return true.
 #+end_src
 
 *** Trigger staging, and keep the job running.
 
 #+begin_src ks
-  stage. sl("stage to "+stage:number). return true. }}.
+  stage. return true. }}.
 #+end_src

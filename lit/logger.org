@@ -1,0 +1,61 @@
+#+PROPERTY: header-args :results none
+#+PROPERTY: header-args :tangle ../Archive/logger.ks
+
+logger.ks - standard logger
+
+CUSTOMARY INTERFACE:
+
+- local thing_log is mklogger("thing").
+- thing_log("message").
+
+* dependencies
+
+#+begin_src ks
+  import("time").
+  import("mp").
+#+end_src
+
+* queue of loggers that need flushing
+
+#+begin_src ks
+  local lq is list().
+#+end_src
+
+* flush logger queues when reconnecting.
+
+#+begin_src ks
+  on homeconnection:isconnected {
+    // print "homeconnection:isconnected = "+homeconnection:isconnected.
+    if homeconnection:isconnected
+      for lg in lq lg("").
+    return true.}
+#+end_src
+
+* mklogger(f): make a logger function
+
+Messages that are not blank and not the same as the
+previous are added to the log, which will be flushed to
+the log file when connected.
+
+#+begin_src ks
+  set mklogger to { parameter n.
+    local lfn is home:combine(n+".log").
+    local lfq is queue().
+    local prev is "".
+
+    if mpi=0 and homeconnection:isconnected and exists(lfn)
+      open(lfn):clear().
+
+    local lfd is { parameter m.
+      if m:length>0 and m<>prev {
+        lfq:push(TEE()+" "+m).
+        set prev to m.
+      }
+      if homeconnection:isconnected
+        until lfq:empty
+          log lfq:pop to lfn.}.
+
+    lfd("log starts").
+    lq:add(lfd).
+    return lfd.}.
+#+end_src

@@ -30,6 +30,8 @@ Budget for Orbiter+Lander: 4020 m/s
 Available in 008 Munar II orbiter excluding lander: 1391 m/s
 reserve the excess for return corrections
 
+NOTE: we need 1010 m/s to get home.
+
 |   ΔV | Leg                     |
 |------+-------------------------|
 | -200 | Lander share of landing |
@@ -83,12 +85,45 @@ Landing Dev Configuration:
   import("escape").
   import("fancystager").
   import("hold").
+  import("logger").
   import("mnpro").
   import("mp").
   import("simple").
   import("sw").
   import("time").
   import("xfer").
+#+end_src
+
+* Observed Vacuum Delta-V Remaining
+
+NOTE: it is important to wait for farings
+to be jettisoned before recording ΔV before
+the LKO circularization, about 200 m/s.
+
+| Mission State              |     m/s |
+|----------------------------+---------|
+| before launch              | 6751.44 |
+| arriving 80k over kerbin   | 4269.77 |
+| in 80x80 over kerbin       | 3730.64 |
+| kerbin to mun soi          | 2861.24 |
+| mun soi to mun 10k         | 2804.87 |
+| in 10x10 over mun          | 2512.67 |
+| landed on mun              | 1206.96 |
+| arriving 10k over mun      |  798.33 |
+| in 10x10 over mun          |  568.29 |
+| mun to kerbin soi          |  287.80 |
+| descent to kerbin 40k aero |  286.86 |
+| configured for aerobraking |    0.00 |
+
+- Some fuel is discarded before descent to Mun
+- Some fuel is discarded before aerobraking
+
+
+#+begin_src ks
+  local dvlog is mklogger("deltav").
+  local mpdvlog is {parameter m. mpone({
+    dvlog(" | "+pr(m,32)+" | "+fmt(ship:deltav:vacuum,8,2)+" |").
+  }).}.
 #+end_src
 
 * Provide a GO function.
@@ -126,28 +161,15 @@ NOTE: eta:transition is HUGE if there is no transition.
 
 ** Set a condition to jettison the faring shell.
 
-Munar II has "deploy farings" attached to Lights.
-
-If the body is Kerbin and the atmospheric pressure is
-above 10% of a kerbin atmosphere, turn on the lights
-when Q is below 1% after it rises above 10%.
-
-This should deploy the faring at about 40 km.
-
-It refrains from setting up a WHEN..THEN unless we
-are rebooting "in the soup" -- this could happen if
-we reboot in the last stages of reentry, which seems
-acceptable to me.
-
-Making "deploy farings" independent of the staging
-mechanism keeps the code as generic as possible.
+Once we get out of the atmosphere, turn on
+the lights, which will deploy the farings
+and extend the antenna.
 
 #+begin_src ks
   if body:name="Kerbin" and
-    body:atm:altitudepressure(altitude)>0.1
-      when ship:q>0.1 then
-        when ship:q<0.01 then
-         lights on.
+    altitude<body:atm:height
+      when altitude>body:atm:height then
+        lights on.
 #+end_src
 
 ** Start an autostager in the background
@@ -169,16 +191,21 @@ mechanism keeps the code as generic as possible.
 *** Get to initial Low Kerbin Orbit.
 
 #+begin_src ks
+  mpdvlog("before launch").
   mpcount().
   mplaunch().
   mpstat("Powered Ascent").
   mpascent(90,80000).
   mpstat("Unpowered Ascent").
   mpcoast().
+  mpdvlog("arriving 80k over kerbin").
   mpstat("Circularizing").
   mpcirc().
   mppdas().
+  mpdvlog("in 80x80 over kerbin").
 #+end_src
+
+*** TODO Stop and Collect Science
 
 *** Trans-Munar injection
 
@@ -186,7 +213,10 @@ mechanism keeps the code as generic as possible.
   mpstat("Starting Mun Transfer").
   mpxfer("mun").
   mppdas().
+  mpdvlog("kerbin to mun soi").
 #+end_src
+
+*** TODO Stop and Collect Science
 
 *** SAFEWARP to just before transition to MUN SOI
 
@@ -232,7 +262,10 @@ the periapsis happens to already be too low.
     }
     lock throttle to 0. return mpinc(). }).
   mppdas().
+  mpdvlog("mun soi to mun 10k").
 #+end_src
+
+*** TODO Stop and Collect Science
 
 *** Circularize at periapsis.
 
@@ -240,9 +273,12 @@ the periapsis happens to already be too low.
   mpstat("Entering MUN Orbit").
   mpcirc().
   mppdas().
+  mpdvlog("in 10x10 over mun").
 #+end_src
 
-*** DEVELOPMENT CHECKPOINT
+*** TODO Stop and Collect Science
+
+*** select landing site
 
 Delta V available on 008 Munar II:
 
@@ -257,38 +293,109 @@ using the lander.
 #+begin_src ks
   mpsw0().
   mppdas().
-  mphold_brakes("Release Brakes to Test").
+  mphold_brakes("Release Brakes to start landing").
 #+end_src
 
-*** TODO deorbit toward mun
+*** kill horizontal speed (TODO: "over selected site")
 
-Burn retrograde at the top.
+This takes about 3° of longitude to bring us to a stop,
+starting from a 10x10km orbit, and costs 566 m/s (as
+expected, our orbital velocity).
 
-Cancel horizontal velocity over landing site.
+Before stopping: 1126 m/s in poodle
+After stopping:   560 m/s in poodle
 
-Descend at planned acceleration to zero.
-- given height and speed, compute exact
-  acceleration necessary to stop at zero.
-- start burning when it exceeds 90% throttle
-- once stated, keep burning until done.
-- throttle up and down as needed
+the remaining fuel is jettisoned with the poodle.
+
+LONGITUDE NOTES:
+- in retrograde orbit, LON is decreasing.
+- at my quicksave, LON is ~150° and we can see Kerbin
+- Mun is tidally locked.
+- Mun longitude 47.436° (East) is directly under kerbin.
+TODO precision landing at specific lon
 
 #+begin_src ks
-  local land_log_file is home:combine("landing.log").
-  if exists(land_log_file) open(land_log_file):clear().
-  function land_log { parameter m. log TEE()+m to land_log_file.}
-  land_log(" Rebooted into landing test").
+  mpstat("Finding Landing Site").
 
   mpadd({
+    lock vh to vxcl(body:position,velocity:surface).
+    if vh:mag<1 return mpinc().
+    lock steering to -vh.
+    lock tef to (10-vang(-vh,facing:vector))/5.
+    lock throttle to limit(0,1,vh:mag/10) * limit(1/100,1,tef).
   }).
+  mpone({lock throttle to 0. return mpinc(1).}).
 
-  mpadd({
-  }).
+  mpdvlog("at 10km over mun landing site").
+
 #+end_src
 
-*** TODO mun descent 
+*** mun descent and landing: modified suicide burn
 
-*** TODO mun landing
+at altitude H, current speed V, gravity G, what acceleration A
+is needed to arrive at H=0 V=0?
+
+| H = 0.5*(A-G)T²      | --> | T² = 2H/(A-G)  |
+| V = (A-G)T           | --> | T² = V²/(A-G)² |
+|                      |     |                |
+| V²/(A-G)² = 2H/(A-G) | --> | V² = 2H(A-G)   |
+|                      |     |                |
+| A = 0.5 V²/H + G     | and | T = V/(A-G)    |
+
+First time out, the code below touched down like a feather.
+
+Simple Is good.
+
+#+begin_src ks
+  mpstat("Descent to Mun Surface").
+  mpadd({if stage:number<=2 return mpinc().
+    if stage:ready stage. return 1/10. }).
+  mpone({gear on.}).
+  mpadd({
+    // when do we start the final burn?
+    // allow two seconds for staging
+    // use fixed acceleration that is 90% of initial max
+
+    // base computations on the surface gravity.
+
+    lock high to agl().
+    if high<1 return mpinc().
+
+    lock down to -verticalspeed.
+    lock grav to body:mu / body:radius^2.
+
+    lock wacc to 0.5*down^2/high + grav.
+
+    // adjust throttle to keep our current
+    // acceleration equal to wacc.
+
+    // cool fact: high ~= 2 * anom * down.
+
+    // pick a nice deceleration rate.
+    set anom to 5. 
+
+    lock maxt to max(eps, ship:availablethrust).
+    lock maxa to maxt/mass.
+    lock tnom to anom/maxa.
+    lock werr to wacc-anom.
+    // 
+    lock thro to limit(0,1,(anom+werr*10)/maxa).
+
+    lock steering to lookdirup(
+      choose srfretrograde:vector if down>10 else -body:position,
+      facing:topvector).
+
+    lock throttle to thro.
+    return 1.
+  }).
+
+  mpone({
+    lock throttle to 0.
+    lock steering to facing.
+  }).
+  mpdvlog("landed on mun").
+#+end_src
+
 
 *** hold on mun until done
 
@@ -298,24 +405,32 @@ Descend at planned acceleration to zero.
 
 *** Leave Mun
 
-Launching to 270. The method I use to find my
+Launching to mun_ret_az. The method I use to find my
 return trajectory fails when launching to 090.
 
 Going via a 14x14 orbit uses less fuel than going
 via the 40x40 orbit. 10x10 is even slightly less.
 
 #+begin_src ks
+  local mun_ret_az is 270.
+  local mun_ret_ap is 10000.
+
   mpstat("Leaving Mun").
-  mpadd({lock steering to heading(270,90,0). lock throttle to 1.
+  mpone({
+    nvput(1,"launch_az", mun_ret_az).
+    nvput(1,"launch_ap", mun_ret_ap).}).
+  mpadd({lock steering to heading(mun_ret_az,90,0). lock throttle to 1.
     if agl()<50 return 1/10.
     gear off. lights on. return mpinc().}).
   mpstat("Powered Ascent").
-  mpascent(270,10000).
+  mpascent(mun_ret_az,mun_ret_ap).
   mpstat("Unpowered Ascent").
   mpcoast().
+  mpdvlog("arriving 10k over mun").
   mpstat("Circularizing").
   mpcirc().
   mppdas().
+  mpdvlog("in 10x10 over mun").
 #+end_src
 
 *** escape from MUN orbit
@@ -323,6 +438,7 @@ via the 40x40 orbit. 10x10 is even slightly less.
 #+begin_src ks
   mpstat("Leaving MUN Orbit").
   mpescape().
+  mpdvlog("mun to kerbin soi").
 #+end_src
 
 *** SAFEWARP to 60 seconds before transition out of MUN SOI
@@ -346,6 +462,7 @@ via the 40x40 orbit. 10x10 is even slightly less.
 #+begin_src ks
   mpaero().
   mppdas().
+  mpdvlog("descent to kerbin 40k aero").
 #+end_src
 
 *** SAFEWARP to 120 km over kerbin using mnwait.
@@ -373,52 +490,36 @@ time through or persist it for a very few steps.
   mpstat("Aerocapture").
 #+end_src
 
-*** BURN RETROGRADE until out of fuel (when below 80 km)
+*** Configure for Aero when below 80 km
 
-It is *EXPECTED* that the auto-stager will stage away
-the flamed-out engine, empty fuel tank, science cluster,
-probe core, battery, solar panel, and autopilot computer
-before the vessel dips below 40 km, or the apoapsis is
-reduced to less than 60 km.
+Note that we stage while still in the "point down at
+sun" attitude, so we get some separation.
 
-There is the chance that there is sufficient fuel to
-really mess up the landing if the burn continues, so
-once we are below 40 km or our apoapsis is below 60,
-move on to the next step.
+If this code is not running on the bits returning to
+kerbin, the program will essentially stop when we stage
+away the processor.
+
+Well, actually, it stops when the processor moves out of
+the local area. Same same.
+
+Also, the Onion doesn't actually have any attitude
+control, the steering is there so this behaves well
+when we have a different capsule.
+
+The Onion is aerodynamically stable in the right
+attitude. We hope it gets there before it burns up a
+parachute.
 
 #+begin_src ks
+  mpadd({ if altitude<80000 return mpinc().
+    return 1.}).
+  mpadd({ if stage:number=0 return mpinc().
+    if stage:ready stage. return 1/10.}).
+  mpdvlog("configured for aerobraking").
+  mpadd({ if agl()<1000 return mpinc().
+    lock steering to srfretrograde. return 1. }).
   mpadd({
-    if altitude>80000 return 1.
-    if altitude<40000 and apoapsis<60000 return mpinc().
-    lock steering to srfretrograde.
-    lock throttle to limit(1/100,1,(10-vang(srfretrograde:vector,facing:vector))/5).
-    return 1. }).
-#+end_src
-
-*** if we get here, finish configuring vessel for aerobraking.
-
-It is *EXPECTED* that the staging to stage 0 will stage away
-the flamed-out engine, empty fuel tank, science cluster,
-probe core, battery, solar panel, and autopilot computer.
-
-However, as long as the staged-away autopilot computer
-is fairly close to the vessel, it will continue to run
-the program, updating the display with information about
-whatever chunk of debries it inhabits.
-
-#+begin_src ks
-  mpadd({ lock throttle to 0. lock steering to srfretrograde.
-    if stage:number=0 mpinc().
-    if stage:ready stage. return 1. }).
-#+end_src
-
-*** If we get here ... we are done.
-
-The autopilot computer could in theory survive to this
-step while remaining in close formation with the vessel.
-
-#+begin_src ks
-  mpadd({ unlock throttle. unlock steering. return mpinc(). }).
+    lock steering to heading(90,90,0). return 1. }).
 #+end_src
 
 *** DEVELOPMENT HACK: pause, await abort, reboot
