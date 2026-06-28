@@ -76,6 +76,76 @@ Landing Dev Configuration:
 
 - budget says that on orbit we need 1880 m/s
 
+* Final Test Results
+
+** status log
+
+#+begin_src text
+  T+0d-01:00:00 log starts
+  T+0d-01:00:00 Launching Soon
+  T+0d+00:00:00 Ignition
+  T+0d+00:00:05 Powered Ascent
+  T+0d+00:03:11 Unpowered Ascent
+  T+0d+00:03:11 Circularizing
+  T+0d+00:05:02 Collect Science, Release Brakes
+  T+0d+00:05:04 Resuming Mission
+  T+0d+00:05:04 Starting Mun Transfer
+  T+0d+00:30:37 Collect Science, Release Brakes
+  T+0d+00:30:40 Resuming Mission
+  T+0d+00:30:40 Transfer Orbit to MUN SOI
+  T+0d+04:12:26 Refining MUN Approach
+  T+0d+04:12:48 Collect Science, Release Brakes
+  T+0d+04:12:52 Resuming Mission
+  T+0d+04:12:52 Entering MUN Orbit
+  T+0d+05:41:29 Release Brakes to start landing
+  T+0d+05:42:07 Resuming Mission
+  T+0d+05:42:07 Finding Landing Site
+  T+1d+00:00:54 Breaking Mun Orbit
+  T+1d+00:01:34 Adjust Landing then Cancel SAS
+  T+1d+00:01:55 Auto-Land Sequence
+  T+1d+00:03:01 Collect Science, Release Brakes
+  T+1d+00:03:12 Resuming Mission
+  T+1d+00:03:12 Leaving Mun
+  T+1d+00:03:16 Powered Ascent
+  T+1d+00:04:08 Unpowered Ascent
+  T+1d+00:04:08 Circularizing
+  T+1d+00:07:06 Leaving MUN Orbit
+  T+1d+00:17:49 Leaving Mun SOI
+  T+1d+01:51:28 Returning to Kerbin
+  T+2d+00:58:05 Aerocapture
+#+end_src
+
+** delta-v log
+
+| T+0d-00:00:07 | before launch                    |  6699.14 |
+| T+0d+00:03:11 | arriving 80k over kerbin         |  4209.14 |
+| T+0d+00:05:01 | in 80x80 over kerbin             |  3674.04 |
+| T+0d+00:30:35 | kerbin to mun soi                |  2804.63 |
+| T+0d+04:12:47 | mun soi to mun 10k               |  2749.45 |
+| T+0d+05:41:28 | in 10x10 over mun                |  2456.81 |
+| T+1d+00:03:01 | At Mun Landing Site              |  1191.86 |
+| T+1d+00:04:08 | arriving 10k over mun            |   618.60 |
+| T+1d+00:07:06 | in 10x10 over mun                |   560.70 |
+| T+1d+00:17:49 | mun to kerbin soi                |   280.35 |
+| T+1d+01:51:44 | descent to kerbin 40k aero       |   278.52 |
+
+* Flight Results
+
+- Valentina, Bill, and Bob crewed the trip.
+- Bob did several EVA trips for science.
+- Midlands landing site looked flat
+- Activities at the Munar II landing Site:
+  - Valentina deployed the Flag
+  - Bob hit a golf ball
+  - Bill set up some solar panels
+  - Bob set up an experiment
+  - Valentia set up a control station
+  - Bob found a Rock
+- Valentia pushes the "Go Home" button
+- Aerocapture starting with nominal 39.2 km Periapsis
+- capsule separated for landing at 80 km
+- *Parachutes must be armed manually*
+
 * Import Required Packages
 
 #+begin_src ks
@@ -391,18 +461,6 @@ TODO precision landing at specific lng
     return 1.}).
 #+end_src
 
-*** stage to reconfigure for mun landing
-
-#+begin_src ks
-  mpadd({
-    if stage:number>2 { if stage:ready stage. return 1/10. }
-    lock throttle to 0. lock steering to heading(270,90,0).
-    return mpinc(5).}).
-#+end_src
-
-From here down, behavior is *unimportant* if the
-available thrust drops to zero.
-
 *** Allow manual maneuvering on the way down.
 
 #+begin_src ks
@@ -421,6 +479,19 @@ available thrust drops to zero.
     local wthr is mass*(bias+0.5*gain*verticalspeed^2/agl()).
     return choose 1 if 100*wthr<ship:availablethrust else mpinc().}).
 #+end_src
+
+*** stage to reconfigure for mun landing
+
+#+begin_src ks
+  mpadd({
+    if stage:number>1 { if stage:ready stage. return 1/10. }
+    sas off. gear on. lights on.
+    lock throttle to 0. lock steering to heading(270,90,0).
+    return mpinc().}).
+#+end_src
+
+From here down, behavior is *unimportant* if the
+available thrust drops to zero.
 
 *** mun descent and landing: modified suicide burn
 
@@ -442,7 +513,6 @@ refine the landing site.
 
 #+begin_src ks
   mpstat("Auto-Land Sequence").
-  mpone({sas off. gear on. lights on.}).
   mpadd({
     if agl()<1/100 or verticalspeed>=0 return mpinc().
     local grav is body:mu / body:radius^2.
@@ -472,7 +542,7 @@ via the 40x40 orbit. 10x10 is even slightly less.
 
 #+begin_src ks
   local mun_ret_az is 270.
-  local mun_ret_ap is 10000.
+  local mun_ret_ap is 14000.
 
   mpstat("Leaving Mun").
   mpone({

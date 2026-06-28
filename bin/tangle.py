@@ -32,7 +32,7 @@ def tangle(rdname):
             line = line.strip()
             if line.startswith(ppfx):
                 wrname = line[len(ppfx):]
-            if line.startswith("#+begin_src "):
+            if line.startswith("#+begin_src ks"):
                 wrsize += tangleto(rd, wrname)
     x = wrname.find('Archive/')
     if x>=0: wrname = wrname[x+8:]

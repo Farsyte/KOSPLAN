@@ -108,10 +108,6 @@ lock steering to -vh.
 lock throttle to limit(0,1,vh:mag/10) *
 limit(1/100,1,(10-vang(-vh,facing:vector))/5).
 return 1.}).
-mpadd({
-if stage:number>2 { if stage:ready stage. return 1/10. }
-lock throttle to 0. lock steering to heading(270,90,0).
-return mpinc(5).}).
 mpstat("Adjust Landing then Cancel SAS").
 mpone({
 unlock steering. unlock throttle.
@@ -123,8 +119,12 @@ local gain is 10.
 local bias is gain*grav -gain*anom +anom.
 local wthr is mass*(bias+0.5*gain*verticalspeed^2/agl()).
 return choose 1 if 100*wthr<ship:availablethrust else mpinc().}).
+mpadd({
+if stage:number>1 { if stage:ready stage. return 1/10. }
+sas off. gear on. lights on.
+lock throttle to 0. lock steering to heading(270,90,0).
+return mpinc().}).
 mpstat("Auto-Land Sequence").
-mpone({sas off. gear on. lights on.}).
 mpadd({
 if agl()<1/100 or verticalspeed>=0 return mpinc().
 local grav is body:mu / body:radius^2.
@@ -138,7 +138,7 @@ mpone({unlock throttle. unlock steering. SAS ON.}).
 mpdvlog("At Mun Landing Site").
 mphold_brakes("Collect Science, Release Brakes").
 local mun_ret_az is 270.
-local mun_ret_ap is 10000.
+local mun_ret_ap is 14000.
 mpstat("Leaving Mun").
 mpone({
 nvput(1,"launch_az", mun_ret_az).
