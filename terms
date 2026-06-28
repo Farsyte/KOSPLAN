@@ -1,0 +1,16 @@
+    1  xt -geometry 96x43
+    2  bg
+    3  xt -geometry 132x43
+    4  igio xt -geometry 120x24 
+    5  igio xt -geometry 120x24+0-0
+    6  xt -geometry 120x43+0+0
+    7  bg
+    8  xwininfo
+    9  xt -geometry 120x48+0+0
+   10  xt -geometry 120x50+0+0
+   11  xt -geometry 120x52+0+0
+   12  xt -geometry 120x51+0+0
+   13  bg
+   14  cat > bin/terms
+   15  vi bin/terms
+   16  history > terms

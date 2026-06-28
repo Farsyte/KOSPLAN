@@ -11,14 +11,10 @@ ascent.ks - ascent path control
 
 * mpascent(d,h): add mission steps for ascent.
 
-The D and H parameters provide default values for the
-Direction and Height wanted, for cases where the mission
-does not set "launch_az" and "launch_ap" before reaching
-this step.
-
-Note that the actual launch direction and height might
-not be known until just before the mission actually
-reaches this step.
+The launch azimuth and destination altitude are taken
+from the "launch_az" and "launch_ap" nonvoltatiles,
+and the code falls back to D and H for defaults should
+those nonvolatiles not be set.
 
 #+begin_src ks
   set mpascent to { parameter d, h. mpadd({

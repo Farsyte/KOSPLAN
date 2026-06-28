@@ -1,0 +1,14 @@
+#!/bin/bash -
+
+# start firefox, possibly with command line options.
+
+# MOZ_ALLOW_DOWNGRADE=1 allows a "stable" firefox to load up a profile
+# that was touched by a "nightly" firefox.
+export MOZ_ALLOW_DOWNGRADE=1
+
+igio firefox \
+      -width 1113 -height 1400 \
+      https://ksp-kos.github.io/KOS/
+sleep 3
+FF_WINDOW_ID=$(xdotool search --name 'kOS: Kerbal Operating System' | head -n 1)
+[ -z "$FF_WINDOW_ID" ] || xdotool windowmove "$FF_WINDOW_ID" 2315 194

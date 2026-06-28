@@ -2,28 +2,26 @@
 #+PROPERTY: header-args :tangle ../Archive/fancystager.ks
 
 fancystager.ks - fancy auto-stager
+* Supports ONION staging.
+
+* Launch Clamps just work.
+
+* FARING NOTES:
+
+Using STAGE to deploy farings also performs
+a stack separation at the faring base. Vessels
+must place the faring in the staging list at
+the appropriate point, based on separation, not
+on where it is best to deploy the shell.
 
 * Import Required Packages
 
 #+begin_src ks
   import("mp").
+  import("time").
 #+end_src
 
-* Set up the fancystager delegate
-
-The "fancy" stager looks at a lists of
-engines and fuel tank parts that would
-be jettisoned at the current stage.
-
-A stage command is issued if all engines
-are flamed out and no useful amount of
-fuel remains in any of the tanks.
-
-#+begin_src ks
-  set fancystager to {
-#+end_src
-
-** Initialize engine and tank lists
+** Initialize parts lists
 
 *** lol: helper function to set up a list of N lists.
 
@@ -59,11 +57,36 @@ DECOUPLED when we move to stage N.
           lot[p:decoupledin]:add(list(p,res)).
 #+end_src
 
+*** lof: list of farings for stages 0 through stage:number
+
+Specifically, lot[N] is the list of Parts associated
+with stage N that have LaunchClamp modules.
+
+#+begin_src ks
+  local lof is lol(stage:number+1).
+  for p in ship:parts
+    if p:hasmodule("FaringSometing")
+      lof[p:stage]:add(p).
+#+end_src
+
+* Set up the fancystager delegate
+
+The "fancy" stager looks at a lists of
+engines and fuel tank parts that would
+be jettisoned at the current stage.
+
+A stage command is issued if all engines
+are flamed out and no useful amount of
+fuel remains in any of the tanks.
+
+#+begin_src ks
+  set fancystager to {
+#+end_src
+
 ** Start the scheduled job
 
 #+begin_src ks
   local t is time:seconds.
-  local mt is 0.
   when t <= time:seconds then {
 #+end_src
 
@@ -76,21 +99,20 @@ DECOUPLED when we move to stage N.
 *** Pick the next scheduled time.
 
 #+begin_src ks
-  set t to time:seconds + 1.
+  set t to time:seconds+1/10.
 #+end_src
 
-*** Early return: too low, or staging not ready.
+*** Early return: too early, or before launch.
 
 #+begin_src ks
-  if not stage:ready or alt:radar<100 return true.
+  if not stage:ready or met()<=0 return true.
 #+end_src
 
 *** All engines must be flamed out
 
 #+begin_src ks
   for en in loe[stage:number-1]
-    if not en:flameout
-    return true.
+    if not en:flameout return true.
 #+end_src
 
 *** All resources must be effectively exhausted
@@ -100,15 +122,15 @@ the fuel tanks have them in the right ratio, but when
 the engine flames out there may be a very small amount
 of Liquid Fuel remaining in the tank.
 
+NOTE: Rockomax X200-8 have 0.0119 when empty.
+
 #+begin_src ks
   for pr in lot[stage:number-1]
-    if pr[1]:amount>0.01
-  return true.
+    if pr[1]:amount>0.02 return true.
 #+end_src
 
 *** Trigger staging, and keep the job running.
 
 #+begin_src ks
-  stage.
-  return true. }}.
+  stage. return true. }}.
 #+end_src

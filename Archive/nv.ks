@@ -10,6 +10,10 @@ if not exists(f) create(f). set f to open(f). f:clear. f:write(eu).
 return u. }.
 set nvhas to { parameter d,n.
 return nvl:haskey(n) or exists(nvf(d,n)). }.
+set nvclr to { parameter d,n.
+if nvl:haskey(n) nvl:remove(n).
+local f is nvf(d,n).
+if exists(f) deletepath(f). }.
 set nvput to { parameter d,n,u.
 if nvl:haskey(n) and nvl[n] = u return u.
 return nvp(nvf(d,n),n,u). }.

@@ -16,10 +16,10 @@ Display M on the hud.
 The intended future use of P is to allow the caller
 to prevent the message from being sent to the log.
 
-In the future, this might print the message to a log file
+In the future, this might print the message to a log
+file and to the kOS console.
 
 #+begin_src ks
   set hud to { parameter m. parameter p is true.
-    // if p print m. if p log m to hud_log.
     hudtext(m,5,2,24,WHITE,false). }.
 #+end_src

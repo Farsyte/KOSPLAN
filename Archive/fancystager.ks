@@ -1,5 +1,5 @@
 import("mp").
-set fancystager to {
+import("time").
 local lol is { parameter n. local res is list().
 until res:length >= n res:add(list()). return res. }.
 local loe is lol(stage:number+1).
@@ -12,17 +12,18 @@ if p:decoupledin>=0
 for res in p:resources
 if res:name="LiquidFuel"
 lot[p:decoupledin]:add(list(p,res)).
+local lof is lol(stage:number+1).
+for p in ship:parts
+if p:hasmodule("FaringSometing")
+lof[p:stage]:add(p).
+set fancystager to {
 local t is time:seconds.
-local mt is 0.
 when t <= time:seconds then {
 if abort or stage:number<1 return false.
-set t to time:seconds + 1.
-if not stage:ready or alt:radar<100 return true.
+set t to time:seconds+1/10.
+if not stage:ready or met()<=0 return true.
 for en in loe[stage:number-1]
-if not en:flameout
-return true.
+if not en:flameout return true.
 for pr in lot[stage:number-1]
-if pr[1]:amount>0.01
-return true.
-stage.
-return true. }}.
+if pr[1]:amount>0.02 return true.
+stage. return true. }}.

@@ -1,0 +1,668 @@
+#+PROPERTY: header-args :results none
+#+PROPERTY: header-args :tangle ../../Archive/home/008 Munar II/go.ks
+
+go.ks -- GO script for Munar II, the first MUN Lande
+
+This script manages the flight of the 006 Munar II, which
+is amazingly cool.
+
+This flight is unique in that it lands on Mun, then returns
+to safe aerobraking on Kerbin.
+
+This script uses "local.ks" to save onboard storage. Rebooting
+when there is no connection causes the boot loader to pause,
+which is OK when we are in Mun orbit awaiting landing, or on
+Mun awaiting launch.
+
+Budget for Lander: 1210 m/s
+Available in 008 Munar II lander: 1391 m/s
+reserve the excess for return corrections
+
+|  ΔV | Leg                     |
+|-----+-------------------------|
+|   0 | Aerocapture             |
+| 280 | 14x14 to Mun Escape     |
+| 730 | Mun Surface to 14x14    |
+| 200 | Lander share of Landing |
+
+Budget for Orbiter: 2810 m/s
+Budget for Orbiter+Lander: 4020 m/s
+Available in 008 Munar II orbiter excluding lander: 1391 m/s
+reserve the excess for return corrections
+
+NOTE: we need 1010 m/s to get home.
+
+|   ΔV | Leg                     |
+|------+-------------------------|
+| -200 | Lander share of landing |
+|  870 | land on mun             |
+|  280 | enter 14x14 orbit       |
+|  860 | intercept mun           |
+| 1000 | Orbiter share of LKO    |
+
+Booster: needs to suipply 2800 m/s
+for the 3800 m/s launch-to-LKO,
+Mission Budget: 6820 m/s
+
+TEST FLIGHTS:
+
+- lander itself is able to launch
+  from mun and return to kerbin,
+  with sufficient margin to cover
+  200 m/s of the landing plus more
+  than enough for aero.
+
+- full configuration, Vacuum ΔV:
+
+  6947 m/s available in VAB
+  3729 m/s available at Kerbin 80x80
+  2858 m/s available during Transfer to Mun
+  2514 m/s available at Mun 14x14
+
+  Suggestion: schedule a 670 m/s retrograde
+  burn from mun orbit. when complete,
+  jettison stage 3 to free stage 2 for
+  use for landing and return.
+
+Landing Dev Configuration:
+
+- discard everything below stage 3
+
+- requires that we jettison stage 3
+  well before the final landing.
+
+- AltF12 menu claims 15.25 km is the
+  minimum safe orbit around Mun.
+
+- budget says that on orbit we need 1880 m/s
+
+* Final Test Results
+
+** status log
+
+#+begin_src text
+  T+0d-01:00:00 log starts
+  T+0d-01:00:00 Launching Soon
+  T+0d+00:00:00 Ignition
+  T+0d+00:00:05 Powered Ascent
+  T+0d+00:03:11 Unpowered Ascent
+  T+0d+00:03:11 Circularizing
+  T+0d+00:05:02 Collect Science, Release Brakes
+  T+0d+00:05:04 Resuming Mission
+  T+0d+00:05:04 Starting Mun Transfer
+  T+0d+00:30:37 Collect Science, Release Brakes
+  T+0d+00:30:40 Resuming Mission
+  T+0d+00:30:40 Transfer Orbit to MUN SOI
+  T+0d+04:12:26 Refining MUN Approach
+  T+0d+04:12:48 Collect Science, Release Brakes
+  T+0d+04:12:52 Resuming Mission
+  T+0d+04:12:52 Entering MUN Orbit
+  T+0d+05:41:29 Release Brakes to start landing
+  T+0d+05:42:07 Resuming Mission
+  T+0d+05:42:07 Finding Landing Site
+  T+1d+00:00:54 Breaking Mun Orbit
+  T+1d+00:01:34 Adjust Landing then Cancel SAS
+  T+1d+00:01:55 Auto-Land Sequence
+  T+1d+00:03:01 Collect Science, Release Brakes
+  T+1d+00:03:12 Resuming Mission
+  T+1d+00:03:12 Leaving Mun
+  T+1d+00:03:16 Powered Ascent
+  T+1d+00:04:08 Unpowered Ascent
+  T+1d+00:04:08 Circularizing
+  T+1d+00:07:06 Leaving MUN Orbit
+  T+1d+00:17:49 Leaving Mun SOI
+  T+1d+01:51:28 Returning to Kerbin
+  T+2d+00:58:05 Aerocapture
+#+end_src
+
+** delta-v log
+
+| T+0d-00:00:07 | before launch                    |  6699.14 |
+| T+0d+00:03:11 | arriving 80k over kerbin         |  4209.14 |
+| T+0d+00:05:01 | in 80x80 over kerbin             |  3674.04 |
+| T+0d+00:30:35 | kerbin to mun soi                |  2804.63 |
+| T+0d+04:12:47 | mun soi to mun 10k               |  2749.45 |
+| T+0d+05:41:28 | in 10x10 over mun                |  2456.81 |
+| T+1d+00:03:01 | At Mun Landing Site              |  1191.86 |
+| T+1d+00:04:08 | arriving 10k over mun            |   618.60 |
+| T+1d+00:07:06 | in 10x10 over mun                |   560.70 |
+| T+1d+00:17:49 | mun to kerbin soi                |   280.35 |
+| T+1d+01:51:44 | descent to kerbin 40k aero       |   278.52 |
+
+* Flight Results
+
+- Valentina, Bill, and Bob crewed the trip.
+- Bob did several EVA trips for science.
+- Midlands landing site looked flat
+- Activities at the Munar II landing Site:
+  - Valentina deployed the Flag
+  - Bob hit a golf ball
+  - Bill set up some solar panels
+  - Bob set up an experiment
+  - Valentia set up a control station
+  - Bob found a Rock
+- Valentia pushes the "Go Home" button
+- Aerocapture starting with nominal 39.2 km Periapsis
+- capsule separated for landing at 80 km
+- *Parachutes must be armed manually*
+
+* Import Required Packages
+
+#+begin_src ks
+  import("aeroperi").
+  import("agl").
+  import("ascent").
+  import("escape").
+  import("fancystager").
+  import("hold").
+  import("logger").
+  import("mnpro").
+  import("mp").
+  import("simple").
+  import("sw").
+  import("time").
+  import("xfer").
+#+end_src
+
+* Observed Vacuum Delta-V Remaining
+
+NOTE: it is important to wait for farings
+to be jettisoned before recording ΔV before
+the LKO circularization, about 200 m/s.
+
+| Mission State              |     m/s |
+|----------------------------+---------|
+| before launch              | 6751.44 |
+| arriving 80k over kerbin   | 4269.77 |
+| in 80x80 over kerbin       | 3730.64 |
+| kerbin to mun soi          | 2861.24 |
+| mun soi to mun 10k         | 2804.87 |
+| in 10x10 over mun          | 2512.67 |
+| landed on mun              | 1206.96 |
+| arriving 10k over mun      |  798.33 |
+| in 10x10 over mun          |  568.29 |
+| mun to kerbin soi          |  287.80 |
+| descent to kerbin 40k aero |  286.86 |
+| configured for aerobraking |    0.00 |
+
+- Some fuel is discarded before descent to Mun
+- Some fuel is discarded before aerobraking
+
+
+#+begin_src ks
+  local dvlog is mklogger("deltav").
+  local mpdvlog is {parameter m. mpone({
+    dvlog(" | "+pr(m,32)+" | "+fmt(ship:deltav:vacuum,8,2)+" |").
+  }).}.
+#+end_src
+
+* Provide a GO function.
+
+This function is executed by IMPORT when it
+finds nothing more specific for this mission.
+
+#+begin_src ks
+  set go to {
+#+end_src
+
+** Helper Functions
+
+*** mptwp(S): add step to timewarp to S seconds before periapsis.
+
+#+begin_src ks
+  local mptwp is { parameter s.
+    mppdas(). mpadd({
+      local dt is eta:periapsis-s.
+      return choose swadj(dt) if dt>0 else mpinc(). }).
+    mpsw0(). mppdas(). }.
+#+end_src
+
+*** mptwt(): add step to timewarp to S seconds before transition.
+
+NOTE: eta:transition is HUGE if there is no transition.
+
+#+begin_src ks
+  local mptwt is { parameter s.
+    mppdas(). mpadd({
+      local dt is choose eta:transition-s if orbit:hasnextpatch else 0.
+      return choose swadj(dt) if dt>0 else mpinc(). }).
+    mpsw0(). mppdas(). }.
+#+end_src
+
+** Set a condition to jettison the faring shell.
+
+Once we get out of the atmosphere, turn on
+the lights, which will deploy the farings
+and extend the antenna.
+
+#+begin_src ks
+  if body:name="Kerbin" and
+    altitude<body:atm:height
+      when altitude>body:atm:height then
+        lights on.
+#+end_src
+
+** Start an autostager in the background
+
+#+begin_src ks
+  fancystager().
+#+end_src
+
+** Define Mission Phases
+
+*** Schedule the launch.
+
+#+begin_src ks
+  mpstat("Launching Soon").
+  mpone({t0put(7-mod(time:seconds,1)).}).
+  mpone({bays off.}).    
+#+end_src
+
+*** Get to initial Low Kerbin Orbit.
+
+#+begin_src ks
+  mpdvlog("before launch").
+  mpcount().
+  mplaunch().
+  mpstat("Powered Ascent").
+  mpascent(90,80000).
+  mpstat("Unpowered Ascent").
+  mpcoast().
+  mpdvlog("arriving 80k over kerbin").
+  mpstat("Circularizing").
+  mpcirc().
+  mppdas().
+  mpdvlog("in 80x80 over kerbin").
+#+end_src
+
+*** Stop and Collect Science
+
+#+begin_src ks
+  mppdas().
+  mphold_brakes("Collect Science, Release Brakes").
+#+end_src
+
+*** Trans-Munar injection
+
+#+begin_src ks
+  mpstat("Starting Mun Transfer").
+  mpxfer("mun").
+  mppdas().
+  mpdvlog("kerbin to mun soi").
+#+end_src
+
+*** Stop and Collect Science
+
+#+begin_src ks
+  mppdas().
+  mphold_brakes("Collect Science, Release Brakes").
+#+end_src
+
+*** SAFEWARP to just before transition to MUN SOI
+
+#+begin_src ks
+  mpstat("Transfer Orbit to MUN SOI").
+  mptwt(60).
+#+end_src
+
+*** wait until inside MUN SOI
+
+#+begin_src ks
+  mpadd({ if not orbit:hasnextpatch return mpinc().
+    if body:name <> "Kerbin" return mpinc().
+  return 1. }).
+  mppdas().
+#+end_src
+
+*** assure mun periapsis between 13 and 15 km
+
+Mission behavior so far is expected to result
+in a free return trajectory ending in a safe
+aerobraking maneuver at Kerbin. On the way it
+is planned to pass about 40 km from Mun.
+
+Do a correction burn here to move the periapsis
+down to 10 km. Assure it behaves properly when
+the periapsis happens to already be too low.
+
+#+begin_src ks
+  mpstat("Refining MUN Approach").
+  mpadd({
+    if periapsis<(10000-200) {
+      lock steering to prograde.
+      lock throttle to limit(0,1,(10000-periapsis)/1000) *
+        limit(1/100,1,(10-vang(prograde:vector,facing:vector))/5).
+      return eps.
+    }
+    if periapsis>(10000+200) {
+      lock steering to retrograde.
+      lock throttle to limit(0,1,(periapsis-10000)/1000) *
+        limit(1/100,1,(10-vang(retrograde:vector,facing:vector))/5).
+      return eps.
+    }
+    lock throttle to 0. return mpinc(). }).
+  mppdas().
+  mpdvlog("mun soi to mun 10k").
+#+end_src
+
+*** Stop and Collect Science
+
+#+begin_src ks
+  mppdas().
+  mphold_brakes("Collect Science, Release Brakes").
+#+end_src
+
+*** Circularize at periapsis.
+
+#+begin_src ks
+  mpstat("Entering MUN Orbit").
+  mpcirc().
+  mppdas().
+  mpdvlog("in 10x10 over mun").
+#+end_src
+
+*** select landing site
+
+Delta V available on 008 Munar II:
+
+Note that Stage 3 has 1123 m/s available,
+but 870 gets us to landing, and we do NOT
+want to land on the poodle, do we?
+
+Perhaps, plan a 670 m/s retrograde burn,
+then stage away the poodle so we can land
+using the lander.
+
+#+begin_src ks
+  mpsw0().
+  mppdas().
+  mphold_brakes("Release Brakes to start landing").
+#+end_src
+
+*** Deorbit using a maneuver node.
+
+Cutting to the chase: from a 10x10km circular orbit,
+the landing location is 1.362° degrees of latitude
+beyond where we start burning.
+
+The default landing site is at 47.436° longitude,
+which is where Kerbin is directly overhead.
+
+#+begin_src ks
+  local mun_landing_lng is nvget(1,"mun_landing_lng", 47.436).
+#+end_src
+
+Start breaking orbit a bit before the indicated landing
+spot. The flight engineer will have an opportunity to
+adjust the actual landing site.
+
+#+begin_src ks
+  local mun_landing_lng_lead is nvget(1,"mun_landing_lng_lead", 3).
+#+end_src
+
+#+begin_src ks
+  mpstat("Finding Landing Site").
+#+end_src
+
+Update the landing site longitude from the maneuver node, if the
+flight engineer has picked a different landing site.
+  
+#+begin_src ks
+  mpone({if hasnode {
+    local lng is body:geopositionof(posat(nextnode:time)+body:position):lng.
+    set mun_landing_lng to nvput(1,"mun_landing_lng", lng).
+    mnclr().}}).
+#+end_src
+
+Wait until arrival at the longitude for the maneuver,
+using SAFEWARP if it is far in the future.
+
+The estimate for the wait time is based on rotation rates
+that assume the orbit is circular. The orbit is likely to
+be slightly eccentric, so safewarp to 90% of the duration
+that was estiamted.
+
+#+begin_src ks
+  mpadd({
+    local sec_per_deg is 1/(360*(1/orbit:period + 1/body:rotationperiod)).
+    local curr_lng is body:geopositionof(ship:position):lng.
+    local lng_to_site is ua(curr_lng - mun_landing_lng).
+    local dt is (lng_to_site - mun_landing_lng_lead) * sec_per_deg.
+    return choose swadj(dt) if dt>1 else mpinc(). }).
+  mpsw0().
+#+end_src
+
+*** kill horizontal speed.
+
+This takes about 3° of longitude to bring us to a stop,
+starting from a 10x10km orbit, and costs 566 m/s (as
+expected, our orbital velocity).
+
+Before stopping: 1126 m/s in poodle
+After stopping:   560 m/s in poodle
+
+the remaining fuel is jettisoned with the poodle.
+
+LONGITUDE NOTES:
+- in retrograde orbit, LNG is decreasing.
+- at my quicksave, LNG is ~150° and we can see Kerbin
+- Mun is tidally locked.
+- Mun longitude 47.436° (East) is directly under kerbin.
+TODO precision landing at specific lng
+
+#+begin_src ks
+  mpstat("Breaking Mun Orbit").
+  mpadd({
+    lock vh to vxcl(body:position,velocity:surface).
+    if vh:mag<1 return mpinc().
+    lock steering to -vh.
+    lock throttle to limit(0,1,vh:mag/10) *
+      limit(1/100,1,(10-vang(-vh,facing:vector))/5).
+    return 1.}).
+#+end_src
+
+*** Allow manual maneuvering on the way down.
+
+#+begin_src ks
+  mpstat("Adjust Landing then Cancel SAS").
+  mpone({
+    unlock steering. unlock throttle.
+    sas on. gear on. lights on.}).
+#+end_src
+
+#+begin_src ks
+  mpadd({if not sas return mpinc().
+    local grav is body:mu / body:radius^2.
+    local anom is 5.
+    local gain is 10.
+    local bias is gain*grav -gain*anom +anom.
+    local wthr is mass*(bias+0.5*gain*verticalspeed^2/agl()).
+    return choose 1 if 100*wthr<ship:availablethrust else mpinc().}).
+#+end_src
+
+*** stage to reconfigure for mun landing
+
+#+begin_src ks
+  mpadd({
+    if stage:number>1 { if stage:ready stage. return 1/10. }
+    sas off. gear on. lights on.
+    lock throttle to 0. lock steering to heading(270,90,0).
+    return mpinc().}).
+#+end_src
+
+From here down, behavior is *unimportant* if the
+available thrust drops to zero.
+
+*** mun descent and landing: modified suicide burn
+
+at altitude H, current speed V, gravity G, what acceleration A
+is needed to arrive at H=0 V=0?
+
+| H = 0.5*(A-G)T²      | --> | T² = 2H/(A-G)  |
+| V = (A-G)T           | --> | T² = V²/(A-G)² |
+|                      |     |                |
+| V²/(A-G)² = 2H/(A-G) | --> | V² = 2H(A-G)   |
+|                      |     |                |
+| A = 0.5 V²/H + G     | and | T = V/(A-G)    |
+
+First time out, the code below touched down like a feather.
+Simple Is good.
+
+Allow the flight engineer to control during descent to
+refine the landing site.
+
+#+begin_src ks
+  mpstat("Auto-Land Sequence").
+  mpadd({
+    if agl()<1/100 or verticalspeed>=0 return mpinc().
+    local grav is body:mu / body:radius^2.
+    local anom is 5.
+    local gain is 10.
+    local bias is gain*grav -gain*anom +anom.
+    lock steering to lookdirup(srfretrograde:vector-10*body:position:normalized,facing:topvector).
+    lock throttle to limit(0,1,(bias+0.5*gain*verticalspeed^2/agl())*mass/ship:availablethrust).
+    return 1.}).
+#+end_src
+
+*** Wait on Mun until done
+
+#+begin_src ks
+  mpone({unlock throttle. unlock steering. SAS ON.}).
+  mpdvlog("At Mun Landing Site").
+  mphold_brakes("Collect Science, Release Brakes").
+#+end_src
+
+*** Leave Mun
+
+Launching to mun_ret_az. The method I use to find my
+return trajectory fails when launching to 090.
+
+Going via a 14x14 orbit uses less fuel than going
+via the 40x40 orbit. 10x10 is even slightly less.
+
+#+begin_src ks
+  local mun_ret_az is 270.
+  local mun_ret_ap is 14000.
+
+  mpstat("Leaving Mun").
+  mpone({
+    nvput(1,"launch_az", mun_ret_az).
+    nvput(1,"launch_ap", mun_ret_ap).}).
+  mpadd({
+    sas off. lights on.
+    lock steering to heading(mun_ret_az,90,0). lock throttle to 1.
+    return choose 1/10 if agl()<50 else mpinc(). }).
+  mpone({gear off.}).
+  mpstat("Powered Ascent").
+  mpascent(mun_ret_az,mun_ret_ap).
+  mpstat("Unpowered Ascent").
+  mpcoast().
+  mpdvlog("arriving 10k over mun").
+  mpstat("Circularizing").
+  mpcirc().
+  mppdas().
+  mpdvlog("in 10x10 over mun").
+#+end_src
+
+*** escape from MUN orbit
+
+#+begin_src ks
+  mpstat("Leaving MUN Orbit").
+  mpescape().
+  mpdvlog("mun to kerbin soi").
+#+end_src
+
+*** SAFEWARP to 60 seconds before transition out of MUN SOI
+
+#+begin_src ks
+  mpstat("Leaving Mun SOI").
+  mptwt(60).
+#+end_src
+
+*** wait until out of MUN SOI
+
+#+begin_src ks
+  mpadd({ if not orbit:hasnextpatch return mpinc().
+    if body:name = "Kerbin" return mpinc().
+    return 1. }).
+  mpstat("Returning to Kerbin").
+#+end_src
+
+*** tune aerobraking target altitude.
+
+#+begin_src ks
+  mpaero().
+  mppdas().
+  mpdvlog("descent to kerbin 40k aero").
+#+end_src
+
+*** SAFEWARP to 120 km over kerbin using mnwait.
+
+For now, using a maneuver node to mark when we want to
+stop warping, rather than having to recompute it each
+time through or persist it for a very few steps.
+
+#+begin_src ks
+  mpone({
+    local t1 is time:seconds + 60.
+    local t2 is time:seconds + eta:periapsis.
+    local rx is body:radius + 120000.
+    until (t2-t1)<1 {
+      local t3 is t1 + (t2-t1)/2.
+      local r3 is posat(t3,ship):mag.
+    if r3 < rx set t2 to t3. else set t1 to t3. }
+    mnclr().
+    add node(t1,0,0,-1).}).
+
+  mppdas().
+  mnwait().
+  mpone({ mnclr(). }).
+  mppdas().
+  mpstat("Aerocapture").
+#+end_src
+
+*** Configure for Aero when below 80 km
+
+Note that we stage while still in the "point down at
+sun" attitude, so we get some separation.
+
+If this code is not running on the bits returning to
+kerbin, the program will essentially stop when we stage
+away the processor.
+
+Well, actually, it stops when the processor moves out of
+the local area. Same same.
+
+Also, the Onion doesn't actually have any attitude
+control, the steering is there so this behaves well
+when we have a different capsule.
+
+The Onion is aerodynamically stable in the right
+attitude. We hope it gets there before it burns up a
+parachute.
+
+#+begin_src ks
+  mpadd({ if altitude<80000 return mpinc().
+    return 1.}).
+  mpadd({ if stage:number=0 return mpinc().
+    if stage:ready stage. return 1/10.}).
+  mpdvlog("configured for aerobraking").
+  mpadd({ if agl()<1000 return mpinc().
+    lock steering to srfretrograde. return 1. }).
+  mpadd({
+    lock steering to heading(90,90,0). return 1. }).
+#+end_src
+
+*** DEVELOPMENT HACK: pause, await abort, reboot
+
+#+begin_src ks
+  mpstat("Test Done, ABORT to reboot").
+  mpone({abort off. wait until abort. abort off. reboot.}).
+#+end_src
+
+* Run the Mission, then End the Program.
+
+  #+begin_src ks
+    mprun(). print "program terminated".}.
+#+end_src
+

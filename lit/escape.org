@@ -121,9 +121,15 @@ process when repeated is expected to converge rapidly.
     parameter eps_dpro is 1/100.
     parameter good_enough is 1.
 
-    // This converges swiftly, as long as we start
-    // with a maneuver that is near a local minimum
-    // for the semi-major axis of the second patch.
+    // This converges swiftly, as long as we start with a
+    // maneuver that is near a local minimum for the
+    // semi-major axis of the second patch.
+
+    // TODO: work out what to do when this process reduces
+    // the burn so much that we do not get an escape orbit
+    // at all. Either change the departure time, or boost
+    // us back up to the best escape and count on
+    // correcting the trajectory after leaving Mun SOI.
 
     for iter in range(100) {
       local old_peri is nextnode:orbit:nextpatch:periapsis.

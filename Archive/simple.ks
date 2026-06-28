@@ -2,17 +2,12 @@ import("agl").
 import("fmt").
 import("mp").
 import("nv").
+import("logger").
 import("time").
+local sl is mklogger("status").
 set mss to nvget(1,"status","KOSPLAN Initializing").
-local sq is queue().
-local sl is home:combine("status.log").
-if mpi=0 open(sl):clear().
-local sqck is {
-if homeconnection:isconnected
-until sq:empty
-log sq:pop() to sl.}.
 set putstat to { parameter m.
-if mss = m return. sq:push(m). set mss to nvput(1,"status",m). }.
+if mss = m return. sl(m). set mss to nvput(1,"status",m). }.
 set mpstat to { parameter m. return mpone({putstat(m).}).}.
 set mpcount to { mpadd({
 local t is -met().
@@ -110,10 +105,16 @@ if hasnode {
 set l4t to round(nextnode:eta).
 set l4s to "Maneuver".}
 set l4s to (choose "since " if l4t<0 else "to ") + l4s.
+if status="SPLASHED" or status="LANDED" or status="PRELAUNCH"
+print pr(" ",tw-1) at (0,4).
+else
 print "  "+pr(ydhms(abs(l4t)),14)+ pr(l4s,tw-17) at (0,4).
+set lls to "lat: "+fmt(latitude,8,3)+"  lon: "+fmt(longitude,8,3).
+if altitude > 100000 set lls to "".
+print pr(lls,tw-1) at (0,5).
 }.
 pagenew().
 set pagetime to round(time:seconds).
 when pagetime<=time:seconds then {
 set pagetime to round(time:seconds + 1)+1/50.
-sqck(). pageupdate(). return not abort. }
+pageupdate(). return not abort. }
