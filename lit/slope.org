@@ -1,0 +1,31 @@
+#+PROPERTY: header-args :results none
+#+PROPERTY: header-args :tangle ../Archive/slope.ks
+
+
+#+begin_src ks
+  // code published 7y ago by nuggreat
+  // https://www.reddit.com/r/Kos/comments/b86xr2/terrain_slope_calculation_for_landing/
+
+  //returns the slope of p1 in degrees
+  function slope_calculation {
+    parameter p1.
+    local upvec is (p1:position - p1:body:position):normalized.
+    return vang(upvec,surface_normal(p1)).
+  }
+
+  function surface_normal {
+    parameter p1.
+
+    local localbody is p1:body.
+    local basepos is p1:position.
+
+    local upvec is (basepos - localbody:position):normalized.
+    local northvec is vxcl(upvec,latlng(90,0):position - basepos):normalized * 3.
+    local sidevec is vcrs(upvec,northvec):normalized * 3.//is east
+
+    local apos is localbody:geopositionof(basepos - northvec + sidevec):position - basepos.
+    local bpos is localbody:geopositionof(basepos - northvec - sidevec):position - basepos.
+    local cpos is localbody:geopositionof(basepos + northvec):position - basepos.
+    return vcrs((apos - cpos),(bpos - cpos)):normalized.
+  }
+#+end_src

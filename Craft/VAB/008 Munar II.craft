@@ -35,16 +35,15 @@ PART
 	sepI = -1
 	attm = 0
 	sameVesselCollision = False
-	modCost = 300
-	modMass = 0.0299999993
+	modCost = 150
+	modMass = 0.0149999997
 	modSize = 0,0,0
 	link = parachuteRadial_4292780502
 	link = parachuteRadial_4292780308
 	link = navLight1_4292779292
 	link = navLight1_4292778944
-	link = longAntenna_4294204696
 	link = kOSMachine1m_4294472114
-	attN = top,longAntenna_4294204696_0|1.02499998|0_0|1|0_0|1.02499998|0_0|1|0
+	attN = top,Null_0_0|1.02499998|0_0|1|0_0|1.02499998|0_0|1|0
 	attN = bottom,kOSMachine1m_4294472114_0|-0.675000012|0_0|-1|0_0|-0.675000012|0_0|-1|0
 	EVENTS
 	{
@@ -301,7 +300,7 @@ PART
 			{
 				slotIndex = 0
 				partName = evaScienceKit
-				quantity = 2
+				quantity = 1
 				stackCapacity = 4
 				variantName = 
 				PART
@@ -310,7 +309,7 @@ PART
 					cid = 4293575152
 					uid = 0
 					mid = 0
-					persistentId = 1452704803
+					persistentId = 3956458988
 					launchID = 0
 					parent = 0
 					position = 0,0,0
@@ -2102,182 +2101,11 @@ PART
 }
 PART
 {
-	part = longAntenna_4294204696
-	partName = Part
-	persistentId = 1646011303
-	pos = 0.010778917,18.9794083,-0.030419644
-	attPos = 0,0,0
-	attPos0 = 0,1.02499962,0
-	rot = 0,0,0,1
-	attRot = 0,0,0,1
-	attRot0 = 0,0,0,1
-	mir = 1,1,1
-	symMethod = Radial
-	autostrutMode = Off
-	rigidAttachment = False
-	istg = 1
-	resPri = 0
-	dstg = 1
-	sidx = -1
-	sqor = -1
-	sepI = -1
-	attm = 0
-	sameVesselCollision = False
-	modCost = 0
-	modMass = 0
-	modSize = 0,0,0
-	attN = bottom,kv3Pod_4293750726_0|0|0_0|-1|0_0|0|0_0|-1|0
-	EVENTS
-	{
-	}
-	ACTIONS
-	{
-		ToggleSameVesselInteraction
-		{
-			actionGroup = None
-			wasActiveBeforePartWasAdjusted = False
-		}
-		SetSameVesselInteraction
-		{
-			actionGroup = None
-			wasActiveBeforePartWasAdjusted = False
-		}
-		RemoveSameVesselInteraction
-		{
-			actionGroup = None
-			wasActiveBeforePartWasAdjusted = False
-		}
-	}
-	PARTDATA
-	{
-	}
-	MODULE
-	{
-		name = ModuleDeployableAntenna
-		isEnabled = True
-		currentRotation = (-0.707106829, 0, 0, 0.707106829)
-		storedAnimationTime = 0
-		storedAnimationSpeed = 1
-		deployState = RETRACTED
-		stagingEnabled = True
-		EVENTS
-		{
-		}
-		ACTIONS
-		{
-			ExtendPanelsAction
-			{
-				actionGroup = None
-				wasActiveBeforePartWasAdjusted = False
-			}
-			ExtendAction
-			{
-				actionGroup = Light
-				wasActiveBeforePartWasAdjusted = False
-			}
-			RetractAction
-			{
-				actionGroup = None
-				wasActiveBeforePartWasAdjusted = False
-			}
-		}
-		UPGRADESAPPLIED
-		{
-		}
-	}
-	MODULE
-	{
-		name = ModuleDataTransmitter
-		isEnabled = True
-		xmitIncomplete = False
-		stagingEnabled = True
-		EVENTS
-		{
-		}
-		ACTIONS
-		{
-			StartTransmissionAction
-			{
-				actionGroup = None
-				wasActiveBeforePartWasAdjusted = False
-			}
-		}
-		UPGRADESAPPLIED
-		{
-		}
-	}
-	MODULE
-	{
-		name = ModuleCargoPart
-		isEnabled = True
-		beingAttached = False
-		beingSettled = False
-		reinitResourcesOnStoreInVessel = False
-		stagingEnabled = True
-		EVENTS
-		{
-		}
-		ACTIONS
-		{
-		}
-		UPGRADESAPPLIED
-		{
-		}
-	}
-	MODULE
-	{
-		name = HotSpotModule
-		isEnabled = True
-		stagingEnabled = True
-		EVENTS
-		{
-		}
-		ACTIONS
-		{
-		}
-		UPGRADESAPPLIED
-		{
-		}
-	}
-	MODULE
-	{
-		name = KOSNameTag
-		isEnabled = True
-		nameTag = 
-		stagingEnabled = True
-		EVENTS
-		{
-		}
-		ACTIONS
-		{
-		}
-		UPGRADESAPPLIED
-		{
-		}
-	}
-	MODULE
-	{
-		name = ShipEffectsCollisions
-		isEnabled = True
-		stagingEnabled = True
-		EVENTS
-		{
-		}
-		ACTIONS
-		{
-		}
-		UPGRADESAPPLIED
-		{
-		}
-	}
-}
-PART
-{
 	part = kOSMachine1m_4294472114
 	partName = Part
 	persistentId = 680899813
-	pos = 0.010778917,17.1064091,-0.030419644
-	attPos = 0,0,0
+	pos = 0.010778917,17.1544094,-0.030419644
+	attPos = 0,0.0480003357,0
 	attPos0 = 0,-0.847999573,0
 	rot = 0,0,0,1
 	attRot = 0,0,0,1
@@ -2298,6 +2126,7 @@ PART
 	modMass = 0
 	modSize = 0,0,0
 	link = fuelTankSmallFlat_4293722134
+	link = longAntenna_4294204696
 	attN = bottom,fuelTankSmallFlat_4293722134_0|-0.172999993|0_0|-1|0_0|-0.172999993|0_0|-1|0
 	attN = top,kv3Pod_4293750726_0|0.172999993|0_0|1|0_0|0.172999993|0_0|1|0
 	EVENTS
@@ -2467,7 +2296,7 @@ PART
 	part = fuelTankSmallFlat_4293722134
 	partName = Part
 	persistentId = 566110883
-	pos = 0.010778917,16.6209087,-0.030419644
+	pos = 0.010778917,16.6689091,-0.030419644
 	attPos = 0,0,0
 	attPos0 = 0,-0.485500336,0
 	rot = 0,1,0,0
@@ -2636,7 +2465,7 @@ PART
 	part = advSasModule_4293719308
 	partName = Part
 	persistentId = 4098355621
-	pos = 0.010778917,16.1093826,-0.030419644
+	pos = 0.010778917,16.157383,-0.030419644
 	attPos = 0,0,0
 	attPos0 = 0,-0.511527061,0
 	rot = 0,1,0,0
@@ -2798,7 +2627,7 @@ PART
 	part = science.module_4293717480
 	partName = Part
 	persistentId = 2711221281
-	pos = 0.010778917,15.2978554,-0.030419644
+	pos = 0.010778917,15.3458557,-0.030419644
 	attPos = 0,0,0
 	attPos0 = 0,-0.811527252,0
 	rot = 0,1,0,0
@@ -2993,7 +2822,7 @@ PART
 	part = liquidEngine3.v2_4293611912
 	partName = Part
 	persistentId = 9949825
-	pos = 0.010778917,14.7853556,-0.030419644
+	pos = 0.010778917,14.8333559,-0.030419644
 	attPos = 0,0,0
 	attPos0 = 0,-0.512499809,0
 	rot = 0,1,0,0
@@ -3334,7 +3163,7 @@ PART
 	part = Decoupler.1_4292798742
 	partName = Part
 	persistentId = 1706103146
-	pos = 0.010778917,13.9353552,-0.030419644
+	pos = 0.010778917,13.9833555,-0.030419644
 	attPos = 0,0,0
 	attPos0 = 0,-0.850000381,0
 	rot = 0,1,0,0
@@ -3551,7 +3380,7 @@ PART
 	part = fairingSize1p5_4292769078
 	partName = Part
 	persistentId = 1899272457
-	pos = 0.010778917,13.6653547,-0.030419644
+	pos = 0.010778917,13.7133551,-0.030419644
 	attPos = 0,0,0
 	attPos0 = 0,-0.270000458,0
 	rot = 0,1,0,0
@@ -4330,7 +4159,7 @@ PART
 	part = Size1p5.Tank.01_4292546460
 	partName = Part
 	persistentId = 1129991008
-	pos = 0.010778917,13.230979,-0.030419644
+	pos = 0.010778917,13.2789793,-0.030419644
 	attPos = 0,0,0
 	attPos0 = 0,-0.434374809,0
 	rot = 0,1,0,0
@@ -4487,7 +4316,7 @@ PART
 	part = Size1p5.Size2.Adapter.01_4292545702
 	partName = Part
 	persistentId = 1243349290
-	pos = 0.010778917,12.059104,-0.030419644
+	pos = 0.010778917,12.1071043,-0.030419644
 	attPos = 0,0,0
 	attPos0 = 0,-1.171875,0
 	rot = 0,1,0,0
@@ -4626,7 +4455,7 @@ PART
 	part = Rockomax8BW_4292531944
 	partName = Part
 	persistentId = 2483043984
-	pos = 0.010778917,10.666604,-0.030419644
+	pos = 0.010778917,10.7146044,-0.030419644
 	attPos = 0,0,0
 	attPos0 = 0,-1.39249992,0
 	rot = 0,1,0,0
@@ -4767,7 +4596,7 @@ PART
 	part = liquidEngine2-2.v2_4292531068
 	partName = Part
 	persistentId = 1633838144
-	pos = 0.010778917,10.2116041,-0.030419644
+	pos = 0.010778917,10.2596045,-0.030419644
 	attPos = 0,0,0
 	attPos0 = 0,-0.454999924,0
 	rot = 0,1,0,0
@@ -5154,7 +4983,7 @@ PART
 	part = Decoupler.2_4293283746
 	partName = Part
 	persistentId = 2245606400
-	pos = 0.010778917,7.43492413,-0.030419644
+	pos = 0.010778917,7.48292446,-0.030419644
 	attPos = 0,0,0
 	attPos0 = 0,-2.77667999,0
 	rot = 0,1,0,0
@@ -5371,7 +5200,7 @@ PART
 	part = Rockomax8BW_4293283658
 	partName = Part
 	persistentId = 1344257444
-	pos = 0.010778917,6.87992382,-0.030419644
+	pos = 0.010778917,6.92792416,-0.030419644
 	attPos = 0,0,0
 	attPos0 = 0,-0.555000305,0
 	rot = 0,1,0,0
@@ -5509,7 +5338,7 @@ PART
 	part = Rockomax8BW_4293283598
 	partName = Part
 	persistentId = 3940841297
-	pos = 0.010778917,5.96992016,-0.030419644
+	pos = 0.010778917,6.01792049,-0.030419644
 	attPos = 0,0,0
 	attPos0 = 0,-0.910003662,0
 	rot = 0,0.382683426,0,-0.923879564
@@ -5647,7 +5476,7 @@ PART
 	part = Rockomax8BW_4293283538
 	partName = Part
 	persistentId = 3069208455
-	pos = 0.010778917,5.0599165,-0.030419644
+	pos = 0.010778917,5.10791683,-0.030419644
 	attPos = 0,0,0
 	attPos0 = 0,-0.910003662,0
 	rot = 0,1.00000012,0,0
@@ -5791,7 +5620,7 @@ PART
 	part = engineLargeSkipper.v2_4293283478
 	partName = Part
 	persistentId = 2928413984
-	pos = 0.010778917,3.59191418,-0.030419644
+	pos = 0.010778917,3.63991451,-0.030419644
 	attPos = 0,0,0
 	attPos0 = 0,-1.46800232,0
 	rot = 0,1.00000012,0,0
@@ -6127,7 +5956,7 @@ PART
 	part = basicFin_4293283298
 	partName = Part
 	persistentId = 2262732099
-	pos = -0.863241374,4.85373211,0.84360081
+	pos = -0.863243699,4.90173244,0.843602717
 	attPos = 0,0,0
 	attPos0 = 0.874006271,-0.206184387,-0.874006152
 	rot = -2.14715232E-08,-0.382683426,-5.18368317E-08,-0.923879683
@@ -6261,7 +6090,7 @@ PART
 	part = basicFin_4293283260
 	partName = Part
 	persistentId = 1186667360
-	pos = 0.884800076,4.85373211,0.843601346
+	pos = 0.884802043,4.90173244,0.843603373
 	attPos = 0,0,0
 	attPos0 = -0.874006093,-0.206184387,-0.874006331
 	rot = -5.18367287E-08,-0.923879683,-2.14715179E-08,-0.382683545
@@ -6395,7 +6224,7 @@ PART
 	part = basicFin_4293283222
 	partName = Part
 	persistentId = 1924115733
-	pos = 0.884799182,4.85373211,-0.904440105
+	pos = 0.884801507,4.90173244,-0.904442012
 	attPos = 0,0,0
 	attPos0 = -0.874006212,-0.206184387,0.874006271
 	rot = -5.18368211E-08,-0.923879623,2.14715232E-08,0.382683367
@@ -6529,7 +6358,7 @@ PART
 	part = basicFin_4293283184
 	partName = Part
 	persistentId = 3470096578
-	pos = -0.863242745,4.85373211,-0.904440999
+	pos = -0.863244355,4.90173244,-0.904442906
 	attPos = 0,0,0
 	attPos0 = 0.874006212,-0.206184387,0.874006033
 	rot = -2.14715179E-08,-0.382683545,5.18367287E-08,0.923879683
@@ -6663,7 +6492,7 @@ PART
 	part = launchClamp1_4293283146
 	partName = Part
 	persistentId = 1089445040
-	pos = 0.0107784402,3.65777969,1.98399782
+	pos = 0.0107784402,3.70578003,1.98400187
 	attPos = 0,0,0
 	attPos0 = 4.76837215E-07,-1.4021368,-2.01438498
 	rot = 1.0658141E-14,-1,-6.4787713E-08,-1.78813934E-07
@@ -6714,8 +6543,8 @@ PART
 	{
 		name = LaunchClamp
 		isEnabled = True
-		scaleFactor = 1.71129274
-		height = 4.31793118
+		scaleFactor = 1.7303164
+		height = 4.36593151
 		stagingEnabled = True
 		towerRot = -1.0658141E-14,1,6.4787713E-08,-1.78813934E-07
 		EVENTS
@@ -6835,7 +6664,7 @@ PART
 	part = launchClamp1_4293283030
 	partName = Part
 	persistentId = 3661198398
-	pos = 0.0107785594,3.65777969,-2.04483867
+	pos = 0.0107786786,3.70578003,-2.04484296
 	attPos = 0,0,0
 	attPos0 = -3.57627925E-07,-1.4021368,2.01438498
 	rot = -6.47876632E-08,-1.1920929E-07,-3.55271368E-15,1
@@ -6886,8 +6715,8 @@ PART
 	{
 		name = LaunchClamp
 		isEnabled = True
-		scaleFactor = 1.71129274
-		height = 4.31793118
+		scaleFactor = 1.7303164
+		height = 4.36593151
 		stagingEnabled = True
 		towerRot = 6.47876632E-08,1.1920929E-07,3.55271368E-15,1
 		EVENTS
@@ -7007,7 +6836,7 @@ PART
 	part = radialDecoupler2_4292496856
 	partName = Part
 	persistentId = 92245712
-	pos = 1.18964076,10.2536421,-0.0304197259
+	pos = 1.18964076,10.3016424,-0.0304197259
 	attPos = 0,0,0
 	attPos0 = -1.17886186,-0.41296196,8.19563866E-08
 	rot = 3.58086024E-14,1,7.18731337E-21,1.68587405E-07
@@ -7208,7 +7037,7 @@ PART
 	part = Size1p5.Tank.03_4292493930
 	partName = Part
 	persistentId = 1045500622
-	pos = 2.74486852,10.1989431,-0.0304193962
+	pos = 2.74486852,10.2469435,-0.0304193962
 	attPos = 0,0,0
 	attPos0 = -1.5552274,-0.0546989441,1.94695374E-07
 	rot = 2.98023224E-08,1,2.5121481E-15,8.42937027E-08
@@ -7350,7 +7179,7 @@ PART
 	part = Size1p5.Tank.03_4292493086
 	partName = Part
 	persistentId = 731816660
-	pos = 2.74486852,8.32394314,-0.0304193962
+	pos = 2.74486852,8.37194347,-0.0304193962
 	attPos = 0,0,0
 	attPos0 = -1.11758602E-07,-1.875,2.69991817E-20
 	rot = 2.8146566E-16,1,3.49847316E-23,0
@@ -7490,7 +7319,7 @@ PART
 	part = Size1p5.Tank.03_4292492324
 	partName = Part
 	persistentId = 812318542
-	pos = 2.74486852,6.44894314,-0.0304193962
+	pos = 2.74486852,6.49694347,-0.0304193962
 	attPos = 0,0,0
 	attPos0 = 1.06581437E-13,-1.875,4.57397888E-20
 	rot = 2.8146566E-16,1,3.49847316E-23,0
@@ -7631,7 +7460,7 @@ PART
 	part = Size1p5.Tank.03_4292491666
 	partName = Part
 	persistentId = 628461031
-	pos = 2.74486852,4.57394314,-0.0304193962
+	pos = 2.74486852,4.62194347,-0.0304193962
 	attPos = 0,0,0
 	attPos0 = 9.23705828E-14,-1.875,4.23516571E-20
 	rot = 2.8146566E-16,1,3.49847316E-23,0
@@ -7774,7 +7603,7 @@ PART
 	part = LiquidEngineLV-TX87_4292491026
 	partName = Part
 	persistentId = 2486622245
-	pos = 2.74486852,2.86860371,-0.0304193962
+	pos = 2.74486852,2.91660404,-0.0304193962
 	attPos = 0,0,0
 	attPos0 = 8.5265108E-14,-1.70533943,3.72694432E-20
 	rot = 4.51509218E-16,0.707106829,4.51514301E-16,-0.707106829
@@ -8133,7 +7962,7 @@ PART
 	part = strutConnector_4292464662
 	partName = CompoundPart
 	persistentId = 984480916
-	pos = 1.94309652,4.4482069,0.432484001
+	pos = 1.94309652,4.49620724,0.432484001
 	attPos = 0,0,0
 	attPos0 = 0.801771998,-0.125736237,-0.46290338
 	rot = 2.48352752E-08,-0.258819133,9.26864772E-08,-0.965925872
@@ -8186,9 +8015,9 @@ PART
 	{
 		tgt = 4293283538
 		tpersID = 3069208455
-		pos = -0.688292921,0.200970516,-0.407994419
-		rot = 0,-0.500000656,-7.07777725E-10,0.86602509
-		dir = -0.834312439,0.243605405,-0.494549364
+		pos = -0.688292384,0.200970516,-0.407993942
+		rot = -1.47266578E-15,-0.500000834,-7.07778613E-10,0.866025388
+		dir = -0.834312439,0.243606061,-0.494549155
 		col = collider
 	}
 	MODULE
@@ -8307,7 +8136,7 @@ PART
 	part = strutConnector_4292463126
 	partName = CompoundPart
 	persistentId = 356504244
-	pos = 1.93306231,4.49581814,-0.499115974
+	pos = 1.93306231,4.54381847,-0.499115974
 	attPos = 0,0,0
 	attPos0 = 0.811806262,-0.078125,0.468696564
 	rot = -1.81806854E-08,0.258819044,6.78512251E-08,-0.965925753
@@ -8360,9 +8189,9 @@ PART
 	{
 		tgt = 4293283538
 		tpersID = 3069208455
-		pos = -0.683321595,0.131382853,0.404175133
-		rot = 0,0.499999642,9.66635696E-08,0.866025627
-		dir = -0.849159837,0.163267985,0.502266049
+		pos = -0.683321178,0.131382853,0.404174715
+		rot = 1.36324024E-15,0.499999672,9.66635767E-08,0.866025686
+		dir = -0.849159718,0.163268805,0.502265871
 		col = collider
 	}
 	MODULE
@@ -8481,7 +8310,7 @@ PART
 	part = launchClamp1_4292380658
 	partName = Part
 	persistentId = 2189068469
-	pos = 4.48435497,3.23702049,-0.030419549
+	pos = 4.48435497,3.28502083,-0.030419549
 	attPos = 0,0,0
 	attPos0 = -1.73948634,-1.33692265,1.52736988E-07
 	rot = 6.78512109E-08,0.707106709,6.78512038E-08,-0.707106829
@@ -8532,8 +8361,8 @@ PART
 	{
 		name = LaunchClamp
 		isEnabled = True
-		scaleFactor = 1.5445379
-		height = 3.89717102
+		scaleFactor = 1.56356156
+		height = 3.94517136
 		stagingEnabled = True
 		towerRot = -6.78512109E-08,-0.707106709,-6.78512038E-08,-0.707106829
 		EVENTS
@@ -8653,10 +8482,10 @@ PART
 	part = fuelLine_4292457484
 	partName = CompoundPart
 	persistentId = 2652382283
-	pos = 1.81773651,6.94803524,-0.0304194521
+	pos = 1.81773651,6.99603558,-0.0304194521
 	attPos = 0,0,0
 	attPos0 = 0.927132308,0.499092102,5.587939E-08
-	rot = -5.02436566E-15,8.42937027E-08,9.59560609E-08,-1
+	rot = -5.02437413E-15,8.42937027E-08,9.59560609E-08,-1
 	attRot = 0,0,0,1
 	attRot0 = -9.59560609E-08,1,-5.0242979E-15,8.42937027E-08
 	mir = 1,1,1
@@ -8827,7 +8656,7 @@ PART
 	part = Size.1.5.Cone_4292476614
 	partName = Part
 	persistentId = 3463622840
-	pos = 2.74486852,11.6364431,-0.0304193962
+	pos = 2.74486852,11.6844435,-0.0304193962
 	attPos = 0,0,0
 	attPos0 = 8.56815987E-08,1.4375,-2.06993725E-20
 	rot = 2.8146566E-16,1,3.49847316E-23,0
@@ -8961,7 +8790,7 @@ PART
 	part = radialDecoupler2_4292495138
 	partName = Part
 	persistentId = 863515046
-	pos = -1.16808295,10.2536421,-0.0304194596
+	pos = -1.16808295,10.3016424,-0.0304194596
 	attPos = 0,0,0
 	attPos0 = 1.17886186,-0.41296196,-1.8440187E-07
 	rot = 5.62206955E-21,1.2487601E-07,-3.58086024E-14,-1
@@ -9162,10 +8991,10 @@ PART
 	part = Size1p5.Tank.03_4292493486
 	partName = Part
 	persistentId = 783358818
-	pos = -2.72331071,10.1989431,-0.0304196533
+	pos = -2.72331071,10.2469435,-0.0304196533
 	attPos = 0,0,0
 	attPos0 = -1.5552274,-0.0546989441,1.94706175E-07
-	rot = 1.20946437E-15,4.05823073E-08,-2.98023224E-08,-1
+	rot = 1.20946649E-15,4.05823073E-08,-2.98023224E-08,-1
 	attRot = 0,0,0,1
 	attRot0 = 2.51215213E-15,8.42937027E-08,2.98022869E-08,1
 	mir = 1,1,1
@@ -9304,7 +9133,7 @@ PART
 	part = Size1p5.Tank.03_4292492710
 	partName = Part
 	persistentId = 1640484661
-	pos = -2.72331071,8.32394314,-0.0304196533
+	pos = -2.72331071,8.37194347,-0.0304196533
 	attPos = 0,0,0
 	attPos0 = -1.11758602E-07,-1.875,2.62050883E-20
 	rot = 4.46198105E-22,-4.37113954E-08,-2.8146566E-16,-1
@@ -9444,7 +9273,7 @@ PART
 	part = Size1p5.Tank.03_4292492058
 	partName = Part
 	persistentId = 2996639798
-	pos = -2.72331071,6.44894314,-0.0304196533
+	pos = -2.72331071,6.49694347,-0.0304196533
 	attPos = 0,0,0
 	attPos0 = 1.06581437E-13,-1.875,4.4045723E-20
 	rot = 4.46198105E-22,-4.37113954E-08,-2.8146566E-16,-1
@@ -9585,7 +9414,7 @@ PART
 	part = Size1p5.Tank.03_4292491394
 	partName = Part
 	persistentId = 3586505175
-	pos = -2.72331071,4.57394314,-0.0304196533
+	pos = -2.72331071,4.62194347,-0.0304196533
 	attPos = 0,0,0
 	attPos0 = 9.23705828E-14,-1.875,4.06575912E-20
 	rot = 4.46198105E-22,-4.37113954E-08,-2.8146566E-16,-1
@@ -9728,10 +9557,10 @@ PART
 	part = LiquidEngineLV-TX87_4292489090
 	partName = Part
 	persistentId = 3075542656
-	pos = -2.72331071,2.86860371,-0.0304196533
+	pos = -2.72331071,2.91660404,-0.0304196533
 	attPos = 0,0,0
 	attPos0 = 8.5265108E-14,-1.70533943,4.0657575E-20
-	rot = 4.51524465E-16,-0.707106888,-4.51499054E-16,-0.707106769
+	rot = 4.51526159E-16,-0.707106888,-4.5149736E-16,-0.707106769
 	attRot = 0,0,0,1
 	attRot0 = -4.38565769E-23,0.707106829,-6.20225415E-23,0.707106829
 	mir = 1,1,1
@@ -10079,7 +9908,7 @@ PART
 	part = strutConnector_4292463550
 	partName = CompoundPart
 	persistentId = 482211410
-	pos = -1.92153883,4.4482069,-0.493323117
+	pos = -1.92153883,4.49620724,-0.493323117
 	attPos = 0,0,0
 	attPos0 = 0.801771939,-0.125736237,-0.46290338
 	rot = 9.26864772E-08,-0.965925872,-2.48352787E-08,0.258819163
@@ -10132,9 +9961,9 @@ PART
 	{
 		tgt = 4293283538
 		tpersID = 3069208455
-		pos = -0.688292682,0.200970516,-0.407994241
-		rot = 0,-0.49999994,1.11508072E-07,0.866025448
-		dir = -0.834312439,0.243605405,-0.494549364
+		pos = -0.688292444,0.200970516,-0.407993793
+		rot = -2.23856048E-15,-0.500000119,1.11508115E-07,0.866025746
+		dir = -0.834312499,0.243606061,-0.494548976
 		col = collider
 	}
 	MODULE
@@ -10253,7 +10082,7 @@ PART
 	part = strutConnector_4292461692
 	partName = CompoundPart
 	persistentId = 2088513323
-	pos = -1.91150451,4.49581814,0.438276827
+	pos = -1.91150451,4.54381847,0.438276827
 	attPos = 0,0,0
 	attPos0 = 0.811806202,-0.078125,0.468696564
 	rot = 6.78512251E-08,-0.965925753,1.81806801E-08,-0.258819014
@@ -10306,9 +10135,9 @@ PART
 	{
 		tgt = 4293283538
 		tpersID = 3069208455
-		pos = -0.683320999,0.131382853,0.404174745
-		rot = 0,0.499999911,-6.20062268E-09,0.866025448
-		dir = -0.849159837,0.163267985,0.502266049
+		pos = -0.683320522,0.131382853,0.404174268
+		rot = -8.26251417E-16,0.49999997,-6.20062401E-09,0.866025507
+		dir = -0.849159777,0.163268968,0.502265811
 		col = collider
 	}
 	MODULE
@@ -10427,7 +10256,7 @@ PART
 	part = launchClamp1_4292380510
 	partName = Part
 	persistentId = 4201798970
-	pos = -4.46279716,3.23702049,-0.0304193478
+	pos = -4.46279716,3.28502083,-0.0304193478
 	attPos = 0,0,0
 	attPos0 = -1.73948634,-1.33692265,1.53403022E-07
 	rot = 6.78512038E-08,-0.707106888,-6.78512109E-08,-0.70710665
@@ -10478,8 +10307,8 @@ PART
 	{
 		name = LaunchClamp
 		isEnabled = True
-		scaleFactor = 1.5445379
-		height = 3.89717102
+		scaleFactor = 1.56356156
+		height = 3.94517136
 		stagingEnabled = True
 		towerRot = -6.78512038E-08,0.707106888,6.78512038E-08,-0.70710665
 		EVENTS
@@ -10599,10 +10428,10 @@ PART
 	part = fuelLine_4292450114
 	partName = CompoundPart
 	persistentId = 2624578155
-	pos = -1.7961787,6.94803524,-0.0304196794
+	pos = -1.7961787,6.99603558,-0.0304196794
 	attPos = 0,0,0
 	attPos0 = 0.927132308,0.499092102,5.49754091E-08
-	rot = 9.59560609E-08,-1,8.29975027E-16,-4.05823073E-08
+	rot = 9.59560609E-08,-1,8.29981803E-16,-4.05823073E-08
 	attRot = 0,0,0,1
 	attRot0 = -9.59560609E-08,1,-5.02429663E-15,8.42937027E-08
 	mir = 1,1,1
@@ -10654,7 +10483,7 @@ PART
 		tpersID = 1344257444
 		pos = -0.599550247,-0.00358962594,-0.022904478
 		rot = 0,0,0,1
-		dir = -0.999253154,-0.00598272402,-0.0381742381
+		dir = -0.999253154,-0.00598272635,-0.0381742343
 		col = collider
 	}
 	MODULE
@@ -10773,7 +10602,7 @@ PART
 	part = Size.1.5.Cone_4292475944
 	partName = Part
 	persistentId = 2567379073
-	pos = -2.72331071,11.6364431,-0.0304196533
+	pos = -2.72331071,11.6844435,-0.0304196533
 	attPos = 0,0,0
 	attPos0 = 8.56815987E-08,1.4375,-2.00905676E-20
 	rot = 4.46198105E-22,-4.37113954E-08,-2.8146566E-16,-1
@@ -10907,7 +10736,7 @@ PART
 	part = GooExperiment_4293589510
 	partName = Part
 	persistentId = 439223989
-	pos = 0.010778971,15.580164,0.498660266
+	pos = 0.010778971,15.6281643,0.498660266
 	attPos = 0,0,0
 	attPos0 = -5.41216885E-08,0.282308578,-0.529079914
 	rot = -0.707106829,-0.707106829,0,0
@@ -11091,7 +10920,7 @@ PART
 	part = sensorBarometer_4293588944
 	partName = Part
 	persistentId = 1594968285
-	pos = -0.153579131,15.2593927,0.582973301
+	pos = -0.153579131,15.3073931,0.582973301
 	attPos = 0,0,0
 	attPos0 = 0.16435805,-0.0384626389,-0.613392949
 	rot = 0,-0.991444886,0,-0.130526125
@@ -11256,7 +11085,7 @@ PART
 	part = sensorThermometer_4293588768
 	partName = Part
 	persistentId = 3061770155
-	pos = 0.173572838,15.2516518,0.577135861
+	pos = 0.173572838,15.2996521,0.577135861
 	attPos = 0,0,0
 	attPos0 = -0.162793919,-0.0462036133,-0.607555509
 	rot = 0,-0.991444886,0,0.130526125
@@ -11421,7 +11250,7 @@ PART
 	part = miniFuelTank_4293605494
 	partName = Part
 	persistentId = 625451082
-	pos = 0.666891158,15.3978558,0.625692606
+	pos = 0.666891158,15.4458561,0.625692606
 	attPos = 0.0157169104,-0.000913619995,0.01571697
 	attPos0 = -0.671829164,0.100914001,-0.671829224
 	rot = 0,-0.923879623,0,-0.382683456
@@ -11567,7 +11396,7 @@ PART
 	part = miniFuelTank_4293605040
 	partName = Part
 	persistentId = 1792481477
-	pos = 0.666891158,15.0493088,0.625692606
+	pos = 0.666891158,15.0973091,0.625692606
 	attPos = 0,0,0
 	attPos0 = 0,-0.348546982,0
 	rot = 0,1.00000012,0,0
@@ -11710,7 +11539,7 @@ PART
 	part = spotLight1.v2_4293572760
 	partName = Part
 	persistentId = 2222519068
-	pos = 0.671893537,14.7472954,0.663532794
+	pos = 0.671893537,14.7952957,0.663532794
 	attPos = -0.0922915339,0.0106019974,-0.0799905509
 	attPos0 = -0.0448568612,-0.377729416,-0.0899956375
 	rot = -0.315985918,0.359605014,0.130885333,0.868162751
@@ -11956,7 +11785,7 @@ PART
 	part = landingLeg1_4293595306
 	partName = Part
 	persistentId = 1715913021
-	pos = 0.881089926,15.3546448,0.839891434
+	pos = 0.881089926,15.4026451,0.839891434
 	attPos = 0,0,0
 	attPos0 = -0.302922845,-0.0432109833,-1.49011612E-08
 	rot = 0.176808804,-0.375610203,-0.0732365921,-0.90680325
@@ -12190,7 +12019,7 @@ PART
 	part = solarPanels5_4293249126
 	partName = Part
 	persistentId = 4185991126
-	pos = 0.52546984,15.697855,0.484271228
+	pos = 0.52546984,15.7458553,0.484271228
 	attPos = 0.210573345,0.136213303,0.0105733946
 	attPos0 = -0.0105733862,0.163786888,-0.0105733946
 	rot = 0.353553832,0.35355401,0.853553236,-0.146445811
@@ -12348,7 +12177,7 @@ PART
 	part = miniFuelTank_4293243942
 	partName = Part
 	persistentId = 3973693652
-	pos = 0.666891158,15.3978558,-0.686531842
+	pos = 0.666891158,15.4458561,-0.686531842
 	attPos = 0.01571697,-0.000913619995,-0.0157169104
 	attPos0 = -0.671829224,0.100914001,0.671829104
 	rot = 0,-0.923879564,0,0.382683456
@@ -12494,7 +12323,7 @@ PART
 	part = miniFuelTank_4293243898
 	partName = Part
 	persistentId = 2976363716
-	pos = 0.666891158,15.0493088,-0.686531842
+	pos = 0.666891158,15.0973091,-0.686531842
 	attPos = 0,0,0
 	attPos0 = 0,-0.348546982,0
 	rot = 0,0.707106829,0,-0.707106829
@@ -12637,7 +12466,7 @@ PART
 	part = spotLight1.v2_4293243854
 	partName = Part
 	persistentId = 352787663
-	pos = 0.704731345,14.7472954,-0.691534221
+	pos = 0.704731345,14.7952957,-0.691534221
 	attPos = -0.0922915339,0.0106019974,-0.0799905509
 	attPos0 = -0.0448568612,-0.377729416,-0.0899956375
 	rot = -0.130885899,0.868162751,0.31598568,0.359604597
@@ -12859,7 +12688,7 @@ PART
 	part = landingLeg1_4293243794
 	partName = Part
 	persistentId = 3155089236
-	pos = 0.881089985,15.3546448,-0.900730669
+	pos = 0.881089985,15.4026451,-0.900730669
 	attPos = 0,0,0
 	attPos0 = -0.302922845,-0.0432109833,-1.49011612E-08
 	rot = 0.0732366145,-0.90680325,-0.17680864,-0.375610203
@@ -13093,7 +12922,7 @@ PART
 	part = solarPanels5_4293243658
 	partName = Part
 	persistentId = 2170853537
-	pos = 0.52546978,15.697855,-0.545110524
+	pos = 0.52546978,15.7458553,-0.545110524
 	attPos = 0.210573345,0.136213303,0.0105733946
 	attPos0 = -0.0105733862,0.163786888,-0.0105733946
 	rot = 0.853553355,0.146447614,0.353553355,-0.353553236
@@ -13251,7 +13080,7 @@ PART
 	part = miniFuelTank_4293243612
 	partName = Part
 	persistentId = 3832280289
-	pos = -0.645333409,15.3978558,-0.686531842
+	pos = -0.645333409,15.4458561,-0.686531842
 	attPos = -0.0157169104,-0.000913619995,-0.01571697
 	attPos0 = 0.671829224,0.100914001,0.671829164
 	rot = 0,-0.382683426,0,0.923879623
@@ -13397,7 +13226,7 @@ PART
 	part = miniFuelTank_4293243568
 	partName = Part
 	persistentId = 678368904
-	pos = -0.645333409,15.0493088,-0.686531842
+	pos = -0.645333409,15.0973091,-0.686531842
 	attPos = 0,0,0
 	attPos0 = 0,-0.348546982,0
 	rot = 0,-2.98023224E-08,0,-1.00000012
@@ -13540,7 +13369,7 @@ PART
 	part = spotLight1.v2_4293243524
 	partName = Part
 	persistentId = 13501026
-	pos = -0.650335789,14.7472954,-0.724372029
+	pos = -0.650335789,14.7952957,-0.724372029
 	attPos = -0.0922915339,0.0106019974,-0.0799905509
 	attPos0 = -0.0448568612,-0.377729416,-0.0899956375
 	rot = 0.130885333,0.868162751,0.315985918,-0.359605014
@@ -13762,7 +13591,7 @@ PART
 	part = landingLeg1_4293243464
 	partName = Part
 	persistentId = 1155806126
-	pos = -0.859538674,15.3546448,-0.900737464
+	pos = -0.85953927,15.4026451,-0.90073806
 	attPos = 0,0,0
 	attPos0 = -0.302922845,-0.0432109833,-1.49011612E-08
 	rot = -0.0732364804,-0.90680325,-0.176808745,0.375610232
@@ -13996,7 +13825,7 @@ PART
 	part = solarPanels5_4293243328
 	partName = Part
 	persistentId = 1749383154
-	pos = -0.503908336,15.697855,-0.545106888
+	pos = -0.503908038,15.7458553,-0.54510659
 	attPos = 0.210573345,0.136213303,0.0105733946
 	attPos0 = -0.0105733862,0.163786888,-0.0105733946
 	rot = 0.853553236,-0.146445781,-0.353553921,-0.35355401
@@ -14154,7 +13983,7 @@ PART
 	part = miniFuelTank_4293243282
 	partName = Part
 	persistentId = 1536189384
-	pos = -0.64533329,15.3978558,0.625692606
+	pos = -0.64533329,15.4458561,0.625692606
 	attPos = -0.01571697,-0.000913619995,0.0157169104
 	attPos0 = 0.671829164,0.100914001,-0.671829164
 	rot = 0,0.382683456,0,0.923879564
@@ -14300,7 +14129,7 @@ PART
 	part = miniFuelTank_4293243238
 	partName = Part
 	persistentId = 3134647671
-	pos = -0.64533329,15.0493088,0.625692606
+	pos = -0.64533329,15.0973091,0.625692606
 	attPos = 0,0,0
 	attPos0 = 0,-0.348546982,0
 	rot = 0,-0.707106829,0,-0.707106829
@@ -14443,7 +14272,7 @@ PART
 	part = spotLight1.v2_4293243194
 	partName = Part
 	persistentId = 186066072
-	pos = -0.683173478,14.7472954,0.630694985
+	pos = -0.683173478,14.7952957,0.630694985
 	attPos = -0.0922915339,0.0106019974,-0.0799905509
 	attPos0 = -0.0448568612,-0.377729416,-0.0899956375
 	rot = 0.31598568,0.359604597,0.130885899,-0.868162751
@@ -14665,7 +14494,7 @@ PART
 	part = landingLeg1_4293243134
 	partName = Part
 	persistentId = 992025517
-	pos = -0.859535873,15.3546448,0.839895308
+	pos = -0.859536171,15.4026451,0.839895666
 	attPos = 0,0,0
 	attPos0 = -0.302922845,-0.0432109833,-1.49011612E-08
 	rot = -0.17680864,-0.375610203,-0.0732366145,0.90680325
@@ -14899,7 +14728,7 @@ PART
 	part = solarPanels5_4293242998
 	partName = Part
 	persistentId = 618915799
-	pos = -0.503908694,15.697855,0.48426795
+	pos = -0.503908396,15.7458553,0.484267652
 	attPos = 0.210573345,0.136213303,0.0105733946
 	attPos0 = -0.0105733862,0.163786888,-0.0105733946
 	rot = 0.353553355,-0.353553236,-0.853553355,-0.146447614
@@ -15057,7 +14886,7 @@ PART
 	part = ConformalStorageUnit_4293223312
 	partName = Part
 	persistentId = 1446645761
-	pos = 0.630053937,15.3299952,-0.0304196812
+	pos = 0.630053937,15.3779955,-0.0304196812
 	attPos = 0,0,0
 	attPos0 = -0.619275033,0.0321397781,3.69116719E-08
 	rot = 0.707106829,0,-0.707106829,0
@@ -15686,7 +15515,7 @@ PART
 	part = ConformalStorageUnit_4293189364
 	partName = Part
 	persistentId = 4053087646
-	pos = -0.60849613,15.3299952,-0.0304195527
+	pos = -0.60849613,15.3779955,-0.0304195527
 	attPos = 0,0,0
 	attPos0 = 0.619275033,0.0321397781,-9.1050417E-08
 	rot = -0.707106888,0,-0.707106769,0
@@ -16179,7 +16008,7 @@ PART
 	part = ladder1_4293584750
 	partName = Part
 	persistentId = 3083962850
-	pos = 0.0107789701,16.1172657,0.576295137
+	pos = 0.0107789701,16.165266,0.576295137
 	attPos = 0,0,0
 	attPos0 = -5.30406901E-08,0.00788211823,-0.606714785
 	rot = -1.26440568E-07,-0.707106829,-1.26440568E-07,-0.707106829
@@ -16295,7 +16124,7 @@ PART
 	part = solarPanels5_4293253404
 	partName = Part
 	persistentId = 2204606759
-	pos = 0.411109179,16.1234074,0.369910598
+	pos = 0.411109179,16.1714077,0.369910598
 	attPos = 0.0366609395,0,0.0366609097
 	attPos0 = -0.436991215,0.0140247345,-0.436991155
 	rot = -1.43069485E-07,-0.382683456,5.92613283E-08,-0.923879564
@@ -16453,7 +16282,7 @@ PART
 	part = solarPanels5_4293251370
 	partName = Part
 	persistentId = 4277537528
-	pos = 0.411109149,16.1234074,-0.430749863
+	pos = 0.411109149,16.1714077,-0.430749863
 	attPos = 0.0366609097,0,-0.0366609395
 	attPos0 = -0.436991155,0.0140247345,0.436991155
 	rot = -5.92613141E-08,-0.923879564,1.43069485E-07,-0.382683426
@@ -16611,7 +16440,7 @@ PART
 	part = solarPanels5_4293251330
 	partName = Part
 	persistentId = 395391821
-	pos = -0.389551401,16.1234074,-0.430749863
+	pos = -0.389551401,16.1714077,-0.430749863
 	attPos = -0.0366609395,0,-0.0366609097
 	attPos0 = 0.436991245,0.0140247345,0.436991125
 	rot = 5.92613354E-08,-0.923879564,1.43069485E-07,0.382683486
@@ -16769,7 +16598,7 @@ PART
 	part = solarPanels5_4293251290
 	partName = Part
 	persistentId = 142712436
-	pos = -0.389551282,16.1234074,0.369910628
+	pos = -0.389551282,16.1714077,0.369910628
 	attPos = -0.0366609097,0,0.0366609395
 	attPos0 = 0.436991096,0.0140247345,-0.436991215
 	rot = 1.43069485E-07,-0.382683426,5.92613141E-08,0.923879564
@@ -16927,7 +16756,7 @@ PART
 	part = batteryPack_4293254134
 	partName = Part
 	persistentId = 1923364316
-	pos = 0.307616055,16.6142292,0.266417623
+	pos = 0.307616055,16.6622295,0.266417623
 	attPos = 0.144375741,0,0.144375592
 	attPos0 = -0.441212893,-0.00668144226,-0.441212863
 	rot = 0.653281629,0.65328151,0.270597786,0.270597905
@@ -17057,7 +16886,7 @@ PART
 	part = batteryPack_4292920042
 	partName = Part
 	persistentId = 2467116344
-	pos = 0.307616174,16.6142292,-0.327256769
+	pos = 0.307616174,16.6622295,-0.327256769
 	attPos = 0.144375592,0,-0.144375712
 	attPos0 = -0.441212863,-0.00668144226,0.441212833
 	rot = 0.653281391,0.653281391,-0.270598322,-0.270598173
@@ -17187,7 +17016,7 @@ PART
 	part = batteryPack_4292919996
 	partName = Part
 	persistentId = 3432666003
-	pos = -0.286058277,16.6142292,-0.327256888
+	pos = -0.286058277,16.6622295,-0.327256888
 	attPos = -0.144375741,0,-0.144375592
 	attPos0 = 0.441212922,-0.00668144226,0.441212833
 	rot = 0.270597756,0.270597875,-0.653281629,-0.65328151
@@ -17317,7 +17146,7 @@ PART
 	part = batteryPack_4292919950
 	partName = Part
 	persistentId = 2910592321
-	pos = -0.286058336,16.6142292,0.266417503
+	pos = -0.286058336,16.6622295,0.266417503
 	attPos = -0.144375563,0,0.144375741
 	attPos0 = 0.441212803,-0.00668144226,-0.441212893
 	rot = -0.270598322,-0.270598173,-0.653281391,-0.653281391
@@ -17447,7 +17276,7 @@ PART
 	part = navLight1_4292545648
 	partName = Part
 	persistentId = 1248208378
-	pos = 0.010778917,16.6209087,0.569580376
+	pos = 0.010778917,16.6689091,0.569580376
 	attPos = 5.27826458E-08,0.0905704498,0.00376307964
 	attPos0 = -5.27826458E-08,-0.0905704498,-0.603763103
 	rot = 1,0,0,-2.38418522E-07
@@ -17666,7 +17495,7 @@ PART
 	part = navLight1_4292778452
 	partName = Part
 	persistentId = 2314983786
-	pos = 0.610778928,16.6209087,-0.030419644
+	pos = 0.610778928,16.6689091,-0.030419644
 	attPos = 0.0038343668,0.0475234985,-3.53902578E-08
 	attPos0 = -0.603834391,-0.0475234985,3.53902578E-08
 	rot = 0.707106829,-1.25245633E-10,-0.707106829,-1.25245633E-10
@@ -17909,7 +17738,7 @@ PART
 	part = navLight1_4292252936
 	partName = Part
 	persistentId = 2713155828
-	pos = 0.610778928,16.6209087,-0.030419644
+	pos = 0.610778928,16.6689091,-0.030419644
 	attPos = 0.0043373704,0.230009079,-3.53902578E-08
 	attPos0 = -0.604337394,-0.230009079,3.53902578E-08
 	rot = -1.25245633E-10,-0.707106829,-1.25245633E-10,0.707106829
@@ -18128,7 +17957,7 @@ PART
 	part = navLight1_4292778284
 	partName = Part
 	persistentId = 720336811
-	pos = -0.58922112,16.6209087,-0.030419644
+	pos = -0.58922112,16.6689091,-0.030419644
 	attPos = -0.00388324261,0.152261734,-3.53902578E-08
 	attPos0 = 0.603883266,-0.152261734,3.53902578E-08
 	rot = 0.707106829,-1.16242065E-10,0.707106829,1.16242065E-10
@@ -18347,7 +18176,7 @@ PART
 	part = navLight1_4292211664
 	partName = Part
 	persistentId = 32609420
-	pos = -0.58922112,16.6209087,-0.030419644
+	pos = -0.58922112,16.6689091,-0.030419644
 	attPos = -0.00407212973,0.000402450562,-3.53902578E-08
 	attPos0 = 0.604072154,-0.000402450562,3.53902578E-08
 	rot = -1.16242065E-10,-0.707106829,1.16242065E-10,-0.707106829
@@ -18566,7 +18395,7 @@ PART
 	part = navLight1_4292769420
 	partName = Part
 	persistentId = 3483358333
-	pos = 0.010778917,16.6209087,-0.630419672
+	pos = 0.010778917,16.6689091,-0.630419672
 	attPos = 0,-0.159708023,-0.00547260046
 	attPos0 = 0,0.159708023,0.605472624
 	rot = -5.96046306E-08,-8.86669765E-11,-1.30574122E-07,-1
@@ -18809,7 +18638,7 @@ PART
 	part = navLight1_4292210154
 	partName = Part
 	persistentId = 2990512065
-	pos = 0.010778917,16.6209087,-0.630419672
+	pos = 0.010778917,16.6689091,-0.630419672
 	attPos = 0,0.114723206,-0.00387787819
 	attPos0 = 0,-0.114723206,0.603877902
 	rot = -8.866919E-11,5.96046306E-08,-1,1.26440554E-07
@@ -19028,7 +18857,7 @@ PART
 	part = navLight1_4292195976
 	partName = Part
 	persistentId = 4100962527
-	pos = 0.010778917,16.6209087,0.569580376
+	pos = 0.010778917,16.6689091,0.569580376
 	attPos = -5.30853868E-08,0.21295166,0.00370967388
 	attPos0 = 5.30853868E-08,-0.21295166,-0.603709698
 	rot = 4.97377705E-18,1,5.96046306E-08,-8.34461528E-11
@@ -19214,6 +19043,178 @@ PART
 	{
 		name = KOSNameTag
 		isEnabled = False
+		nameTag = 
+		stagingEnabled = True
+		EVENTS
+		{
+		}
+		ACTIONS
+		{
+		}
+		UPGRADESAPPLIED
+		{
+		}
+	}
+	MODULE
+	{
+		name = ShipEffectsCollisions
+		isEnabled = True
+		stagingEnabled = True
+		EVENTS
+		{
+		}
+		ACTIONS
+		{
+		}
+		UPGRADESAPPLIED
+		{
+		}
+	}
+}
+PART
+{
+	part = longAntenna_4294204696
+	partName = Part
+	persistentId = 1646011303
+	pos = 0.010778917,17.1544094,0.569580376
+	attPos = 0,-0.0147781372,0.00164628029
+	attPos0 = 0,0.0147781372,0.598353744
+	rot = -0.216439605,-1.31598137E-08,2.91746183E-09,-0.976296067
+	attRot = 0.537299693,1.93998073E-15,1.38580414E-16,-0.843391538
+	attRot0 = -0.216439605,-1.31598137E-08,2.91746183E-09,-0.976296067
+	mir = 1,1,1
+	symMethod = Radial
+	autostrutMode = Off
+	rigidAttachment = False
+	istg = 1
+	resPri = 0
+	dstg = 1
+	sidx = -1
+	sqor = -1
+	sepI = 1
+	attm = 1
+	sameVesselCollision = False
+	modCost = 0
+	modMass = 0
+	modSize = 0,0,0
+	srfN = srfAttach,kOSMachine1m_4294472114,Cylinder,0|0|0,0|-1|0,0|0|0
+	attN = bottom,Null_0_0|0|0_0|-1|0_0|0|0_0|-1|0
+	EVENTS
+	{
+	}
+	ACTIONS
+	{
+		ToggleSameVesselInteraction
+		{
+			actionGroup = None
+			wasActiveBeforePartWasAdjusted = False
+		}
+		SetSameVesselInteraction
+		{
+			actionGroup = None
+			wasActiveBeforePartWasAdjusted = False
+		}
+		RemoveSameVesselInteraction
+		{
+			actionGroup = None
+			wasActiveBeforePartWasAdjusted = False
+		}
+	}
+	PARTDATA
+	{
+	}
+	MODULE
+	{
+		name = ModuleDeployableAntenna
+		isEnabled = True
+		currentRotation = (-0.707106829, 0, 0, 0.707106829)
+		storedAnimationTime = 0
+		storedAnimationSpeed = 1
+		deployState = RETRACTED
+		stagingEnabled = True
+		EVENTS
+		{
+		}
+		ACTIONS
+		{
+			ExtendPanelsAction
+			{
+				actionGroup = None
+				wasActiveBeforePartWasAdjusted = False
+			}
+			ExtendAction
+			{
+				actionGroup = Light
+				wasActiveBeforePartWasAdjusted = False
+			}
+			RetractAction
+			{
+				actionGroup = None
+				wasActiveBeforePartWasAdjusted = False
+			}
+		}
+		UPGRADESAPPLIED
+		{
+		}
+	}
+	MODULE
+	{
+		name = ModuleDataTransmitter
+		isEnabled = True
+		xmitIncomplete = False
+		stagingEnabled = True
+		EVENTS
+		{
+		}
+		ACTIONS
+		{
+			StartTransmissionAction
+			{
+				actionGroup = None
+				wasActiveBeforePartWasAdjusted = False
+			}
+		}
+		UPGRADESAPPLIED
+		{
+		}
+	}
+	MODULE
+	{
+		name = ModuleCargoPart
+		isEnabled = True
+		beingAttached = False
+		beingSettled = False
+		reinitResourcesOnStoreInVessel = False
+		stagingEnabled = True
+		EVENTS
+		{
+		}
+		ACTIONS
+		{
+		}
+		UPGRADESAPPLIED
+		{
+		}
+	}
+	MODULE
+	{
+		name = HotSpotModule
+		isEnabled = True
+		stagingEnabled = True
+		EVENTS
+		{
+		}
+		ACTIONS
+		{
+		}
+		UPGRADESAPPLIED
+		{
+		}
+	}
+	MODULE
+	{
+		name = KOSNameTag
+		isEnabled = True
 		nameTag = 
 		stagingEnabled = True
 		EVENTS

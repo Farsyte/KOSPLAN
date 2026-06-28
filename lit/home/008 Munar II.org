@@ -180,6 +180,12 @@ and extend the antenna.
 
 ** Define Mission Phases
 
+*** Stop and Collect Science
+
+#+begin_src ks
+  mphold_brakes("Collect Science, Release Brakes").
+#+end_src
+
 *** Schedule the launch.
 
 #+begin_src ks
@@ -205,7 +211,12 @@ and extend the antenna.
   mpdvlog("in 80x80 over kerbin").
 #+end_src
 
-*** TODO Stop and Collect Science
+*** Stop and Collect Science
+
+#+begin_src ks
+  mppdas().
+  mphold_brakes("Collect Science, Release Brakes").
+#+end_src
 
 *** Trans-Munar injection
 
@@ -216,7 +227,12 @@ and extend the antenna.
   mpdvlog("kerbin to mun soi").
 #+end_src
 
-*** TODO Stop and Collect Science
+*** Stop and Collect Science
+
+#+begin_src ks
+  mppdas().
+  mphold_brakes("Collect Science, Release Brakes").
+#+end_src
 
 *** SAFEWARP to just before transition to MUN SOI
 
@@ -265,7 +281,12 @@ the periapsis happens to already be too low.
   mpdvlog("mun soi to mun 10k").
 #+end_src
 
-*** TODO Stop and Collect Science
+*** Stop and Collect Science
+
+#+begin_src ks
+  mppdas().
+  mphold_brakes("Collect Science, Release Brakes").
+#+end_src
 
 *** Circularize at periapsis.
 
@@ -275,8 +296,6 @@ the periapsis happens to already be too low.
   mppdas().
   mpdvlog("in 10x10 over mun").
 #+end_src
-
-*** TODO Stop and Collect Science
 
 *** select landing site
 
@@ -296,7 +315,95 @@ using the lander.
   mphold_brakes("Release Brakes to start landing").
 #+end_src
 
-*** kill horizontal speed (TODO: "over selected site")
+*** keep a log ...
+  
+#+begin_src ks
+  local llog is mklogger("landing").
+#+end_src
+
+*** Deorbit using a maneuver node.
+
+Cutting to the chase: from a 10x10km circular orbit,
+the landing location is 1.362° degrees of latitude
+beyond where we start burning.
+
+The default landing site is at 47.436° longitude,
+which is where Kerbin is directly overhead.
+
+Landing on a slope is painful.
+
+#+begin_src ks
+  local mun_landing_lng is nvget(1,"mun_landing_lng", 47.436).
+  llog("loading mun_landing_lng "+fmt(mun_landing_lng,10,6)).
+#+end_src
+
+Recover the CALIBRATION value for how many degrees ahead
+of the target the landing maneuver should start.
+
+> want decel at:           57.436000
+> decel at lng:            57.554782
+> descent at lng:          54.527405
+> arrived at lng:          54.611488
+> position error:           7.175488
+> updated lead:             2.824512
+
+> want decel at:           50.260512
+> decel at lng:            50.383346
+> descent at lng:          47.301978
+> arrived at lng:          47.386257
+> position error:          -0.049743
+> updated lead:             2.874255
+
+> want decel at:           50.260512
+> decel at lng:            50.377507
+> descent at lng:          47.297386
+> arrived at lng:          47.381024
+> position error:          -0.054976
+> updated lead:             2.879488
+
+#+begin_src ks
+  local mun_landing_lng_lead is nvget(1,"mun_landing_lng_lead", 2.879488).
+  llog("loading mun_landing_lng_lead "+fmt(mun_landing_lng_lead,10,6)).
+#+end_src
+
+#+begin_src ks
+  mpstat("Finding Landing Site").
+#+end_src
+
+Update the landing site longitude from the maneuver node, if the
+flight engineer has picked a different landing site.
+  
+#+begin_src ks
+  mpone({if hasnode {
+    local lng is body:geopositionof(posat(nextnode:time)+body:position):lng.
+    set mun_landing_lng to nvput(1,"mun_landing_lng", lng).
+    llog("update mun_landing_lng "+fmt(mun_landing_lng,10,6)).
+    mnclr().}}).
+  mpone({
+    local lng is body:geopositionof(ship:position):lng.
+    llog("want decel at:          "+fmt(mun_landing_lng+mun_landing_lng_lead,10,6)).
+  }).
+#+end_src
+
+Wait until arrival at the longitude for the maneuver,
+using SAFEWARP if it is far in the future.
+
+The estimate for the wait time is based on rotation rates
+that assume the orbit is circular. The orbit is likely to
+be slightly eccentric, so safewarp to 90% of the duration
+that was estiamted.
+
+#+begin_src ks
+  mpadd({
+    local sec_per_deg is 1/(360*(1/orbit:period + 1/body:rotationperiod)).
+    local curr_lng is body:geopositionof(ship:position):lng.
+    local lng_to_site is ua(curr_lng - mun_landing_lng).
+    local dt is (lng_to_site - mun_landing_lng_lead) * sec_per_deg.
+    return choose swadj(dt) if dt>1 else mpinc(). }).
+  mpsw0().
+#+end_src
+
+*** kill horizontal speed.
 
 This takes about 3° of longitude to bring us to a stop,
 starting from a 10x10km orbit, and costs 566 m/s (as
@@ -308,26 +415,34 @@ After stopping:   560 m/s in poodle
 the remaining fuel is jettisoned with the poodle.
 
 LONGITUDE NOTES:
-- in retrograde orbit, LON is decreasing.
-- at my quicksave, LON is ~150° and we can see Kerbin
+- in retrograde orbit, LNG is decreasing.
+- at my quicksave, LNG is ~150° and we can see Kerbin
 - Mun is tidally locked.
 - Mun longitude 47.436° (East) is directly under kerbin.
-TODO precision landing at specific lon
+TODO precision landing at specific lng
 
 #+begin_src ks
-  mpstat("Finding Landing Site").
-
+  mpstat("Breaking Mun Orbit").
+  mpone({
+    local lng is body:geopositionof(ship:position):lng.
+    llog("decel at lng:           "+fmt(lng,10,6)).
+  }).
   mpadd({
     lock vh to vxcl(body:position,velocity:surface).
     if vh:mag<1 return mpinc().
     lock steering to -vh.
-    lock tef to (10-vang(-vh,facing:vector))/5.
-    lock throttle to limit(0,1,vh:mag/10) * limit(1/100,1,tef).
-  }).
-  mpone({lock throttle to 0. return mpinc(1).}).
+    lock throttle to limit(0,1,vh:mag/10) *
+      limit(1/100,1,(10-vang(-vh,facing:vector))/5).
+    return 1.}).
+#+end_src
 
-  mpdvlog("at 10km over mun landing site").
+*** Allow manual maneuvering on the way down.
 
+#+begin_src ks
+  mpadd({
+    if stage:number>2 { if stage:ready stage. return 1/10. }
+    lock throttle to 0. lock steering to heading(270,90,0).
+    return mpinc(5).}).
 #+end_src
 
 *** mun descent and landing: modified suicide burn
@@ -343,64 +458,113 @@ is needed to arrive at H=0 V=0?
 | A = 0.5 V²/H + G     | and | T = V/(A-G)    |
 
 First time out, the code below touched down like a feather.
-
 Simple Is good.
 
+Allow the flight engineer to control during descent to
+refine the landing site.
+
 #+begin_src ks
-  mpstat("Descent to Mun Surface").
-  mpadd({if stage:number<=2 return mpinc().
-    if stage:ready stage. return 1/10. }).
-  mpone({gear on.}).
-  mpadd({
-    // when do we start the final burn?
-    // allow two seconds for staging
-    // use fixed acceleration that is 90% of initial max
 
-    // base computations on the surface gravity.
+    mpone({
+      putstat("Mun Landing Site Check").
+      local lng is body:geopositionof(ship:position):lng.
+      llog("start descent at lng:   "+fmt(lng,10,6)).
+      unlock steering.
+      unlock throttle.
+      sas on.
+      gear on.
+    lights on.}).
 
-    lock high to agl().
-    if high<1 return mpinc().
+    mpadd({
 
-    lock down to -verticalspeed.
-    lock grav to body:mu / body:radius^2.
+      local grav is body:mu / body:radius^2.
+      local anom is 5.
 
-    lock wacc to 0.5*down^2/high + grav.
+      lock high to agl().
+      if high<1 return mpinc().
 
-    // adjust throttle to keep our current
-    // acceleration equal to wacc.
+      // down: positive is motion downward.
+      lock down to -verticalspeed.
 
-    // cool fact: high ~= 2 * anom * down.
+      // wacc: wanted acceleration
+      lock wacc to 0.5*down^2/high + grav.
 
-    // pick a nice deceleration rate.
-    set anom to 5. 
+      // maxt: current max thrust
+      lock maxt to ship:availablethrust.
 
-    lock maxt to max(eps, ship:availablethrust).
-    lock maxa to maxt/mass.
-    lock tnom to anom/maxa.
-    lock werr to wacc-anom.
-    // 
-    lock thro to limit(0,1,(anom+werr*10)/maxa).
+      // maxa: current max acceleration
+      lock maxa to maxt/mass.
 
-    lock steering to lookdirup(
-      choose srfretrograde:vector if down>10 else -body:position,
-      facing:topvector).
+      // werr: error as we control wacc to converge with anom
+      lock werr to wacc-anom.
 
-    lock throttle to thro.
-    return 1.
-  }).
+      // thro: computed throttle level, 0..1
+      lock thro to limit(0,1,(anom+werr*10)/maxa).
 
-  mpone({
-    lock throttle to 0.
-    lock steering to facing.
-  }).
-  mpdvlog("landed on mun").
+      if sas and thro>1/100 {
+        putstat("Auto-Land Sequence").
+        local lng is body:geopositionof(ship:position):lng.
+        llog("start descent at lng:   "+fmt(lng,10,6)).
+        lock throttle to 0.
+        sas off.
+        lock steering to srfretrograde.
+        gear on. lights on.
+        llog(
+          ","+fmt("high",6,0)+
+          ","+fmt("down",6,1)+
+          ","+fmt("wacc",8,3)+
+          ","+fmt("maxt",8,3)+
+          ","+fmt("maxa",8,3)+
+          ","+fmt("werr",8,3)+
+          ","+fmt("thro",8,3)+
+          "").
+      }
+
+      if not sas {
+        lock steering to lookdirup(
+          choose srfretrograde:vector if down>10 else -body:position,
+          facing:topvector).
+
+        lock throttle to thro *
+          limit(1/100,1,(10-vang(steering:vector,facing:vector))/5).
+
+        llog(""+
+          ","+fmt(high,6,0)+
+          ","+fmt(down,6,1)+
+          ","+fmt(wacc,8,3)+
+          ","+fmt(maxt,8,3)+
+          ","+fmt(maxa,8,3)+
+          ","+fmt(werr,8,3)+
+          ","+fmt(thro,8,3)+
+          ""
+          ).
+      }
+
+    return 1.}).
 #+end_src
 
-
-*** hold on mun until done
+*** Wait on Mun until done
 
 #+begin_src ks
-  mphold_brakes("Release Brakes to Leave MUN").
+  mpone({
+    local lng is body:geopositionof(ship:position):lng.
+    local lng_err is lng - mun_landing_lng.
+    local adj_lead is mun_landing_lng_lead - lng_err.
+
+    llog("at mun landing site: ship is at"+
+      " lat "+fmt(ship:latitude,8,3)+", "+
+      " lng "+fmt(ship:longitude,8,3)).
+
+    llog("if no landing site maneuvering ...").
+    llog("  position error:       "+fmt(lng_err,10,6)).
+    llog("  updated lead:         "+fmt(adj_lead,10,6)).
+
+    lock throttle to 0.
+    lock steering to facing.}).
+
+  mpdvlog("At Mun Landing Site").
+
+  mphold_brakes("Collect Science, Release Brakes").
 #+end_src
 
 *** Leave Mun
