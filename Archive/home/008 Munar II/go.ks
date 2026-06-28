@@ -31,7 +31,6 @@ altitude<body:atm:height
 when altitude>body:atm:height then
 lights on.
 fancystager().
-mphold_brakes("Collect Science, Release Brakes").
 mpstat("Launching Soon").
 mpone({t0put(7-mod(time:seconds,1)).}).
 mpone({bays off.}).
@@ -87,21 +86,13 @@ mpdvlog("in 10x10 over mun").
 mpsw0().
 mppdas().
 mphold_brakes("Release Brakes to start landing").
-local llog is mklogger("landing").
 local mun_landing_lng is nvget(1,"mun_landing_lng", 47.436).
-llog("loading mun_landing_lng "+fmt(mun_landing_lng,10,6)).
-local mun_landing_lng_lead is nvget(1,"mun_landing_lng_lead", 2.879488).
-llog("loading mun_landing_lng_lead "+fmt(mun_landing_lng_lead,10,6)).
+local mun_landing_lng_lead is nvget(1,"mun_landing_lng_lead", 3).
 mpstat("Finding Landing Site").
 mpone({if hasnode {
 local lng is body:geopositionof(posat(nextnode:time)+body:position):lng.
 set mun_landing_lng to nvput(1,"mun_landing_lng", lng).
-llog("update mun_landing_lng "+fmt(mun_landing_lng,10,6)).
 mnclr().}}).
-mpone({
-local lng is body:geopositionof(ship:position):lng.
-llog("want decel at:          "+fmt(mun_landing_lng+mun_landing_lng_lead,10,6)).
-}).
 mpadd({
 local sec_per_deg is 1/(360*(1/orbit:period + 1/body:rotationperiod)).
 local curr_lng is body:geopositionof(ship:position):lng.
@@ -110,10 +101,6 @@ local dt is (lng_to_site - mun_landing_lng_lead) * sec_per_deg.
 return choose swadj(dt) if dt>1 else mpinc(). }).
 mpsw0().
 mpstat("Breaking Mun Orbit").
-mpone({
-local lng is body:geopositionof(ship:position):lng.
-llog("decel at lng:           "+fmt(lng,10,6)).
-}).
 mpadd({
 lock vh to vxcl(body:position,velocity:surface).
 if vh:mag<1 return mpinc().
@@ -125,74 +112,29 @@ mpadd({
 if stage:number>2 { if stage:ready stage. return 1/10. }
 lock throttle to 0. lock steering to heading(270,90,0).
 return mpinc(5).}).
+mpstat("Adjust Landing then Cancel SAS").
 mpone({
-putstat("Mun Landing Site Check").
-local lng is body:geopositionof(ship:position):lng.
-llog("start descent at lng:   "+fmt(lng,10,6)).
-unlock steering.
-unlock throttle.
-sas on.
-gear on.
-lights on.}).
-mpadd({
+unlock steering. unlock throttle.
+sas on. gear on. lights on.}).
+mpadd({if not sas return mpinc().
 local grav is body:mu / body:radius^2.
 local anom is 5.
-lock high to agl().
-if high<1 return mpinc().
-lock down to -verticalspeed.
-lock wacc to 0.5*down^2/high + grav.
-lock maxt to ship:availablethrust.
-lock maxa to maxt/mass.
-lock werr to wacc-anom.
-lock thro to limit(0,1,(anom+werr*10)/maxa).
-if sas and thro>1/100 {
-putstat("Auto-Land Sequence").
-local lng is body:geopositionof(ship:position):lng.
-llog("start descent at lng:   "+fmt(lng,10,6)).
-lock throttle to 0.
-sas off.
-lock steering to srfretrograde.
-gear on. lights on.
-llog(
-","+fmt("high",6,0)+
-","+fmt("down",6,1)+
-","+fmt("wacc",8,3)+
-","+fmt("maxt",8,3)+
-","+fmt("maxa",8,3)+
-","+fmt("werr",8,3)+
-","+fmt("thro",8,3)+
-"").
-}
-if not sas {
-lock steering to lookdirup(
-choose srfretrograde:vector if down>10 else -body:position,
-facing:topvector).
-lock throttle to thro *
-limit(1/100,1,(10-vang(steering:vector,facing:vector))/5).
-llog(""+
-","+fmt(high,6,0)+
-","+fmt(down,6,1)+
-","+fmt(wacc,8,3)+
-","+fmt(maxt,8,3)+
-","+fmt(maxa,8,3)+
-","+fmt(werr,8,3)+
-","+fmt(thro,8,3)+
-""
-).
-}
+local gain is 10.
+local bias is gain*grav -gain*anom +anom.
+local wthr is mass*(bias+0.5*gain*verticalspeed^2/agl()).
+return choose 1 if 100*wthr<ship:availablethrust else mpinc().}).
+mpstat("Auto-Land Sequence").
+mpone({sas off. gear on. lights on.}).
+mpadd({
+if agl()<1/100 or verticalspeed>=0 return mpinc().
+local grav is body:mu / body:radius^2.
+local anom is 5.
+local gain is 10.
+local bias is gain*grav -gain*anom +anom.
+lock steering to lookdirup(srfretrograde:vector-10*body:position:normalized,facing:topvector).
+lock throttle to limit(0,1,(bias+0.5*gain*verticalspeed^2/agl())*mass/ship:availablethrust).
 return 1.}).
-mpone({
-local lng is body:geopositionof(ship:position):lng.
-local lng_err is lng - mun_landing_lng.
-local adj_lead is mun_landing_lng_lead - lng_err.
-llog("at mun landing site: ship is at"+
-" lat "+fmt(ship:latitude,8,3)+", "+
-" lng "+fmt(ship:longitude,8,3)).
-llog("if no landing site maneuvering ...").
-llog("  position error:       "+fmt(lng_err,10,6)).
-llog("  updated lead:         "+fmt(adj_lead,10,6)).
-lock throttle to 0.
-lock steering to facing.}).
+mpone({unlock throttle. unlock steering. SAS ON.}).
 mpdvlog("At Mun Landing Site").
 mphold_brakes("Collect Science, Release Brakes").
 local mun_ret_az is 270.
@@ -201,9 +143,11 @@ mpstat("Leaving Mun").
 mpone({
 nvput(1,"launch_az", mun_ret_az).
 nvput(1,"launch_ap", mun_ret_ap).}).
-mpadd({lock steering to heading(mun_ret_az,90,0). lock throttle to 1.
-if agl()<50 return 1/10.
-gear off. lights on. return mpinc().}).
+mpadd({
+sas off. lights on.
+lock steering to heading(mun_ret_az,90,0). lock throttle to 1.
+return choose 1/10 if agl()<50 else mpinc(). }).
+mpone({gear off.}).
 mpstat("Powered Ascent").
 mpascent(mun_ret_az,mun_ret_ap).
 mpstat("Unpowered Ascent").
