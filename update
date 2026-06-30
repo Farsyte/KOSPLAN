@@ -3,6 +3,10 @@ sscr="$0"
 self=$(basename "$sscr" .sh)
 sdir=$(cd "$(dirname "$sscr")"; env PWD= /bin/pwd)
 cd "$sdir"
-Craft/update
-lit/update
+
+lit/update                      | sed "s/^/$(ts): /"
+
+SFS/update                      | sed "s/^/$(ts): /"
+SPH/update                      | sed "s/^/$(ts): /"
+VAB/update                      | sed "s/^/$(ts): /"
 

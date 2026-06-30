@@ -1,0 +1,16 @@
+#!/bin/bash -
+sscr="$0"
+self=$(basename "$sscr" .sh)
+sdir=$(cd "$(dirname "$sscr")"; env PWD= /bin/pwd)
+cd "$sdir"
+while true
+do
+    for i in 0 1 2 3 4 5 6 7 8 9
+    do
+        lit/update                                              | sed "s/^/$(ts): /"
+        sleep 0.1
+    done
+    SFS/update                                                  | sed "s/^/$(ts): /"
+    SPH/update                                                  | sed "s/^/$(ts): /"
+    VAB/update                                                  | sed "s/^/$(ts): /"
+done

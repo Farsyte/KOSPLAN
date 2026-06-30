@@ -3,5 +3,4 @@ sscr="$0"
 self=$(basename "$sscr" .sh)
 sdir=$(cd "$(dirname "$sscr")"; env PWD= /bin/pwd)
 cd "$sdir"
-SPH/update
-VAB/update
+rsync -au .link/*.craft .       | sed "s/^/$(ts): /"

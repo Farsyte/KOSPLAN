@@ -9,7 +9,7 @@ do
    ks="../Archive/${base}.ks"
    if [ ! -e "$ks" ] || [ "$ks" -ot "$org" ]; then
      # printf '== tangle %s\n' "$org"
-     python ../bin/tangle.py "$org"
+     python ../bin/tangle.py "$org"             | sed "s/^/$(ts): /"
    fi
 done
 boot/update

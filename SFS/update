@@ -3,4 +3,4 @@ sscr="$0"
 self=$(basename "$sscr" .sh)
 sdir=$(cd "$(dirname "$sscr")"; env PWD= /bin/pwd)
 cd "$sdir"
-rsync -au .link/. .
+rsync -au .link/*.sfs .         | sed "s/^/$(ts): /"

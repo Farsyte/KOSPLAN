@@ -1,0 +1,33 @@
+#!/bin/bash -
+
+# set -xeuo pipefail
+
+sscr="$0"
+self=$(basename "$sscr" .sh)
+sdir=$(cd "$(dirname "$sscr")"; env PWD= /bin/pwd)
+cd "$sdir"/..
+
+find . -type l -print0 | xargs -0 /bin/rm -f
+
+# Kerbal Space Program can be linux-native
+# but I'm running the Windows version under Proton.
+
+(
+ln -sv "${HOME}/.steam/debian-installation/steamapps/"          .link-steamapps
+ln -sv ".link-steamapps/common/Kerbal Space Program/"           .link-ksp
+ln -sv ".link-ksp/saves/20260621"                               .link-saves
+
+ln -sv "../.link-saves/"                                        SFS/.link
+ln -sv "../.link-saves/Ships/SPH/"                              SPH/.link
+ln -sv "../.link-saves/Ships/VAB/"                              VAB/.link
+) | tr -d "'" | sed "s/ -> /|/" | column -s "|" -t | sed 's/^/    /'
+
+exit 0
+
+output:
+    .link-steamapps  /home/glimes/.steam/debian-installation/steamapps/
+    .link-ksp        .link-steamapps/common/Kerbal Space Program/
+    .link-saves      .link-ksp/saves/20260621
+    SFS/.link        ../.link-saves/
+    SPH/.link        ../.link-saves/Ships/SPH/
+    VAB/.link        ../.link-saves/Ships/VAB/
