@@ -15,7 +15,7 @@ find . -type l -print0 | xargs -0 /bin/rm -f
 (
 ln -sv "${HOME}/.steam/debian-installation/steamapps/"          .link-steamapps
 ln -sv ".link-steamapps/common/Kerbal Space Program/"           .link-ksp
-ln -sv ".link-ksp/saves/20260621"                               .link-saves
+ln -sv ".link-ksp/saves/20260630"                               .link-saves
 
 ln -sv "../.link-saves/"                                        SFS/.link
 ln -sv "../.link-saves/Ships/SPH/"                              SPH/.link
@@ -27,7 +27,7 @@ exit 0
 output:
     .link-steamapps  /home/glimes/.steam/debian-installation/steamapps/
     .link-ksp        .link-steamapps/common/Kerbal Space Program/
-    .link-saves      .link-ksp/saves/20260621
+    .link-saves      .link-ksp/saves/20260630
     SFS/.link        ../.link-saves/
     SPH/.link        ../.link-saves/Ships/SPH/
     VAB/.link        ../.link-saves/Ships/VAB/

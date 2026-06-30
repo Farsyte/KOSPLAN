@@ -3,4 +3,16 @@ sscr="$0"
 self=$(basename "$sscr" .sh)
 sdir=$(cd "$(dirname "$sscr")"; env PWD= /bin/pwd)
 cd "$sdir"
-rsync -au .link/*.sfs .         | sed "s/^/$(ts): /"
+
+for cf in .link/*.sfs
+do
+    bn=$(basename "$cf" .sfs)
+    sf=.link/"$bn".sfs
+    df="$bn".sfs
+    [ -f  "$sf" ] || continue
+    if [ "$sf" -nt "$df" ]
+    then
+        cp -pf "$sf" "$df"
+        ts SFS: "$bn"
+    fi
+done

@@ -23,10 +23,13 @@ def tangleto(rd, wrname):
             cc += len(line)+1
 
 def tangle(rdname):
+    rdfile = Path(rdname)
+    if not rdfile.is_file():
+        return
     wrname = ""
     wrsize = 0
     ppfx = "#+PROPERTY: header-args :tangle "
-    with open(rdname, 'r') as rd:
+    with rdfile.open() as rd:
         for line in rd:
             if not line: break
             line = line.strip()

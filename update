@@ -4,9 +4,9 @@ self=$(basename "$sscr" .sh)
 sdir=$(cd "$(dirname "$sscr")"; env PWD= /bin/pwd)
 cd "$sdir"
 
-lit/update                      | sed "s/^/$(ts): /"
+lit/update
 
-SFS/update                      | sed "s/^/$(ts): /"
-SPH/update                      | sed "s/^/$(ts): /"
-VAB/update                      | sed "s/^/$(ts): /"
+SFS/update
+SPH/update
+VAB/update
 
