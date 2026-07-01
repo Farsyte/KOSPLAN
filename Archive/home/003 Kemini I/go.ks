@@ -5,7 +5,6 @@ import("simple").
 import("ascent").
 import("aero").
 set go to {
-brakes off.
 fancystager().
 mphold_thrust().
 mplaunch().

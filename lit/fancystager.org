@@ -2,6 +2,7 @@
 #+PROPERTY: header-args :tangle ../Archive/fancystager.ks
 
 fancystager.ks - fancy auto-stager
+
 * Supports ONION staging.
 
 * Launch Clamps just work.
@@ -18,19 +19,28 @@ on where it is best to deploy the shell.
 
 #+begin_src ks
   import("mp").
+  import("sw").
+  import("fmt").
   import("time").
+  import("logger").
 #+end_src
 
-** Initialize parts lists
+* Package Data
 
-*** lol: helper function to set up a list of N lists.
+** log_stager: logging function
+
+#+begin_src ks
+  local log_stager is mklogger("fancystager").
+#+end_src
+
+** lol: helper function to set up a list of N lists.
 
 #+begin_src ks
   local lol is { parameter n. local res is list().
   until res:length >= n res:add(list()). return res. }.
 #+end_src
 
-*** loe: list of engines for stages 0 through stage:number
+** loe: list of engines for stages 0 through stage:number
 
 Specifically, loe[N] is the list of engines that
 are DECOUPLED when we move to stage N.
@@ -42,24 +52,39 @@ are DECOUPLED when we move to stage N.
       loe[en:decoupledin]:add(en).
 #+end_src
 
-*** lot: list of fuel resources for stages 0 through stage:number
+** lolf: list of liquid fuel resources for stages 0 through stage:number
 
-Specifically, lot[N] is the list of (part,resource)
+Specifically, lolf[N] is the list of (part,resource)
 pairs for all parts containing Liquid Fuel that are
 DECOUPLED when we move to stage N.
 
 #+begin_src ks
-  local lot is lol(stage:number+1).
+  local lolf is lol(stage:number+1).
   for p in ship:parts
     if p:decoupledin>=0
       for res in p:resources
         if res:name="LiquidFuel"
-          lot[p:decoupledin]:add(list(p,res)).
+          lolf[p:decoupledin]:add(list(p,res)).
 #+end_src
 
-*** lof: list of farings for stages 0 through stage:number
+** loox: list of oxidizer resources for stages 0 through stage:number
 
-Specifically, lot[N] is the list of Parts associated
+Specifically, loox[N] is the list of (part,resource)
+pairs for all parts containing Oxidizer that are
+DECOUPLED when we move to stage N.
+
+#+begin_src ks
+  local loox is lol(stage:number+1).
+  for p in ship:parts
+    if p:decoupledin>=0
+      for res in p:resources
+        if res:name="Oxidizer"
+          loox[p:decoupledin]:add(list(p,res)).
+#+end_src
+
+** lof: list of farings for stages 0 through stage:number
+
+Specifically, lolf[N] is the list of Parts associated
 with stage N that have LaunchClamp modules.
 
 #+begin_src ks
@@ -110,6 +135,9 @@ fuel remains in any of the tanks.
 
 *** All engines must be flamed out
 
+If any engine that would be discarded by staging
+is still running (not flamed out), do not stage.
+
 #+begin_src ks
   for en in loe[stage:number-1]
     if not en:flameout return true.
@@ -117,20 +145,79 @@ fuel remains in any of the tanks.
 
 *** All resources must be effectively exhausted
 
-Our engines burn both Liquid Fuel and Ozidizer, and
-the fuel tanks have them in the right ratio, but when
-the engine flames out there may be a very small amount
-of Liquid Fuel remaining in the tank.
+This is aimed at Onion Staging configurations, where
+tanks jettisoned on one stage are feeding engines
+jettisoned on a higher stage.
 
-NOTE: Rockomax X200-8 have 0.0119 when empty.
+These tanks do not always drain to exactly zero,
+
+Tanks containing Liquid Fuel and Oxidizer need to
+be "effectively" drained -- that is, low enough that
+the engines they feed would be flamed out, if these
+tanks were their only fuel source.
+
+Nonzero thresholds observed:
+
+- Kemini I Stage 2, "Swivel" engine drawing from 3xFL-T400,
+  total of 0.0035 LF and 0.0043 OX remains in all tanks.
+
+It might be more correct to chase down all engines that
+are currently active and base the threshold on their fuel
+flow rates, but a fixed threshold Should Work Fine.
 
 #+begin_src ks
-  for pr in lot[stage:number-1]
-    if pr[1]:amount>0.02 return true.
+  local tlf is 0.
+  for pr in lolf[stage:number-1]
+    set tlf to tlf + pr[1]:amount.
+#+end_src
+
+#+begin_src ks
+  local tox is 0.
+  for pr in loox[stage:number-1]
+    set tox to tox + pr[1]:amount.
+#+end_src
+
+#+begin_src ks
+  for pr in lolf[stage:number-1]
+    log_stager("observed "+
+      fmt(pr[1]:amount,8,4)+" "+
+      pr[1]:name+" in "+pr[0]:title).
+  for pr in loox[stage:number-1]
+    log_stager("observed "+
+      fmt(pr[1]:amount,8,4)+" "+
+      pr[1]:name+" in "+pr[0]:title).
+  log_stager("total "+
+    fmt(tlf,8,4)+" lf, "+
+    fmt(tox,8,4)+" ox "+
+    "in stage "+stage:number).
+#+end_src
+
+#+begin_src ks
+  if tlf>0.01 and tox>0.01 return true.
+#+end_src
+
+*** DO NOT STAGE WHILE WARPING.
+
+If we get here, we really do want to stage.
+
+If we are in TIMEWARP when it comes time to stage,
+cancel timewarp, wait for it to settle, wait for the
+steering to settle, then wait for one more second for
+good measure. Staging just after coming out of timewarp
+when we may be rotating rapidly would risk damaging
+things that need to not be damaged.
+
+#+begin_src ks
+  if warp>0 set warp to 0.
+  if not kuniverse:timewarp:issettled {
+    wait until kuniverse:timewarp:issettled.
+    wait until vang(steering:vector,facing:vector)<5.
+    wait 1.}
 #+end_src
 
 *** Trigger staging, and keep the job running.
 
 #+begin_src ks
+  log_stager("staging from stage "+stage:number).
   stage. return true. }}.
 #+end_src

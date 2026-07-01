@@ -1,4 +1,5 @@
 import("agl").
+import("bt").
 import("fmt").
 import("mp").
 import("nv").
@@ -41,28 +42,32 @@ lock throttle to max(0,min(1,(2-eta:apoapsis/lead))) *
 max(1/100,min(1,1-vang(steering:vector,prograde:vector)/5)).
 return 1.}).
 mpone({ lock throttle to 0. lock steering to prograde.}).}.
-set mpcirchere to { parameter toll is 100.
+set mpcirchere to {
 mpadd({
-if periapsis>apoapsis-toll return mpinc().
-if ship:availablethrust<=0 return 1/10.
-lock fwd to
-vxcl(body:position,prograde:vector).
-lock vc to
+if apoapsis-periapsis<100 or verticalspeed<=0 return mpinc().
+local vc is sqrt(body:mu/body:position:mag).
+local dv is vxcl(body:position,velocity:orbit):normalized * vc - velocity:orbit.
+if dv:mag < 1 return mpinc().
+local hbt is bt(dv:mag/2).
+if hbt < 1/10 return mpinc().
+local ttb is eta:apoapsis - hbt.
+if ttb < 1/10 return mpinc().
+return limit(0,5,ttb). }).
+mpadd({
+if apoapsis-periapsis<100 return mpinc().
+lock mpch_vc to
+vxcl(body:position,velocity:orbit):normalized *
 sqrt(body:mu/body:position:mag).
-lock dv to
-fwd:normalized*vc - velocity:orbit.
-lock maxa to
-ship:availablethrust/mass.
-lock cthr to
-sqrt(dv:mag/maxa).
-lock eang to
-vang(steering:vector,prograde:vector).
-lock steering to
-lookdirup(dv, facing:topvector).
+lock mpch_dv to mpch_vc - velocity:orbit.
+if mpch_dv:mag < 1 return mpinc().
+lock steering to lookdirup(mpch_dv, facing:topvector).
+if ship:availablethrust<=0 return 1/10.
 lock throttle to
-limit(0,1,cthr) * limit(0,1,2-eang/5).
+limit(0,1,sqrt(5*mpch_dv:mag*mass/ship:availablethrust)) *
+limit(0,1,2-vang(steering:vector,facing:vector)/5).
 return 1.}).
-mpone({ lock throttle to 0. lock steering to prograde.}).}.
+mpone({
+lock throttle to 0. lock steering to prograde.}).}.
 set mppdab to { mpadd({ lock throttle to 0. bays on. lights on.
 lock steering to lookdirup(vcrs(body:position,ship:velocity:orbit),-body:position).
 local fa is vang(facing:forevector,steering:forevector).

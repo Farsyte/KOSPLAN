@@ -5,16 +5,15 @@ import("simple").
 import("ascent").
 import("aero").
 set go to {
-brakes off.
 fancystager().
 mphold_thrust().
 mplaunch().
 mpstat("Powered Ascent").
-mpascent(355,72000).
+mpascent(355,80000).
 mpstat("Unpowered Ascent").
 mpcoast().
 mpstat("Circularizing").
-mpsimplecirc().
+mpcirchere().
 mpstat("Science Orbit").
 mppdab().
 mphold_brakes().

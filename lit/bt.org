@@ -1,7 +1,7 @@
 #+PROPERTY: header-args :results none
 #+PROPERTY: header-args :tangle ../Archive/bt.ks
 
-sbt - burn time computation
+bt - burn time computation
 
 * Import All Dependencies
 

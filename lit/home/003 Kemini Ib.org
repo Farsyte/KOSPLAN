@@ -1,0 +1,94 @@
+#+PROPERTY: header-args :results none
+#+PROPERTY: header-args :tangle ../../Archive/home/003 Kemini Ib/go.ks
+
+go.ks -- GO script for the Kemini Ib aka Polar Express
+
+This script manages the flight of the Kemini Ib, which is
+less simple.
+
+This is just like Kemini I but with a different ascent
+path and resulting orbit.
+
+
+* Import Required Packages
+
+#+begin_src ks
+  import("mp").
+  import("hold").
+  import("fancystager").
+  import("simple").
+  import("ascent").
+  import("aero").
+#+end_src
+
+* Provide a GO function.
+
+This function is executed by IMPORT when it
+finds nothing more specific for this mission.
+
+#+begin_src ks
+  set go to {
+#+end_src
+
+** Start an autostager in the background
+
+#+begin_src ks
+  fancystager().
+#+end_src
+
+** Define Mission Phases
+
+*** hold on pad until we have thrust, then launch
+
+#+begin_src ks
+  mphold_thrust().
+  mplaunch().
+#+end_src
+
+*** control pitch and heading until apoapsis is high enough
+
+#+begin_src ks
+  mpstat("Powered Ascent").
+  mpascent(355,80000).
+#+end_src
+
+*** coast until above atmosphere.
+
+#+begin_src ks
+  mpstat("Unpowered Ascent").
+  mpcoast().
+#+end_src
+
+*** circularize at apoapsis.
+
+TODO: start when eta is the burn time for
+half of the delta-v needed to circularize.
+
+#+begin_src ks
+  mpstat("Circularizing").
+  mpcirchere().
+#+end_src
+
+*** gather science in orbit.
+
+#+begin_src ks
+  mpstat("Science Orbit").
+  mppdab().
+  mphold_brakes().
+#+end_src
+
+*** Perform an aerobraking-to-parachute-landing sequence.
+
+#+begin_src ks
+  mpaero().
+#+end_src
+
+After re-entry burn, 457 m/s available.
+
+* Run the Mission, then End the Program.
+
+#+begin_src ks
+  mprun(). print "program terminated".}.
+#+end_src
+
+

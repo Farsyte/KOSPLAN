@@ -14,7 +14,11 @@ mpstat("Configure for Aerobraking").
 mpadd({if stage:number=0 return mpinc().
 lock steering to srfretrograde.
 if not stage:ready return 1/100.
-stage. return 1/10.}).
+if warp>0 set warp to 0.
+if not kuniverse:timewarp:issettled {
+wait until kuniverse:timewarp:issettled.
+wait until vang(steering:vector,facing:vector)<5.
+wait 1.} stage. return 1/10.}).
 mpstat("Aerobraking").
 mpadd({if alt:radar<5000 return mpinc().
 lock steering to srfretrograde. return 1/100.}).
