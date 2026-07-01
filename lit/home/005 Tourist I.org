@@ -1,0 +1,80 @@
+#+PROPERTY: header-args :results none
+#+PROPERTY: header-args :tangle ../../Archive/home/005 Tourist I/go.ks
+
+go.ks -- GO script for Tourist I aka The Space Taxi
+
+This script manages the flight of the Tourist I, which is
+less simple.
+
+Verified on *20260621* booted from boot/local
+
+* Import Required Packages
+
+#+begin_src ks
+  import("mp").
+  import("mnpro").
+  import("hold").
+  import("aero").
+  import("fancystager").
+  import("ascent").
+  import("simple").
+#+end_src
+
+* Provide a GO function.
+
+This function is executed by IMPORT when it
+finds nothing more specific for this mission.
+
+#+begin_src ks
+  set go to {
+#+end_src
+
+** Start an autostager in the background
+
+#+begin_src ks
+  fancystager().
+#+end_src
+
+** Define Mission Phases
+
+*** launch immediately.
+
+#+begin_src ks
+  mpone({bays off.}). // just in case.
+  mplaunch().
+#+end_src
+
+*** control pitch and heading until apoapsis is high enough
+
+#+begin_src ks
+  mpstat("Powered Ascent").
+  mpascent(90,80000).
+#+end_src
+
+*** coast until above atmosphere.
+
+#+begin_src ks
+  mpstat("Unpowered Ascent").
+  mpcoast().
+#+end_src
+
+*** circularize at apoapsis.
+
+#+begin_src ks
+  mpstat("Circularizing").
+  mpcirchere().
+#+end_src
+
+*** YOINK time to come home.
+
+#+begin_src ks
+  mpone({bays on.}).              // adds aero stability
+  mpaero().
+#+end_src
+
+* Run the Mission, then End the Program.
+
+ #+begin_src ks
+   mprun(). print "program terminated".}.
+#+end_src
+
