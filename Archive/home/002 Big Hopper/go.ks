@@ -18,6 +18,10 @@ mpadd({ if verticalspeed<=0 or altitude>=h1 return mpinc().
 lock steering to heading(az,po,0).
 lock throttle to 0.
 return 1/10. }).
+mpadd({ if altitude<70000 return mpinc().
+lock steering to heading(az,po,0).
+lock throttle to 0.
+return 1/10. }).
 mpstat("Prepare for Descent").
 mpadd({ if not stage:ready return 1/10.
 lock steering to heading(az,90,0).
